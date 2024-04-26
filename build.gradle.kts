@@ -4,6 +4,8 @@ val logback_version: String by project
 
 plugins {
     kotlin("jvm") version "1.9.23"
+    id("io.ktor.plugin") version "2.3.10"
+    kotlin("plugin.serialization") version "1.9.0"
     application
 }
 
@@ -17,24 +19,14 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
-repositories {
-    mavenCentral()
-    maven {
-        url = uri("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-        name = "Ktor EAP"
-    }
-    maven {
-        url = uri("https://jitpack.io")
-        name = "JitPack"
-    }
-}
-
 dependencies {
-    implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
-    implementation("io.ktor:ktor-server-netty:$ktor_version")
+    implementation("io.ktor:ktor-server-core-jvm")
+    implementation("io.ktor:ktor-server-content-negotiation-jvm")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
+    implementation("io.ktor:ktor-server-netty-jvm")
+    implementation("io.ktor:ktor-server-websockets")
     implementation("ch.qos.logback:logback-classic:$logback_version")
-    testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
+    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation("com.github.kr8ne:NineMensMorris:2a9ff19336")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")

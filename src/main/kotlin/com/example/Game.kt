@@ -1,5 +1,6 @@
 package com.example
 
+import com.kr8ne.mensMorris.GameState
 import com.kr8ne.mensMorris.Position
 import com.kr8ne.mensMorris.gameStartPosition
 import com.kr8ne.mensMorris.move.Movement
@@ -7,50 +8,43 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class Game(val ip1: String, val ip2: String) {
-    fun getPosition(): String {
-        val pos = PositionShare(position.positions, position.freePieces, position.pieceToMove, position.removalCount)
-        return Json.encodeToString(pos)
-    }
-
-    fun applyMove(move: Movement, ip: String): Response {
-        if (!canPerformMove(ip)) {
-            return Response.IllegalTiming
-        }
-        if (!position.generateMoves(0u, true).contains(move)) {
-            return Response.IllegalMove
-        }
-        position = move.producePosition(position)
-        return Response.Success
-    }
-
-    private fun canPerformMove(ip: String): Boolean {
-        if (position.pieceToMove && ip == ip1) {
-            return true
-        }
-        if (!position.pieceToMove && ip == ip2) {
-            return true
-        }
-        return false
-    }
-
+class GameData() {
     var position: Position = gameStartPosition
-}
+    fun getPosition(): String {
+        val pos = PositionAdapter(position.positions, position.freePieces, position.pieceToMove, position.removalCount)
+        val result = Json.encodeToString(pos)
+        return result
+    }
 
-enum class Response {
-    IllegalTiming,
-    IllegalMove,
-    Success
+    fun applyMove(move: Movement) {
+        position = move.producePosition(position)
+    }
+
+    fun hasEnded(): Boolean {
+        return position.gameState() == GameState.End
+    }
 }
 
 @Serializable
-data class PositionShare(
+data class PositionAdapter(
     @Serializable
-    var positions: Array<Boolean?>,
+    val positions: Array<Boolean?>,
     @Serializable
-    var freePieces: Pair<UByte, UByte> = Pair(0U, 0U),
+    val freePieces: Pair<UByte, UByte> = Pair(0U, 0U),
     @Serializable
-    var pieceToMove: Boolean,
+    val pieceToMove: Boolean,
     @Serializable
-    var removalCount: Byte = 0
+    val removalCount: Byte = 0
 )
+
+@Serializable
+data class MovementAdapter(
+    @Serializable
+    val startIndex: Int?,
+    @Serializable
+    val endIndex: Int?
+)
+
+fun MovementAdapter.toMovement(): Movement {
+    return Movement(startIndex, endIndex)
+}
