@@ -8,6 +8,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import java.util.*
@@ -36,24 +37,24 @@ fun Application.configureRouting() {
                 enemy.session.send(gameData.id.toString())
             }
             webSocket("/game-{id}") {
-                try {
-                    val id = call.parameters["id"]?.toLong()
-                    val game = games[id]!!
-                    for (frame in incoming) {
-                        if (frame is Frame.Text) {
-                            val move = Json.decodeFromString<MovementAdapter>(frame.readText()).toMovement()
-                            game.gamePos.applyMove(move)
-                            game.firstUser.session.send(game.gamePos.getPosition())
-                            game.secondUser.session.send(game.gamePos.getPosition())
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                val id = call.parameters["id"]?.toLong()
+                val game = games[id]!!
+                incoming.consumeEach { frame ->
+                    if (frame !is Frame.Text)
+                        return@consumeEach
+                    val move = Json.decodeFromString<MovementAdapter>(frame.readText()).toMovement()
+                    game.firstUser.session.send("2")
+                    game.secondUser.session.send("1")
+//                    game.gamePos.applyMove(move)
+//                    game.firstUser.session.send(game.gamePos.getPosition())
+//                    game.secondUser.session.send(game.gamePos.getPosition())
                 }
+                close(CloseReason(400, "wtf"))
             }
         }
     }
 }
+
 //{"startIndex":null,"endIndex":5}
 class Connection(var id: Long = atomicUserId.incrementAndGet(), val session: DefaultWebSocketSession) {
 }
