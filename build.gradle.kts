@@ -30,4 +30,5 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation("com.github.kr8ne:NineMensMorris:2a9ff19336")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
+    implementation("at.favre.lib:bcrypt:0.10.2")
 }
