@@ -19,7 +19,7 @@ fun Application.module() {
     configureWebSockets()
     configureSerialization()
     configureRouting()
-    configureAuthentication()
+    //configureAuthentication()
 }
 
 fun Application.configureAuthentication() {
@@ -33,7 +33,6 @@ fun Application.configureWebSockets() {
         pingPeriod = Duration.ofSeconds(15)
         timeout = Duration.ofSeconds(15)
         maxFrameSize = Long.MAX_VALUE
-        masking = false
     }
 }
 

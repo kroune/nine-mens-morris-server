@@ -36,3 +36,4 @@ out/
 .vscode/
 /gradlew
 /gradlew.bat
+/data

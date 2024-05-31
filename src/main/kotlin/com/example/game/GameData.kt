@@ -1,15 +1,16 @@
-package com.example
+package com.example.game
 
 import com.kr8ne.mensMorris.GameState
 import com.kr8ne.mensMorris.Position
 import com.kr8ne.mensMorris.gameStartPosition
 import com.kr8ne.mensMorris.move.Movement
+import io.ktor.websocket.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class GameData() {
-    var position: Position = gameStartPosition
+class GameData(private val firstUser: Connection, private val secondUser: Connection) {
+    private var position: Position = gameStartPosition
     fun getPosition(): String {
         val pos = PositionAdapter(position.positions, position.freePieces, position.pieceToMove, position.removalCount)
         val result = Json.encodeToString(pos)
@@ -20,10 +21,20 @@ class GameData() {
         position = move.producePosition(position)
     }
 
+    suspend fun notifyAboutChanges() {
+        firstUser.session.send(getPosition())
+        secondUser.session.send(getPosition())
+    }
+
     fun hasEnded(): Boolean {
         return position.gameState() == GameState.End
     }
+
+    fun isValidJwtToken(jwtToken: String): Boolean {
+        return firstUser.jwtToken == jwtToken || secondUser.jwtToken == jwtToken
+    }
 }
+
 
 @Serializable
 data class PositionAdapter(
@@ -48,3 +59,6 @@ data class MovementAdapter(
 fun MovementAdapter.toMovement(): Movement {
     return Movement(startIndex, endIndex)
 }
+
+//{"startIndex":null,"endIndex":5}
+class Connection(var jwtToken: String, val session: DefaultWebSocketSession)

@@ -1,32 +1,29 @@
 package com.example.plugins
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
-import com.example.GameData
-import com.example.MovementAdapter
 import com.example.Users
-import com.example.toMovement
+import com.example.game.GameData
+import com.example.game.Games
+import com.example.game.MovementAdapter
+import com.example.game.toMovement
 import io.ktor.http.*
+import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
-import java.time.Duration
 import java.util.*
-import java.util.concurrent.atomic.AtomicLong
 
-val games: MutableMap<Long, Game> = Collections.synchronizedMap(mutableMapOf<Long, Game>())
-val usersSearchingForGame: Queue<Connection> = LinkedList()
-val atomicGameId = AtomicLong(0)
+val usersSearchingForGame: Queue<com.example.game.Connection> = LinkedList()
 
 fun Application.configureRouting() {
     routing {
         get("/") {
-            call.respondText("Hello, world1!")
+            call.respondText("Hello, world!")
         }
         route("/api/v1/user/") {
             /**
@@ -48,7 +45,8 @@ fun Application.configureRouting() {
                 }
                 try {
                     val bdCall = Users.login(login, password)
-                    call.respond(HttpStatusCode.OK, bdCall)
+                    println(bdCall)
+                    call.respondText(bdCall)
                 } catch (e: IllegalStateException) {
                     call.respond(HttpStatusCode.Unauthorized)
                     println("error logging in")
@@ -68,7 +66,8 @@ fun Application.configureRouting() {
                 println("password - $password")
                 try {
                     val bdCall = Users.login(login, password)
-                    call.respond(HttpStatusCode.OK, bdCall)
+                    println(bdCall)
+                    call.respondText(bdCall)
                 } catch (e: IllegalStateException) {
                     call.respond(HttpStatusCode.Unauthorized)
                     println("error logging in")
@@ -77,45 +76,76 @@ fun Application.configureRouting() {
                 }
                 println("operation end")
             }
-            webSocket("/search-for-game") {
-                val jwtToken = this.incoming.receive().data.toString()
+            get("is-playing") {
+                val jwtToken = call.parameters["jwtToken"]!!
                 val checkResult = Users.checkJWTToken(jwtToken)
                 if (!checkResult) {
-                    call.respondText { "incorrect cookie" }
+                    call.respondText { "incorrect jwt token" }
+                    println("jwt token check failed")
+                    return@get
                 }
-                val thisConnection = Connection(jwtToken, this)
-                usersSearchingForGame.add(thisConnection)
-                while (usersSearchingForGame.size < 2) {
-                    delay(5000L)
-                }
-                val enemy = usersSearchingForGame.first { it.cookie != thisConnection.cookie }
-                val gameData = Game(thisConnection, enemy)
-                games[gameData.id] = gameData
-                // send game id to 2 players
-                thisConnection.session.send(gameData.id.toString())
-                enemy.session.send(gameData.id.toString())
+                call.respondText { Games.gameId(jwtToken).toString() }
             }
-            webSocket("/game-{id}") {
-                val id = call.parameters["id"]?.toLong()
-                val game = games[id]!!
+            webSocket("/search-for-game") {
+                val jwtToken = call.parameters["jwtToken"]!!
+                val checkResult = Users.checkJWTToken(jwtToken)
+                if (!checkResult) {
+                    call.respondText { "incorrect jwt token" }
+                    println("jwt token check failed")
+                    close()
+                    return@webSocket
+                }
+                if (usersSearchingForGame.any { it.jwtToken == jwtToken }) {
+                    call.respondText { "you are already searching for game" }
+                    println("already searching for game")
+                    close()
+                    return@webSocket
+                }
+                val thisConnection = com.example.game.Connection(jwtToken, this)
+                usersSearchingForGame.add(thisConnection)
+                println("new connection")
+                try {
+                    while (usersSearchingForGame.size < 2) {
+                        delay(3000L)
+                    }
+                    println("found enemy")
+                    val enemy = usersSearchingForGame.first { it.jwtToken != thisConnection.jwtToken }
+                    val id = Games.createGame(thisConnection, enemy)
+                    // send game id to 2 players
+                    thisConnection.session.send(id.toString())
+                    enemy.session.send(id.toString())
+                    close()
+                } catch (e: ClosedReceiveChannelException) {
+                    println("remove connection")
+                    usersSearchingForGame.remove(thisConnection)
+                }
+            }
+            webSocket("/game") {
+                val jwtToken = call.parameters["jwtToken"]!!
+                val id = call.parameters["id"]!!.toLong()
+                val game = Games.getGame(id)
+                if (game == null) {
+                    call.respondText { "incorrect game id" }
+                    close()
+                    return@webSocket
+                }
+                if (!game.isValidJwtToken(jwtToken)) {
+                    call.respondText { "incorrect jwt token" }
+                    close()
+                    return@webSocket
+                }
+                println("game accessed")
                 incoming.consumeEach { frame ->
                     if (frame !is Frame.Text) return@consumeEach
                     val move = Json.decodeFromString<MovementAdapter>(frame.readText()).toMovement()
-                    game.gamePos.applyMove(move)
-                    game.firstUser.session.send(game.gamePos.getPosition())
-                    game.secondUser.session.send(game.gamePos.getPosition())
+                    println("new move")
+                    game.applyMove(move)
+                    game.notifyAboutChanges()
                 }
             }
         }
     }
 }
 
-val SECRET = "secret"
+val SECRET = "secretToken"
 
-//{"startIndex":null,"endIndex":5}
-class Connection(var cookie: String, val session: DefaultWebSocketSession)
-
-class Game(val firstUser: Connection, val secondUser: Connection) {
-    var id: Long = atomicGameId.incrementAndGet()
-    val gamePos = GameData()
-}

@@ -3,12 +3,21 @@ package com.example
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.example.plugins.SECRET
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.File
 import java.time.Duration
 import java.util.*
 
 
 object Users {
     private val users = Collections.synchronizedList<User>(mutableListOf())
+    init {
+        val file = File("data")
+        val data = file.readText()
+        users.addAll(Json.decodeFromString<List<User>>(data))
+    }
     fun checkJWTToken(jwtToken: String): Boolean {
         return users.any {
             it.jwtToken == jwtToken
@@ -34,15 +43,21 @@ object Users {
         }
         val cookie = createJWTToken(login, password)
         users.add(User(login, cookie))
+        store()
     }
 
+    private fun store() {
+        // this is top level security
+        val file = File("data")
+        val text = Json.encodeToString(users)
+        file.writeText(text)
+    }
     fun login(login: String, password: String): String {
         if (!checkLoginData(login, password)) {
             error("cookie isn't present")
         }
         val token = createJWTToken(login, password)
-        val test = JWT.decode(token)
-        println(test)
+        println(token)
         return token
     }
 
@@ -56,4 +71,5 @@ object Users {
     }
 }
 
-class User(val login: String, val jwtToken: String)
+@Serializable
+data class User(@Serializable val login: String, @Serializable val jwtToken: String)
