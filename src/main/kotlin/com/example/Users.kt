@@ -13,14 +13,18 @@ import java.util.*
 
 object Users {
     private val users = Collections.synchronizedList<User>(mutableListOf())
+
     init {
         val file = File("data")
         val data = file.readText()
         users.addAll(Json.decodeFromString<List<User>>(data))
     }
+
     fun checkJWTToken(jwtToken: String): Boolean {
+        // we CAN'T directly compare jwt tokens
         return users.any {
-            it.jwtToken == jwtToken
+            JWT.decode(it.jwtToken).claims["login"]?.asString() == JWT.decode(jwtToken).claims["login"]?.asString() &&
+                    JWT.decode(it.jwtToken).claims["password"]?.asString() == JWT.decode(jwtToken).claims["password"]?.asString()
         }
     }
 
@@ -52,6 +56,7 @@ object Users {
         val text = Json.encodeToString(users)
         file.writeText(text)
     }
+
     fun login(login: String, password: String): String {
         if (!checkLoginData(login, password)) {
             error("cookie isn't present")

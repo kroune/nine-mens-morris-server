@@ -16,6 +16,7 @@ import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
+import java.net.SocketException
 import java.util.*
 
 val usersSearchingForGame: Queue<com.example.game.Connection> = LinkedList()
@@ -79,6 +80,7 @@ fun Application.configureRouting() {
             get("is-playing") {
                 val jwtToken = call.parameters["jwtToken"]!!
                 val checkResult = Users.checkJWTToken(jwtToken)
+                println()
                 if (!checkResult) {
                     call.respondText { "incorrect jwt token" }
                     println("jwt token check failed")
@@ -115,14 +117,14 @@ fun Application.configureRouting() {
                     thisConnection.session.send(id.toString())
                     enemy.session.send(id.toString())
                     close()
-                } catch (e: ClosedReceiveChannelException) {
+                } catch (e: SocketException) {
                     println("remove connection")
                     usersSearchingForGame.remove(thisConnection)
                 }
             }
             webSocket("/game") {
                 val jwtToken = call.parameters["jwtToken"]!!
-                val id = call.parameters["id"]!!.toLong()
+                val id = call.parameters["gameId"]!!.toLong()
                 val game = Games.getGame(id)
                 if (game == null) {
                     call.respondText { "incorrect game id" }
@@ -148,4 +150,3 @@ fun Application.configureRouting() {
 }
 
 val SECRET = "secretToken"
-
