@@ -1,5 +1,6 @@
 package com.example.game
 
+import io.ktor.server.websocket.*
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
@@ -22,5 +23,11 @@ object Games {
 
     fun gameId(jwtToken: String): Long? {
         return map[jwtToken]
+    }
+
+    fun updatedSession(id: Long, jwtToken: String, session: DefaultWebSocketServerSession) {
+        val game = games[id] ?: return
+        game.updateSession(jwtToken, session)
+        games[id] = game
     }
 }

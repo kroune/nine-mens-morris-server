@@ -4,6 +4,7 @@ import com.kr8ne.mensMorris.GameState
 import com.kr8ne.mensMorris.Position
 import com.kr8ne.mensMorris.gameStartPosition
 import com.kr8ne.mensMorris.move.Movement
+import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -30,8 +31,18 @@ class GameData(private val firstUser: Connection, private val secondUser: Connec
         return position.gameState() == GameState.End
     }
 
+
     fun isValidJwtToken(jwtToken: String): Boolean {
         return firstUser.jwtToken == jwtToken || secondUser.jwtToken == jwtToken
+    }
+
+    fun updateSession(jwtToken: String, session: DefaultWebSocketServerSession) {
+        if (firstUser.jwtToken == jwtToken) {
+            firstUser.session = session
+        }
+        if (secondUser.jwtToken == jwtToken) {
+            secondUser.session = session
+        }
     }
 }
 
@@ -61,4 +72,4 @@ fun MovementAdapter.toMovement(): Movement {
 }
 
 //{"startIndex":null,"endIndex":5}
-class Connection(var jwtToken: String, val session: DefaultWebSocketSession)
+class Connection(var jwtToken: String, var session: DefaultWebSocketSession)

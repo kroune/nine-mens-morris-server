@@ -136,6 +136,7 @@ fun Application.configureRouting() {
                     close()
                     return@webSocket
                 }
+                Games.updatedSession(id, jwtToken, this)
                 println("game accessed")
                 incoming.consumeEach { frame ->
                     if (frame !is Frame.Text) return@consumeEach
