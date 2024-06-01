@@ -15,6 +15,7 @@ class GameData(private val firstUser: Connection, private val secondUser: Connec
     fun getPosition(): String {
         val pos = PositionAdapter(position.positions, position.freePieces, position.pieceToMove, position.removalCount)
         val result = Json.encodeToString(pos)
+        println(result)
         return result
     }
 
