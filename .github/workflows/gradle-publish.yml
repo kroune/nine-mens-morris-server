@@ -1,50 +1,63 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a package using Gradle and then publish it to GitHub packages when a release is created
-# For more information see: https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#Publishing-using-gradle
+name: Generate APK
 
-name: Gradle Package
+env:
+  path_to_release: app/build/outputs/apk/release
+
+  path_to_debug: app/build/outputs/apk/debug
+  # The name of the app
+  apk_name: NineMensMorris
 
 on:
-  push:
-    branches: [ "master" ]
+  workflow_dispatch:
   pull_request:
-    branches: [ "master" ]
+  push:
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-        settings-path: ${{ github.workspace }} # location for the settings.xml file
+      - uses: actions/checkout@v4
 
-    - name: Setup Gradle 
-      uses: gradle/actions/setup-gradle@v3 
-      with: 
-         build-scan-publish: true 
-         build-scan-terms-of-use-url: "https://gradle.com/terms-of-service" 
-         build-scan-terms-of-use-agree: "yes" 
+      # Set Current Date As Env Variable
+      - name: Set current date as env variable
+        run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
-    - name: Build with Gradle
-      run: ./gradlew build
+      # Set Repository Name As Env Variable
+      - name: Set repository name as env variable
+        run: |
+          echo "repository_name=$(echo '${{ github.repository }}' \
+            | awk -F '/' '{print $2}')" >> $GITHUB_ENV
 
-    # The USERNAME and TOKEN need to correspond to the credentials environment variables used in
-    # the publishing section of your build.gradle
-    - name: Publish to GitHub Packages
-      run: ./gradlew publish
-      env:
-        USERNAME: ${{ github.actor }}
-        TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set Up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '20'
+          distribution: 'corretto'
+          cache: 'gradle'
+
+      - name: Change wrapper permissions
+        run: chmod +x ./gradlew
+
+      # Install apk signer and base64
+      - name: Install apk-signer
+        run: |
+          sudo apt-get update &
+          sudo apt-get install apksigner
+
+      # Create APK Release
+      - name: Build apk release project (APK) - app module
+        run: ./gradlew build
+
+      # Decode keystore
+      - name: Decode keystore.txt
+        run: |
+          echo ${{ secrets.KEYSTORE_TXT }} > ~/keystore.txt
+          base64 -d ~/keystore.txt > ~/keystore.jks
+
+      - name: Upload APK Release - ${{ env.repository_name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.date_today }} - ${{ env.repository_name }} - APK(s) release
+          path: ${{ env.path_to_release }}/app-release-signed.apk
