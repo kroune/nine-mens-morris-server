@@ -37,9 +37,6 @@ jobs:
           distribution: 'corretto'
           cache: 'gradle'
 
-      - name: Change wrapper permissions
-        run: chmod +x ./gradlew
-
       # Install apk signer and base64
       - name: Install apk-signer
         run: |
