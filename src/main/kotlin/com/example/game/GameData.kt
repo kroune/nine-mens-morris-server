@@ -21,6 +21,26 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
         return result
     }
 
+
+    suspend fun sendMove(jwtToken: String, movement: Movement, opposite: Boolean) {
+        val move = Json.encodeToString<Movement>(movement)
+        if (opposite) {
+            if (firstUser.jwtToken == jwtToken) {
+                secondUser.session.send(MoveResponse(200, move).encode())
+            }
+            if (secondUser.jwtToken == jwtToken) {
+                firstUser.session.send(MoveResponse(200, move).encode())
+            }
+        } else {
+            if (firstUser.jwtToken == jwtToken) {
+                firstUser.session.send(MoveResponse(200, move).encode())
+            }
+            if (secondUser.jwtToken == jwtToken) {
+                secondUser.session.send(MoveResponse(200, move).encode())
+            }
+        }
+    }
+
     suspend fun sendPosition(jwtToken: String, opposite: Boolean) {
         if (opposite) {
             if (firstUser.jwtToken == jwtToken) {

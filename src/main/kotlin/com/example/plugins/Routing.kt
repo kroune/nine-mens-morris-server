@@ -154,7 +154,7 @@ fun Application.configureRouting() {
                     }
                     game.applyMove(move)
                     // send new position to the enemy
-                    game.sendPosition(jwtToken, true)
+                    game.sendMove(jwtToken, move, true)
                     // check if game has ended and then send this info
                     if (game.hasEnded()) {
                         notify(410, "game ended", game.firstUser.session)
