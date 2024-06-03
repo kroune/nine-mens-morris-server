@@ -124,6 +124,13 @@ fun Application.configureRouting() {
                     return@webSocket
                 }
                 game.updateSession(jwtToken, this)
+                // true = green
+                // false = blue
+                if (jwtToken == game.firstUser.jwtToken) {
+                    notify(202, game.isFirstPlayerGreen.toString())
+                } else {
+                    notify(202, (!game.isFirstPlayerGreen).toString())
+                }
                 // we send position to the new connection
                 game.sendPosition(jwtToken, false)
                 incoming.consumeEach { frame ->
@@ -148,8 +155,6 @@ fun Application.configureRouting() {
                     game.applyMove(move)
                     // send new position to the enemy
                     game.sendPosition(jwtToken, true)
-                    // we tell client that move was accepted
-                    notify(200)
                     // check if game has ended and then send this info
                     if (game.hasEnded()) {
                         notify(410, "game ended", game.firstUser.session)
@@ -164,7 +169,7 @@ fun Application.configureRouting() {
 }
 
 suspend fun DefaultWebSocketSession.notify(
-    code: Int = 200, message: String = "", session: DefaultWebSocketSession = this
+    code: Int, message: String = "", session: DefaultWebSocketSession = this
 ) {
     session.send(MoveResponse(code, message).encode())
 }

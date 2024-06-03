@@ -1,17 +1,20 @@
 package com.example.game
 
-import com.example.plugins.MoveResponse
 import com.kr8ne.mensMorris.GameState
 import com.kr8ne.mensMorris.Position
 import com.kr8ne.mensMorris.gameStartPosition
 import com.kr8ne.mensMorris.move.Movement
+import com.kroune.MoveResponse
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.random.Random
 
 class GameData(val firstUser: Connection, val secondUser: Connection) {
     private var position: Position = gameStartPosition
+    val isFirstPlayerGreen = Random.nextBoolean()
+
     private fun getPosition(): String {
         val result = Json.encodeToString(position)
         println(result)
