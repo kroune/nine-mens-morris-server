@@ -20,16 +20,22 @@ application {
 }
 
 dependencies {
+    // ktor
     implementation("io.ktor:ktor-server-core-jvm")
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
     implementation("io.ktor:ktor-server-netty-jvm")
     implementation("io.ktor:ktor-server-websockets")
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
-    implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-client-cio-jvm:2.3.11")
+
+    // other libs
+    implementation("ch.qos.logback:logback-classic:$logback_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    implementation("com.github.kroune:9-men-s-morris:0c6cd2f034")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
     implementation("at.favre.lib:bcrypt:0.10.2")
+
+    // my own dependencies
+    implementation("com.github.kroune:9-men-s-morris-lib:0587ceebca")
+    implementation("com.github.kroune:9-men-s-morris-shared:2ef33b461d")
 }

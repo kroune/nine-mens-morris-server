@@ -3,6 +3,7 @@ package com.example.plugins
 import com.example.Users
 import com.example.game.Games
 import com.kr8ne.mensMorris.move.Movement
+import com.kroune.MoveResponse
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -11,8 +12,6 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.net.SocketException
 import java.util.*
@@ -164,15 +163,10 @@ fun Application.configureRouting() {
     }
 }
 
-suspend fun DefaultWebSocketSession.notify(code: Int = 200, message: String = "", session: DefaultWebSocketSession = this) {
+suspend fun DefaultWebSocketSession.notify(
+    code: Int = 200, message: String = "", session: DefaultWebSocketSession = this
+) {
     session.send(MoveResponse(code, message).encode())
-}
-
-@Serializable
-class MoveResponse(@Suppress("unused") val code: Int, @Suppress("unused") val message: String?) {
-    fun encode(): String {
-        return Json.encodeToString<MoveResponse>(this@MoveResponse)
-    }
 }
 
 val SECRET_SERVER_TOKEN = System.getenv("SECRET_SERVER_TOKEN") ?: throw IllegalStateException("missing env variable")
