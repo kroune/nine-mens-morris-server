@@ -1,20 +1,18 @@
 package com.example.plugins
 
 import com.example.Users
-import com.example.game.GameData
 import com.example.game.Games
-import com.example.game.MovementAdapter
-import com.example.game.toMovement
+import com.kr8ne.mensMorris.move.Movement
 import io.ktor.http.*
-import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.delay
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.net.SocketException
 import java.util.*
@@ -33,9 +31,6 @@ fun Application.configureRouting() {
             get("reg") {
                 val login = call.parameters["login"]!!
                 val password = call.parameters["password"]!!
-                println("operation start")
-                println("login - $login")
-                println("password - $password")
                 try {
                     Users.register(login, password)
                 } catch (e: IllegalStateException) {
@@ -46,7 +41,6 @@ fun Application.configureRouting() {
                 }
                 try {
                     val bdCall = Users.login(login, password)
-                    println(bdCall)
                     call.respondText(bdCall)
                 } catch (e: IllegalStateException) {
                     call.respond(HttpStatusCode.Unauthorized)
@@ -54,7 +48,6 @@ fun Application.configureRouting() {
                     e.printStackTrace()
                     return@get
                 }
-                println("operation end")
             }
             /**
              * @return JWT token
@@ -62,9 +55,6 @@ fun Application.configureRouting() {
             get("login") {
                 val login = call.parameters["login"]!!
                 val password = call.parameters["password"]!!
-                println("operation start")
-                println("login - $login")
-                println("password - $password")
                 try {
                     val bdCall = Users.login(login, password)
                     println(bdCall)
@@ -75,12 +65,10 @@ fun Application.configureRouting() {
                     e.printStackTrace()
                     return@get
                 }
-                println("operation end")
             }
             get("is-playing") {
                 val jwtToken = call.parameters["jwtToken"]!!
                 val checkResult = Users.checkJWTToken(jwtToken)
-                println()
                 if (!checkResult) {
                     call.respondText { "incorrect jwt token" }
                     println("jwt token check failed")
@@ -108,7 +96,7 @@ fun Application.configureRouting() {
                 println("new connection")
                 try {
                     while (usersSearchingForGame.size < 2) {
-                        delay(3000L)
+                        delay(1000L)
                     }
                     println("found enemy")
                     val enemy = usersSearchingForGame.first { it.jwtToken != thisConnection.jwtToken }
@@ -136,18 +124,55 @@ fun Application.configureRouting() {
                     close()
                     return@webSocket
                 }
-                Games.updatedSession(id, jwtToken, this)
-                println("game accessed")
+                game.updateSession(jwtToken, this)
+                // we send position to the new connection
+                game.sendPosition(jwtToken, false)
                 incoming.consumeEach { frame ->
                     if (frame !is Frame.Text) return@consumeEach
-                    val move = Json.decodeFromString<MovementAdapter>(frame.readText()).toMovement()
-                    println("new move")
+                    if (!frame.fin) {
+                        notify(400, "fin is false")
+                        return@consumeEach
+                    }
+                    val move = try {
+                        Json.decodeFromString<Movement>(frame.readText())
+                    } catch (e: Exception) {
+                        null
+                    }
+                    if (move == null) {
+                        notify(400, "error decoding movement ${frame.readText()}")
+                        return@consumeEach
+                    }
+                    if (!game.isValidMove(move)) {
+                        notify(400, "impossible move")
+                        return@consumeEach
+                    }
                     game.applyMove(move)
-                    game.notifyAboutChanges()
+                    // send new position to the enemy
+                    game.sendPosition(jwtToken, true)
+                    // we tell client that move was accepted
+                    notify(200)
+                    // check if game has ended and then send this info
+                    if (game.hasEnded()) {
+                        notify(410, "game ended", game.firstUser.session)
+                        notify(410, "game ended", game.secondUser.session)
+                        close()
+                        return@webSocket
+                    }
                 }
             }
         }
     }
 }
 
-val SECRET = "secretToken"
+suspend fun DefaultWebSocketSession.notify(code: Int = 200, message: String = "", session: DefaultWebSocketSession = this) {
+    session.send(MoveResponse(code, message).encode())
+}
+
+@Serializable
+class MoveResponse(@Suppress("unused") val code: Int, @Suppress("unused") val message: String?) {
+    fun encode(): String {
+        return Json.encodeToString<MoveResponse>(this@MoveResponse)
+    }
+}
+
+val SECRET_SERVER_TOKEN = System.getenv("SECRET_SERVER_TOKEN") ?: throw IllegalStateException("missing env variable")

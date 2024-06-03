@@ -27,8 +27,9 @@ dependencies {
     implementation("io.ktor:ktor-server-websockets")
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation("io.ktor:ktor-client-cio-jvm:2.3.11")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    implementation("com.github.kr8ne:NineMensMorris:2a9ff19336")
+    implementation("com.github.kroune:9-men-s-morris:0c6cd2f034")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
     implementation("at.favre.lib:bcrypt:0.10.2")
 }

@@ -2,7 +2,7 @@ package com.example
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.example.plugins.SECRET
+import com.example.plugins.SECRET_SERVER_TOKEN
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -71,7 +71,7 @@ object Users {
             .withClaim("login", login)
             .withClaim("password", password)
             .withExpiresAt(Date(System.currentTimeMillis() + Duration.ofHours(1L).toMillis()))
-            .sign(Algorithm.HMAC256(SECRET))
+            .sign(Algorithm.HMAC256(SECRET_SERVER_TOKEN))
         return token
     }
 }
