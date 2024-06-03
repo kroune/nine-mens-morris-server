@@ -1,0 +1,60 @@
+name: Generate APK
+
+env:
+  path_to_release: app/build/outputs/apk/release
+
+  path_to_debug: app/build/outputs/apk/debug
+  # The name of the app
+  apk_name: NineMensMorris
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Set Current Date As Env Variable
+      - name: Set current date as env variable
+        run: echo "date_today=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      # Set Repository Name As Env Variable
+      - name: Set repository name as env variable
+        run: |
+          echo "repository_name=$(echo '${{ github.repository }}' \
+            | awk -F '/' '{print $2}')" >> $GITHUB_ENV
+
+      - name: Set Up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '20'
+          distribution: 'corretto'
+          cache: 'gradle'
+
+      # Install apk signer and base64
+      - name: Install apk-signer
+        run: |
+          sudo apt-get update &
+          sudo apt-get install apksigner
+
+      # Create APK Release
+      - name: Build apk release project (APK) - app module
+        run: ./gradlew build
+
+      # Decode keystore
+      - name: Decode keystore.txt
+        run: |
+          echo ${{ secrets.KEYSTORE_TXT }} > ~/keystore.txt
+          base64 -d ~/keystore.txt > ~/keystore.jks
+
+      - name: Upload APK Release - ${{ env.repository_name }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.date_today }} - ${{ env.repository_name }} - APK(s) release
+          path: ${{ env.path_to_release }}/app-release-signed.apk
