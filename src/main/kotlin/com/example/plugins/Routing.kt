@@ -65,6 +65,10 @@ fun Application.configureRouting() {
                     return@get
                 }
             }
+            get("check-jwt-token") {
+                val jwtToken = call.parameters["jwtToken"]!!
+                call.respondText { Users.checkJWTToken(jwtToken).toString() }
+            }
             get("is-playing") {
                 val jwtToken = call.parameters["jwtToken"]!!
                 val checkResult = Users.checkJWTToken(jwtToken)
@@ -148,7 +152,7 @@ fun Application.configureRouting() {
                         notify(400, "error decoding movement ${frame.readText()}")
                         return@consumeEach
                     }
-                    if (!game.isValidMove(move)) {
+                    if (!game.isValidMove(move, jwtToken)) {
                         notify(400, "impossible move")
                         return@consumeEach
                     }
@@ -172,6 +176,7 @@ suspend fun DefaultWebSocketSession.notify(
     code: Int, message: String = "", session: DefaultWebSocketSession = this
 ) {
     session.send(MoveResponse(code, message).encode())
+    println(MoveResponse(code, message).encode())
 }
 
 val SECRET_SERVER_TOKEN = System.getenv("SECRET_SERVER_TOKEN") ?: throw IllegalStateException("missing env variable")

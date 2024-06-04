@@ -16,7 +16,7 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
     val isFirstPlayerGreen = Random.nextBoolean()
 
     private fun getPosition(): String {
-        val result = Json.encodeToString(position)
+        val result = Json.encodeToString<Position>(position)
         println(result)
         return result
     }
@@ -59,8 +59,14 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
         }
     }
 
-    fun isValidMove(move: Movement): Boolean {
-        return position.generateMoves(0u, true).contains(move)
+    fun isValidMove(move: Movement, jwtToken: String): Boolean {
+        if (firstUser.jwtToken == jwtToken) {
+            return position.generateMoves(0u, true).contains(move) && position.pieceToMove == isFirstPlayerGreen
+        }
+        if (secondUser.jwtToken == jwtToken) {
+            return position.generateMoves(0u, true).contains(move) && position.pieceToMove == !isFirstPlayerGreen
+        }
+        return false
     }
 
     fun applyMove(move: Movement) {

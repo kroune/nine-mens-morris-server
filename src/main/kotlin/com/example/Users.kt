@@ -16,6 +16,10 @@ object Users {
 
     init {
         val file = File("data")
+        if (!file.exists()) {
+            file.createNewFile()
+            file.writeText("[]")
+        }
         val data = file.readText()
         users.addAll(Json.decodeFromString<List<User>>(data))
     }
