@@ -25,13 +25,14 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
 
     suspend fun sendMove(jwtToken: CustomJwtToken, movement: Movement, opposite: Boolean) {
         val move = Json.encodeToString<Movement>(movement)
-        val user = if (opposite) firstUser else secondUser
         when {
             firstUser.jwtToken == jwtToken -> {
+                val user = if (opposite) secondUser else firstUser
                 user.session.send(MoveResponse(200, move).encode())
             }
 
             secondUser.jwtToken == jwtToken -> {
+                val user = if (opposite) firstUser else secondUser
                 user.session.send(MoveResponse(200, move).encode())
             }
 
