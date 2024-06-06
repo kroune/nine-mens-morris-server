@@ -1,18 +1,16 @@
 package com.example
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
-import com.example.plugins.SECRET_SERVER_TOKEN
+import com.example.jwtToken.CustomJwtToken
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.time.Duration
 import java.util.*
 
 
 object Users {
     private val users = Collections.synchronizedList<User>(mutableListOf())
+    private val loginsMap = mutableMapOf<String, CustomJwtToken>()
 
     init {
         val file = File("data")
@@ -21,36 +19,33 @@ object Users {
             file.writeText("[]")
         }
         val data = file.readText()
-        users.addAll(Json.decodeFromString<List<User>>(data))
-    }
-
-    fun checkJWTToken(jwtToken: String): Boolean {
-        // we CAN'T directly compare jwt tokens
-        return users.any {
-            JWT.decode(it.jwtToken).claims["login"]?.asString() == JWT.decode(jwtToken).claims["login"]?.asString() &&
-                    JWT.decode(it.jwtToken).claims["password"]?.asString() == JWT.decode(jwtToken).claims["password"]?.asString()
-        }
-    }
-
-    private fun isLoginPresent(login: String): Boolean {
-        return users.any {
-            it.login == login
+        Json.decodeFromString<List<User>>(data).forEach {
+            users.add(it)
+            loginsMap[it.login] = it.jwtToken
         }
     }
 
     private fun checkLoginData(login: String, password: String): Boolean {
-        return users.any {
-            JWT.decode(it.jwtToken).claims["login"]?.asString() == login &&
-                    JWT.decode(it.jwtToken).claims["password"]?.asString() == password
-        }
+        val jwtToken = CustomJwtToken(login, password)
+        return validateJwtToken(jwtToken)
+    }
+
+    fun validateJwtToken(jwtToken: CustomJwtToken): Boolean {
+        val login = jwtToken.getLogin().getOrNull() ?: return false
+        return loginsMap[login] == jwtToken
+    }
+
+    private fun isLoginPresent(login: String): Boolean {
+        return loginsMap[login] != null
     }
 
     fun register(login: String, password: String) {
         if (isLoginPresent(login)) {
             error("user with the same login already exists")
         }
-        val cookie = createJWTToken(login, password)
-        users.add(User(login, cookie))
+        val jwtToken = CustomJwtToken(login, password)
+        users.add(User(login, jwtToken))
+        loginsMap[login] = jwtToken
         store()
     }
 
@@ -65,20 +60,14 @@ object Users {
         if (!checkLoginData(login, password)) {
             error("cookie isn't present")
         }
-        val token = createJWTToken(login, password)
+        val token = CustomJwtToken(login, password).token
         println(token)
-        return token
-    }
-
-    private fun createJWTToken(login: String, password: String): String {
-        val token = JWT.create()
-            .withClaim("login", login)
-            .withClaim("password", password)
-            .withExpiresAt(Date(System.currentTimeMillis() + Duration.ofHours(1L).toMillis()))
-            .sign(Algorithm.HMAC256(SECRET_SERVER_TOKEN))
         return token
     }
 }
 
 @Serializable
-data class User(@Serializable val login: String, @Serializable val jwtToken: String)
+data class User(
+    @Serializable val login: String,
+    @Serializable val jwtToken: CustomJwtToken
+)

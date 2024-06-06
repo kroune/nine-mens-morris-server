@@ -1,5 +1,6 @@
 package com.example.game
 
+import com.example.jwtToken.CustomJwtToken
 import com.kr8ne.mensMorris.GameState
 import com.kr8ne.mensMorris.Position
 import com.kr8ne.mensMorris.gameStartPosition
@@ -22,44 +23,46 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
     }
 
 
-    suspend fun sendMove(jwtToken: String, movement: Movement, opposite: Boolean) {
+    suspend fun sendMove(jwtToken: CustomJwtToken, movement: Movement, opposite: Boolean) {
         val move = Json.encodeToString<Movement>(movement)
-        if (opposite) {
-            if (firstUser.jwtToken == jwtToken) {
-                secondUser.session.send(MoveResponse(200, move).encode())
+        val user = if (opposite) firstUser else secondUser
+        when {
+            firstUser.jwtToken == jwtToken -> {
+                user.session.send(MoveResponse(200, move).encode())
             }
-            if (secondUser.jwtToken == jwtToken) {
-                firstUser.session.send(MoveResponse(200, move).encode())
+
+            secondUser.jwtToken == jwtToken -> {
+                user.session.send(MoveResponse(200, move).encode())
             }
-        } else {
-            if (firstUser.jwtToken == jwtToken) {
-                firstUser.session.send(MoveResponse(200, move).encode())
-            }
-            if (secondUser.jwtToken == jwtToken) {
-                secondUser.session.send(MoveResponse(200, move).encode())
+
+            else -> {
+                error("")
             }
         }
+        println(MoveResponse(200, move).encode())
     }
 
-    suspend fun sendPosition(jwtToken: String, opposite: Boolean) {
-        if (opposite) {
-            if (firstUser.jwtToken == jwtToken) {
-                secondUser.session.send(MoveResponse(200, getPosition()).encode())
+    suspend fun sendPosition(jwtToken: CustomJwtToken, opposite: Boolean) {
+        val pos = getPosition()
+        when {
+            firstUser.jwtToken == jwtToken -> {
+                val user = if (opposite) secondUser else firstUser
+                user.session.send(MoveResponse(200, pos).encode())
             }
-            if (secondUser.jwtToken == jwtToken) {
-                firstUser.session.send(MoveResponse(200, getPosition()).encode())
+
+            secondUser.jwtToken == jwtToken -> {
+                val user = if (opposite) firstUser else secondUser
+                user.session.send(MoveResponse(200, pos).encode())
             }
-        } else {
-            if (firstUser.jwtToken == jwtToken) {
-                firstUser.session.send(MoveResponse(200, getPosition()).encode())
-            }
-            if (secondUser.jwtToken == jwtToken) {
-                secondUser.session.send(MoveResponse(200, getPosition()).encode())
+
+            else -> {
+                error("")
             }
         }
+        println(MoveResponse(200, pos).encode())
     }
 
-    fun isValidMove(move: Movement, jwtToken: String): Boolean {
+    fun isValidMove(move: Movement, jwtToken: CustomJwtToken): Boolean {
         if (firstUser.jwtToken == jwtToken) {
             return position.generateMoves(0u, true).contains(move) && position.pieceToMove == isFirstPlayerGreen
         }
@@ -78,11 +81,11 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
     }
 
 
-    fun isValidJwtToken(jwtToken: String): Boolean {
+    fun isParticipating(jwtToken: CustomJwtToken): Boolean {
         return firstUser.jwtToken == jwtToken || secondUser.jwtToken == jwtToken
     }
 
-    fun updateSession(jwtToken: String, session: DefaultWebSocketServerSession) {
+    fun updateSession(jwtToken: CustomJwtToken, session: DefaultWebSocketServerSession) {
         if (firstUser.jwtToken == jwtToken) {
             firstUser.session = session
         }
@@ -93,4 +96,4 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
 }
 
 //{"startIndex":null,"endIndex":5}
-class Connection(var jwtToken: String, var session: DefaultWebSocketSession)
+class Connection(var jwtToken: CustomJwtToken, var session: DefaultWebSocketSession)

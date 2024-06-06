@@ -1,7 +1,10 @@
 package com.example.plugins
 
 import com.example.Users
+import com.example.game.Connection
 import com.example.game.Games
+import com.example.game.searching.SearchingForGame
+import com.example.jwtToken.CustomJwtToken
 import com.kr8ne.mensMorris.move.Movement
 import com.kroune.MoveResponse
 import io.ktor.http.*
@@ -9,14 +12,11 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.utils.io.errors.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
-import java.net.SocketException
-import java.util.*
 
-val usersSearchingForGame: Queue<com.example.game.Connection> = LinkedList()
 
 fun Application.configureRouting() {
     routing {
@@ -66,12 +66,12 @@ fun Application.configureRouting() {
                 }
             }
             get("check-jwt-token") {
-                val jwtToken = call.parameters["jwtToken"]!!
-                call.respondText { Users.checkJWTToken(jwtToken).toString() }
+                val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
+                call.respondText { Users.validateJwtToken(jwtToken).toString() }
             }
             get("is-playing") {
-                val jwtToken = call.parameters["jwtToken"]!!
-                val checkResult = Users.checkJWTToken(jwtToken)
+                val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
+                val checkResult = Users.validateJwtToken(jwtToken)
                 if (!checkResult) {
                     call.respondText { "incorrect jwt token" }
                     println("jwt token check failed")
@@ -80,92 +80,82 @@ fun Application.configureRouting() {
                 call.respondText { Games.gameId(jwtToken).toString() }
             }
             webSocket("/search-for-game") {
-                val jwtToken = call.parameters["jwtToken"]!!
-                val checkResult = Users.checkJWTToken(jwtToken)
+                val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
+                val checkResult = Users.validateJwtToken(jwtToken)
                 if (!checkResult) {
                     call.respondText { "incorrect jwt token" }
                     println("jwt token check failed")
                     close()
                     return@webSocket
                 }
-                if (usersSearchingForGame.any { it.jwtToken == jwtToken }) {
-                    call.respondText { "you are already searching for game" }
-                    println("already searching for game")
-                    close()
-                    return@webSocket
-                }
-                val thisConnection = com.example.game.Connection(jwtToken, this)
-                usersSearchingForGame.add(thisConnection)
-                println("new connection")
-                try {
-                    while (usersSearchingForGame.size < 2) {
-                        delay(1000L)
-                    }
-                    println("found enemy")
-                    val enemy = usersSearchingForGame.first { it.jwtToken != thisConnection.jwtToken }
-                    val id = Games.createGame(thisConnection, enemy)
-                    // send game id to 2 players
-                    thisConnection.session.send(id.toString())
-                    enemy.session.send(id.toString())
-                    close()
-                } catch (e: SocketException) {
-                    println("remove connection")
-                    usersSearchingForGame.remove(thisConnection)
-                }
+                val thisConnection = Connection(jwtToken, this)
+                SearchingForGame.addUser(thisConnection)
             }
             webSocket("/game") {
-                val jwtToken = call.parameters["jwtToken"]!!
+                val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
                 val id = call.parameters["gameId"]!!.toLong()
                 val game = Games.getGame(id)
                 if (game == null) {
                     call.respondText { "incorrect game id" }
+                    println("incorrect game id")
                     close()
                     return@webSocket
                 }
-                if (!game.isValidJwtToken(jwtToken)) {
+                if (!game.isParticipating(jwtToken)) {
                     call.respondText { "incorrect jwt token" }
                     close()
                     return@webSocket
                 }
-                game.updateSession(jwtToken, this)
-                // true = green
-                // false = blue
-                if (jwtToken == game.firstUser.jwtToken) {
-                    notify(202, game.isFirstPlayerGreen.toString())
-                } else {
-                    notify(202, (!game.isFirstPlayerGreen).toString())
-                }
-                // we send position to the new connection
-                game.sendPosition(jwtToken, false)
-                incoming.consumeEach { frame ->
-                    if (frame !is Frame.Text) return@consumeEach
-                    if (!frame.fin) {
-                        notify(400, "fin is false")
-                        return@consumeEach
+                try {
+                    game.updateSession(jwtToken, this)
+                    val isGreen = when (jwtToken) {
+                        game.firstUser.jwtToken -> {
+                            game.isFirstPlayerGreen
+                        }
+
+                        game.secondUser.jwtToken -> {
+                            !game.isFirstPlayerGreen
+                        }
+
+                        else -> {
+                            error("")
+                        }
                     }
-                    val move = try {
-                        Json.decodeFromString<Movement>(frame.readText())
-                    } catch (e: Exception) {
-                        null
+                    notify(202, isGreen.toString())
+                    // we send position to the new connection
+                    game.sendPosition(jwtToken, false)
+                    incoming.consumeEach { frame ->
+                        if (frame !is Frame.Text) return@consumeEach
+                        if (!frame.fin) {
+                            notify(400, "fin is false")
+                            return@consumeEach
+                        }
+                        val move = try {
+                            Json.decodeFromString<Movement>(frame.readText())
+                        } catch (e: Exception) {
+                            null
+                        }
+                        if (move == null) {
+                            notify(400, "error decoding movement ${frame.readText()}")
+                            return@consumeEach
+                        }
+                        if (!game.isValidMove(move, jwtToken)) {
+                            notify(400, "impossible move")
+                            return@consumeEach
+                        }
+                        game.applyMove(move)
+                        // send new position to the enemy
+                        game.sendMove(jwtToken, move, true)
+                        // check if game has ended and then send this info
+                        if (game.hasEnded()) {
+                            notify(410, "game ended", game.firstUser.session)
+                            notify(410, "game ended", game.secondUser.session)
+                            close()
+                            return@webSocket
+                        }
                     }
-                    if (move == null) {
-                        notify(400, "error decoding movement ${frame.readText()}")
-                        return@consumeEach
-                    }
-                    if (!game.isValidMove(move, jwtToken)) {
-                        notify(400, "impossible move")
-                        return@consumeEach
-                    }
-                    game.applyMove(move)
-                    // send new position to the enemy
-                    game.sendMove(jwtToken, move, true)
-                    // check if game has ended and then send this info
-                    if (game.hasEnded()) {
-                        notify(410, "game ended", game.firstUser.session)
-                        notify(410, "game ended", game.secondUser.session)
-                        close()
-                        return@webSocket
-                    }
+                } catch (e: IOException) {
+                    println("user disconnected")
                 }
             }
         }
