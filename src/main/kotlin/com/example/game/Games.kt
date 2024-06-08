@@ -25,7 +25,9 @@ object Games {
     }
 
 
-    fun gameId(jwtToken: CustomJwtToken): Long? {
-        return gamesMap[jwtToken.getLogin().getOrThrow()]
+    fun gameId(jwtToken: CustomJwtToken): Result<Long?> {
+        return runCatching {
+            gamesMap[jwtToken.getLogin().getOrThrow()]
+        }
     }
 }

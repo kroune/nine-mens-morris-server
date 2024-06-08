@@ -22,7 +22,7 @@ object SearchingForGame {
                 println("already searching")
                 return
             }
-            gameId = Games.gameId(user.jwtToken)
+            gameId = Games.gameId(user.jwtToken).getOrNull()
             if (gameId != null) {
                 return@synchronized
             }

@@ -5,7 +5,7 @@ import com.kr8ne.mensMorris.GameState
 import com.kr8ne.mensMorris.Position
 import com.kr8ne.mensMorris.gameStartPosition
 import com.kr8ne.mensMorris.move.Movement
-import com.kroune.MoveResponse
+import com.kroune.NetworkResponse
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.serialization.encodeToString
@@ -28,19 +28,19 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
         when {
             firstUser.jwtToken == jwtToken -> {
                 val user = if (opposite) secondUser else firstUser
-                user.session.send(MoveResponse(200, move).encode())
+                user.session.send(NetworkResponse(200, move).encode())
             }
 
             secondUser.jwtToken == jwtToken -> {
                 val user = if (opposite) firstUser else secondUser
-                user.session.send(MoveResponse(200, move).encode())
+                user.session.send(NetworkResponse(200, move).encode())
             }
 
             else -> {
                 error("")
             }
         }
-        println(MoveResponse(200, move).encode())
+        println(NetworkResponse(200, move).encode())
     }
 
     suspend fun sendPosition(jwtToken: CustomJwtToken, opposite: Boolean) {
@@ -48,19 +48,19 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
         when {
             firstUser.jwtToken == jwtToken -> {
                 val user = if (opposite) secondUser else firstUser
-                user.session.send(MoveResponse(200, pos).encode())
+                user.session.send(NetworkResponse(200, pos).encode())
             }
 
             secondUser.jwtToken == jwtToken -> {
                 val user = if (opposite) firstUser else secondUser
-                user.session.send(MoveResponse(200, pos).encode())
+                user.session.send(NetworkResponse(200, pos).encode())
             }
 
             else -> {
                 error("")
             }
         }
-        println(MoveResponse(200, pos).encode())
+        println(NetworkResponse(200, pos).encode())
     }
 
     fun isValidMove(move: Movement, jwtToken: CustomJwtToken): Boolean {

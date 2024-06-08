@@ -1,17 +1,21 @@
 package com.example.plugins
 
-import com.example.Users
+import com.example.Users.checkLoginData
+import com.example.Users.isLoginPresent
+import com.example.Users.login
+import com.example.Users.register
+import com.example.Users.validateJwtToken
 import com.example.game.Connection
 import com.example.game.Games
 import com.example.game.searching.SearchingForGame
 import com.example.jwtToken.CustomJwtToken
 import com.kr8ne.mensMorris.move.Movement
-import com.kroune.MoveResponse
-import io.ktor.http.*
+import com.kroune.NetworkResponse
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.errors.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.consumeEach
@@ -30,19 +34,23 @@ fun Application.configureRouting() {
             get("reg") {
                 val login = call.parameters["login"]!!
                 val password = call.parameters["password"]!!
+                if (isLoginPresent(login)) {
+                    notify(409, "login is already in use")
+                    return@get
+                }
                 try {
-                    Users.register(login, password)
+                    register(login, password).getOrThrow()
                 } catch (e: IllegalStateException) {
-                    call.respond(HttpStatusCode.Conflict)
+                    notify(401, "server error")
                     println("error registering")
                     e.printStackTrace()
                     return@get
                 }
                 try {
-                    val bdCall = Users.login(login, password)
-                    call.respondText(bdCall)
+                    val jwtToken = login(login, password).getOrThrow()
+                    notify(200, jwtToken)
                 } catch (e: IllegalStateException) {
-                    call.respond(HttpStatusCode.Unauthorized)
+                    notify(401, "server error")
                     println("error logging in")
                     e.printStackTrace()
                     return@get
@@ -55,11 +63,13 @@ fun Application.configureRouting() {
                 val login = call.parameters["login"]!!
                 val password = call.parameters["password"]!!
                 try {
-                    val bdCall = Users.login(login, password)
-                    println(bdCall)
-                    call.respondText(bdCall)
+                    if (!checkLoginData(login, password)) {
+                        error("cookie isn't present")
+                    }
+                    val bdCallResult = login(login, password).getOrThrow()
+                    notify(200, bdCallResult)
                 } catch (e: IllegalStateException) {
-                    call.respond(HttpStatusCode.Unauthorized)
+                    notify(401, "server error")
                     println("error logging in")
                     e.printStackTrace()
                     return@get
@@ -67,23 +77,29 @@ fun Application.configureRouting() {
             }
             get("check-jwt-token") {
                 val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
-                call.respondText { Users.validateJwtToken(jwtToken).toString() }
+                notify(200, validateJwtToken(jwtToken).toString())
             }
             get("is-playing") {
                 val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
-                val checkResult = Users.validateJwtToken(jwtToken)
+                val checkResult = validateJwtToken(jwtToken)
                 if (!checkResult) {
-                    call.respondText { "incorrect jwt token" }
+                    notify(401, "incorrect jwt token")
                     println("jwt token check failed")
                     return@get
                 }
-                call.respondText { Games.gameId(jwtToken).toString() }
+                val gameId = Games.gameId(jwtToken)
+                if (gameId.isFailure) {
+                    notify(409, "server error")
+                    return@get
+                } else {
+                    notify(200, gameId.getOrThrow().toString())
+                }
             }
             webSocket("/search-for-game") {
                 val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
-                val checkResult = Users.validateJwtToken(jwtToken)
+                val checkResult = validateJwtToken(jwtToken)
                 if (!checkResult) {
-                    call.respondText { "incorrect jwt token" }
+                    notify(401, "incorrect jwt token")
                     println("jwt token check failed")
                     close()
                     return@webSocket
@@ -96,13 +112,13 @@ fun Application.configureRouting() {
                 val id = call.parameters["gameId"]!!.toLong()
                 val game = Games.getGame(id)
                 if (game == null) {
-                    call.respondText { "incorrect game id" }
+                    notify(401, "incorrect game id")
                     println("incorrect game id")
                     close()
                     return@webSocket
                 }
                 if (!game.isParticipating(jwtToken)) {
-                    call.respondText { "incorrect jwt token" }
+                    notify(401, "incorrect jwt token")
                     close()
                     return@webSocket
                 }
@@ -162,11 +178,24 @@ fun Application.configureRouting() {
     }
 }
 
+suspend fun PipelineContext<Unit, ApplicationCall>.notify(
+    code: Int, message: String = ""
+) {
+    this.call.notify(code, message)
+}
+
+suspend fun ApplicationCall.notify(
+    code: Int, message: String = ""
+) {
+    this.respondText { NetworkResponse(code, message).encode() }
+    println(NetworkResponse(code, message).encode())
+}
+
 suspend fun DefaultWebSocketSession.notify(
     code: Int, message: String = "", session: DefaultWebSocketSession = this
 ) {
-    session.send(MoveResponse(code, message).encode())
-    println(MoveResponse(code, message).encode())
+    session.send(NetworkResponse(code, message).encode())
+    println(NetworkResponse(code, message).encode())
 }
 
 val SECRET_SERVER_TOKEN = System.getenv("SECRET_SERVER_TOKEN") ?: throw IllegalStateException("missing env variable")

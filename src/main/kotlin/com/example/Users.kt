@@ -25,7 +25,7 @@ object Users {
         }
     }
 
-    private fun checkLoginData(login: String, password: String): Boolean {
+    fun checkLoginData(login: String, password: String): Boolean {
         val jwtToken = CustomJwtToken(login, password)
         return validateJwtToken(jwtToken)
     }
@@ -35,18 +35,20 @@ object Users {
         return loginsMap[login] == jwtToken
     }
 
-    private fun isLoginPresent(login: String): Boolean {
+    fun isLoginPresent(login: String): Boolean {
         return loginsMap[login] != null
     }
 
-    fun register(login: String, password: String) {
-        if (isLoginPresent(login)) {
-            error("user with the same login already exists")
+    fun register(login: String, password: String): Result<Unit> {
+        return runCatching {
+            if (isLoginPresent(login)) {
+                error("user with the same login already exists")
+            }
+            val jwtToken = CustomJwtToken(login, password)
+            users.add(User(login, jwtToken))
+            loginsMap[login] = jwtToken
+            store()
         }
-        val jwtToken = CustomJwtToken(login, password)
-        users.add(User(login, jwtToken))
-        loginsMap[login] = jwtToken
-        store()
     }
 
     private fun store() {
@@ -56,13 +58,13 @@ object Users {
         file.writeText(text)
     }
 
-    fun login(login: String, password: String): String {
-        if (!checkLoginData(login, password)) {
-            error("cookie isn't present")
+    fun login(login: String, password: String): Result<String> {
+        return runCatching {
+            if (!checkLoginData(login, password)) {
+                error("cookie isn't present")
+            }
+            CustomJwtToken(login, password).token
         }
-        val token = CustomJwtToken(login, password).token
-        println(token)
-        return token
     }
 }
 
