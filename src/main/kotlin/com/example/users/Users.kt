@@ -1,16 +1,21 @@
-package com.example
+package com.example.users
 
 import com.example.jwtToken.CustomJwtToken
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.time.LocalDate
 import java.util.*
+import java.util.concurrent.atomic.AtomicLong
 
 
 object Users {
     private val users = Collections.synchronizedList<User>(mutableListOf())
-    private val loginsMap = mutableMapOf<String, CustomJwtToken>()
+    private val loginsToIdMap = mutableMapOf<String, Long>()
+    private val idToUsersMap = mutableMapOf<Long, User>()
+    val idCounter = AtomicLong(1)
 
     init {
         val file = File("data")
@@ -21,7 +26,38 @@ object Users {
         val data = file.readText()
         Json.decodeFromString<List<User>>(data).forEach {
             users.add(it)
-            loginsMap[it.login] = it.jwtToken
+            idToUsersMap[it.id] = it
+            loginsToIdMap[it.login] = it.id
+        }
+    }
+
+    fun getIdByLogin(login: String): Result<Long> {
+        return runCatching {
+            loginsToIdMap[login]!!
+        }
+    }
+
+    fun getLoginById(id: Long): Result<String> {
+        return runCatching {
+            getUserById(id).getOrThrow().login
+        }
+    }
+
+    fun getCreationDateById(id: Long): Result<Calendar> {
+        return runCatching {
+            getUserById(id).getOrThrow().calendar
+        }
+    }
+
+    private fun getUserById(id: Long): Result<User> {
+        return runCatching {
+            idToUsersMap[id]!!
+        }
+    }
+
+    private fun getUserByLogin(login: String): Result<User> {
+        return runCatching {
+            getUserById(getIdByLogin(login).getOrThrow()).getOrThrow()
         }
     }
 
@@ -32,11 +68,11 @@ object Users {
 
     fun validateJwtToken(jwtToken: CustomJwtToken): Boolean {
         val login = jwtToken.getLogin().getOrNull() ?: return false
-        return loginsMap[login] == jwtToken
+        return getUserByLogin(login).getOrNull()?.jwtToken == jwtToken
     }
 
     fun isLoginPresent(login: String): Boolean {
-        return loginsMap[login] != null
+        return getIdByLogin(login).isSuccess
     }
 
     fun register(login: String, password: String): Result<Unit> {
@@ -45,8 +81,15 @@ object Users {
                 error("user with the same login already exists")
             }
             val jwtToken = CustomJwtToken(login, password)
-            users.add(User(login, jwtToken))
-            loginsMap[login] = jwtToken
+            val calendar = Calendar.getInstance()
+            LocalDate.now().let {
+                calendar.set(it.dayOfYear, it.monthValue, it.year)
+            }
+            val id = idCounter.incrementAndGet()
+            val user = User(login, id, calendar, jwtToken)
+            users.add(user)
+            loginsToIdMap[login] = id
+            idToUsersMap[id] = user
             store()
         }
     }
@@ -71,5 +114,7 @@ object Users {
 @Serializable
 data class User(
     @Serializable val login: String,
+    @Serializable val id: Long,
+    @Contextual @Serializable val calendar: Calendar,
     @Serializable val jwtToken: CustomJwtToken
 )

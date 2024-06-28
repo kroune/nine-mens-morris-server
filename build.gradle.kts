@@ -37,6 +37,6 @@ dependencies {
     implementation("at.favre.lib:bcrypt:0.10.2")
 
     // my own dependencies
-    implementation("com.github.kroune:9-men-s-morris-lib:0587ceebca")
-    implementation("com.github.kroune:9-men-s-morris-shared:2ef33b461d")
+    implementation("com.github.kroune:9-men-s-morris-lib:297220e0e1")
+    implementation("com.github.kroune:9-men-s-morris-shared:3c31cf7015")
 }

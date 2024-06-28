@@ -65,10 +65,10 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
 
     fun isValidMove(move: Movement, jwtToken: CustomJwtToken): Boolean {
         if (firstUser.jwtToken == jwtToken) {
-            return position.generateMoves(0u, true).contains(move) && position.pieceToMove == isFirstPlayerGreen
+            return position.generateMoves().contains(move) && position.pieceToMove == isFirstPlayerGreen
         }
         if (secondUser.jwtToken == jwtToken) {
-            return position.generateMoves(0u, true).contains(move) && position.pieceToMove == !isFirstPlayerGreen
+            return position.generateMoves().contains(move) && position.pieceToMove == !isFirstPlayerGreen
         }
         return false
     }

@@ -2,7 +2,7 @@ package com.example.jwtToken
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.example.plugins.SECRET_SERVER_TOKEN
+import com.example.routing.SECRET_SERVER_TOKEN
 import kotlinx.serialization.Serializable
 import java.time.Duration
 import java.util.*

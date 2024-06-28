@@ -1,6 +1,6 @@
 package com.example
 
-import com.example.plugins.configureRouting
+import com.example.routing.configureRouting
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
