@@ -1,7 +1,6 @@
 package com.example.users
 
 import com.example.jwtToken.CustomJwtToken
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -15,19 +14,30 @@ object Users {
     private val users = Collections.synchronizedList<User>(mutableListOf())
     private val loginsToIdMap = mutableMapOf<String, Long>()
     private val idToUsersMap = mutableMapOf<Long, User>()
-    val idCounter = AtomicLong(1)
+    val idCounter = AtomicLong(0)
 
     init {
-        val file = File("data")
-        if (!file.exists()) {
-            file.createNewFile()
-            file.writeText("[]")
+        run {
+            val file = File("data/users")
+            if (!file.exists()) {
+                file.createNewFile()
+                file.writeText("[]")
+            }
+            val data = file.readText()
+            Json.decodeFromString<List<User>>(data).forEach {
+                users.add(it)
+                idToUsersMap[it.id] = it
+                loginsToIdMap[it.login] = it.id
+            }
         }
-        val data = file.readText()
-        Json.decodeFromString<List<User>>(data).forEach {
-            users.add(it)
-            idToUsersMap[it.id] = it
-            loginsToIdMap[it.login] = it.id
+        run {
+            val file = File("data/counter")
+            if (!file.exists()) {
+                file.createNewFile()
+                file.writeText("0")
+            }
+            val data = file.readText()
+            idCounter.set(data.toLong())
         }
     }
 
@@ -43,9 +53,9 @@ object Users {
         }
     }
 
-    fun getCreationDateById(id: Long): Result<Calendar> {
+    fun getCreationDateById(id: Long): Result<Triple<Int, Int, Int>> {
         return runCatching {
-            getUserById(id).getOrThrow().calendar
+            getUserById(id).getOrThrow().date
         }
     }
 
@@ -81,12 +91,11 @@ object Users {
                 error("user with the same login already exists")
             }
             val jwtToken = CustomJwtToken(login, password)
-            val calendar = Calendar.getInstance()
-            LocalDate.now().let {
-                calendar.set(it.dayOfYear, it.monthValue, it.year)
+            val date = LocalDate.now().let {
+                Triple(it.dayOfYear, it.monthValue, it.year)
             }
             val id = idCounter.incrementAndGet()
-            val user = User(login, id, calendar, jwtToken)
+            val user = User(login, id, date, jwtToken)
             users.add(user)
             loginsToIdMap[login] = id
             idToUsersMap[id] = user
@@ -95,10 +104,17 @@ object Users {
     }
 
     private fun store() {
-        // this is top level security
-        val file = File("data")
-        val text = Json.encodeToString(users)
-        file.writeText(text)
+        run {
+            // this is top level security
+            val file = File("data/users")
+            val text = Json.encodeToString(users)
+            file.writeText(text)
+        }
+        run {
+            val file = File("data/counter")
+            val text = idCounter.get().toString()
+            file.writeText(text)
+        }
     }
 
     fun login(login: String, password: String): Result<String> {
@@ -115,6 +131,6 @@ object Users {
 data class User(
     @Serializable val login: String,
     @Serializable val id: Long,
-    @Contextual @Serializable val calendar: Calendar,
+    @Serializable val date: Triple<Int, Int, Int>,
     @Serializable val jwtToken: CustomJwtToken
 )
