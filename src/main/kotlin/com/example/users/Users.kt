@@ -25,8 +25,9 @@ object Users {
             }
             val data = file.readText()
             Json.decodeFromString<List<User>>(data).forEach {
+                println("new info ${it.login} ${it.id} ${it.date} ${it.jwtToken}")
                 users.add(it)
-                idToUsersMap[it.id] = it
+                idToUsersMap[it. id] = it
                 loginsToIdMap[it.login] = it.id
             }
         }
@@ -50,6 +51,9 @@ object Users {
     fun getLoginById(id: Long): Result<String> {
         return runCatching {
             getUserById(id).getOrThrow().login
+        }.onFailure {
+            println("getting login failed")
+            it.printStackTrace()
         }
     }
 
@@ -62,6 +66,9 @@ object Users {
     private fun getUserById(id: Long): Result<User> {
         return runCatching {
             idToUsersMap[id]!!
+        }.onFailure {
+            println("getting user by id failed")
+            it.printStackTrace()
         }
     }
 

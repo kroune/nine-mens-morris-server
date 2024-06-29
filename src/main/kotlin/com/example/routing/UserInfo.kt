@@ -1,5 +1,6 @@
 package com.example.routing
 
+import com.example.jwtToken.CustomJwtToken
 import com.example.users.Users
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -19,6 +20,29 @@ fun Route.userInfoRouting() {
         val id = call.parameters["id"]!!.toLong()
         val text = Users.getCreationDateById(id).getOrNull()
         val jsonText = Json.encodeToString<Triple<Int, Int, Int>?>(text)
-        call.respondText { jsonText}
+        call.respondText { jsonText }
+    }
+    get("get-id-by-login") {
+        val login = call.parameters["login"]!!.toString()
+        val id = Users.getIdByLogin(login).getOrNull()
+        val jsonText = Json.encodeToString<Long?>(id)
+        call.respondText { jsonText }
+    }
+    get("get-id-by-jwt-token") {
+        val jwtToken = call.parameters["jwtToken"]!!.toString()
+        val jwtTokenObject = CustomJwtToken(jwtToken)
+        if (!Users.validateJwtToken(jwtTokenObject)) {
+            call.respond { Json.encodeToString<Long>(-1L) }
+            return@get
+        }
+        val login = jwtTokenObject.getLogin().getOrElse {
+            call.respond { Json.encodeToString<Long>(-1L) }
+            return@get
+        }
+        val id = Users.getIdByLogin(login).getOrElse {
+            call.respond { Json.encodeToString<Long>(-1L) }
+            return@get
+        }
+        call.respond { Json.encodeToString<Long>(id) }
     }
 }
