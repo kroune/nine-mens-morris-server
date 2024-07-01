@@ -6,11 +6,14 @@ import com.example.game.searching.SearchingForGame
 import com.example.jwtToken.CustomJwtToken
 import com.example.users.Users.validateJwtToken
 import com.kr8ne.mensMorris.move.Movement
+import com.kroune.GameSignals
+import com.kroune.NetworkResponse
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.IOException
 
@@ -73,15 +76,11 @@ fun Route.gameRouting() {
                     error("")
                 }
             }
-            notify(202, isGreen.toString())
+            send(isGreen.toString())
             // we send position to the new connection
             game.sendPosition(jwtToken, false)
             incoming.consumeEach { frame ->
                 if (frame !is Frame.Text) return@consumeEach
-                if (!frame.fin) {
-                    notify(400, "fin is false")
-                    return@consumeEach
-                }
                 val move = try {
                     Json.decodeFromString<Movement>(frame.readText())
                 } catch (e: Exception) {
@@ -100,9 +99,11 @@ fun Route.gameRouting() {
                 game.sendMove(jwtToken, move, true)
                 // check if game has ended and then send this info
                 if (game.hasEnded()) {
-                    notify(410, "game ended", game.firstUser.session)
-                    notify(410, "game ended", game.secondUser.session)
-                    close()
+                    val gameEnded = Json.encodeToString<GameSignals>(GameSignals.GameEnd("idk what to say"))
+                    game.firstUser.session.send(gameEnded)
+                    game.secondUser.session.send(gameEnded)
+                    game.firstUser.session.close()
+                    game.secondUser.session.close()
                     return@webSocket
                 }
             }
@@ -110,4 +111,11 @@ fun Route.gameRouting() {
             println("user disconnected")
         }
     }
+}
+
+suspend fun DefaultWebSocketSession.notifyS(
+    code: Int, message: String = "", session: DefaultWebSocketSession = this
+) {
+    session.send(NetworkResponse(code, message).encode())
+    println(NetworkResponse(code, message).encode())
 }

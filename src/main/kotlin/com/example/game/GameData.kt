@@ -5,6 +5,7 @@ import com.kr8ne.mensMorris.GameState
 import com.kr8ne.mensMorris.Position
 import com.kr8ne.mensMorris.gameStartPosition
 import com.kr8ne.mensMorris.move.Movement
+import com.kroune.GameSignals
 import com.kroune.NetworkResponse
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -25,22 +26,23 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
 
     suspend fun sendMove(jwtToken: CustomJwtToken, movement: Movement, opposite: Boolean) {
         val move = Json.encodeToString<Movement>(movement)
+        val encodedMove = Json.encodeToString<GameSignals>(GameSignals.Move(move))
         when {
             firstUser.jwtToken == jwtToken -> {
                 val user = if (opposite) secondUser else firstUser
-                user.session.send(NetworkResponse(200, move).encode())
+                user.session.send(encodedMove)
             }
 
             secondUser.jwtToken == jwtToken -> {
                 val user = if (opposite) firstUser else secondUser
-                user.session.send(NetworkResponse(200, move).encode())
+                user.session.send(encodedMove)
             }
 
             else -> {
                 error("")
             }
         }
-        println(NetworkResponse(200, move).encode())
+        println(encodedMove)
     }
 
     suspend fun sendPosition(jwtToken: CustomJwtToken, opposite: Boolean) {
@@ -48,12 +50,12 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
         when {
             firstUser.jwtToken == jwtToken -> {
                 val user = if (opposite) secondUser else firstUser
-                user.session.send(NetworkResponse(200, pos).encode())
+                user.session.send(pos)
             }
 
             secondUser.jwtToken == jwtToken -> {
                 val user = if (opposite) firstUser else secondUser
-                user.session.send(NetworkResponse(200, pos).encode())
+                user.session.send(pos)
             }
 
             else -> {

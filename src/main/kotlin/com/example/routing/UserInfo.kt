@@ -43,6 +43,6 @@ fun Route.userInfoRouting() {
             call.respond { Json.encodeToString<Long>(-1L) }
             return@get
         }
-        call.respond { Json.encodeToString<Long>(id) }
+        call.respondText { Json.encodeToString<Long>(id) }
     }
 }
