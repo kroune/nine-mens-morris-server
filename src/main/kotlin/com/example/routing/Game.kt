@@ -6,14 +6,11 @@ import com.example.game.searching.SearchingForGame
 import com.example.jwtToken.CustomJwtToken
 import com.example.users.Users.validateJwtToken
 import com.kr8ne.mensMorris.move.Movement
-import com.kroune.GameSignals
-import com.kroune.NetworkResponse
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.IOException
 
@@ -77,7 +74,9 @@ fun Route.gameRouting() {
                 }
             }
             send(isGreen.toString())
+            println("sending isGreen status - $isGreen")
             // we send position to the new connection
+            println("sending position status")
             game.sendPosition(jwtToken, false)
             incoming.consumeEach { frame ->
                 if (frame !is Frame.Text) return@consumeEach
@@ -99,11 +98,8 @@ fun Route.gameRouting() {
                 game.sendMove(jwtToken, move, true)
                 // check if game has ended and then send this info
                 if (game.hasEnded()) {
-                    val gameEnded = Json.encodeToString<GameSignals>(GameSignals.GameEnd("idk what to say"))
-                    game.firstUser.session.send(gameEnded)
-                    game.secondUser.session.send(gameEnded)
-                    game.firstUser.session.close()
-                    game.secondUser.session.close()
+                    game.sendMove(jwtToken, Movement(null, null), true)
+                    game.sendMove(jwtToken, Movement(null, null), false)
                     return@webSocket
                 }
             }
@@ -111,11 +107,4 @@ fun Route.gameRouting() {
             println("user disconnected")
         }
     }
-}
-
-suspend fun DefaultWebSocketSession.notifyS(
-    code: Int, message: String = "", session: DefaultWebSocketSession = this
-) {
-    session.send(NetworkResponse(code, message).encode())
-    println(NetworkResponse(code, message).encode())
 }
