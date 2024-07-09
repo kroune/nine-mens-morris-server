@@ -1,6 +1,7 @@
 package com.example.game
 
-import com.example.jwtToken.CustomJwtToken
+import com.example.CustomJwtToken
+import com.example.users.Users
 import com.kr8ne.mensMorris.GameState
 import com.kr8ne.mensMorris.Position
 import com.kr8ne.mensMorris.gameStartPosition
@@ -95,5 +96,11 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
     }
 }
 
-//{"startIndex":null,"endIndex":5}
-class Connection(var jwtToken: CustomJwtToken, var session: DefaultWebSocketSession, val id: Long)
+class Connection(
+    var jwtToken: CustomJwtToken,
+    var session: DefaultWebSocketSession,
+) {
+    fun id(): Result<Long> {
+        return Users.getIdByJwtToken(jwtToken)
+    }
+}

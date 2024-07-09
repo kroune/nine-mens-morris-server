@@ -1,6 +1,6 @@
 package com.example.routing
 
-import com.example.jwtToken.CustomJwtToken
+import com.example.CustomJwtToken
 import com.example.users.Users.checkLoginData
 import com.example.users.Users.isLoginPresent
 import com.example.users.Users.login

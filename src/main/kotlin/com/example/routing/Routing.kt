@@ -3,23 +3,8 @@ package com.example.routing
 import com.kroune.NetworkResponse
 import io.ktor.server.application.*
 import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import io.ktor.util.pipeline.*
 import io.ktor.websocket.*
-
-
-fun Application.configureRouting() {
-    routing {
-        get("/") {
-            call.respondText("Hello, world!")
-        }
-        route("/api/v1/user/") {
-            userInfoRouting()
-            gameRouting()
-            accountRouting()
-        }
-    }
-}
 
 suspend fun PipelineContext<Unit, ApplicationCall>.notify(
     code: Int, message: String = ""

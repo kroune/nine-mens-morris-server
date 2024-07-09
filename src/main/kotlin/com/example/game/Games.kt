@@ -1,6 +1,6 @@
 package com.example.game
 
-import com.example.jwtToken.CustomJwtToken
+import com.example.CustomJwtToken
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 

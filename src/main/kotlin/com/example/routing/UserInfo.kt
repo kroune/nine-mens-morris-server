@@ -1,6 +1,6 @@
 package com.example.routing
 
-import com.example.jwtToken.CustomJwtToken
+import com.example.CustomJwtToken
 import com.example.users.Users
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -8,7 +8,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.ByteArrayInputStream
 import java.io.File
+import javax.imageio.ImageIO
 
 
 fun Route.userInfoRouting() {
@@ -37,7 +39,6 @@ fun Route.userInfoRouting() {
         call.respondText { jsonText }
     }
     post("upload-picture") {
-        // TODO: rework this
         val jwtToken = call.parameters["jwtToken"]!!
         val jwtTokenObject = CustomJwtToken(jwtToken)
         if (!Users.validateJwtToken(jwtTokenObject)) {
@@ -45,6 +46,8 @@ fun Route.userInfoRouting() {
         }
         val id = Users.getIdByJwtToken(jwtTokenObject).getOrThrow()
         val byteArray = call.receive<ByteArray>()
+        val bytes = ByteArrayInputStream(byteArray)
+        ImageIO.read(bytes)
         Users.uploadPictureById(byteArray, id)
     }
     get("get-picture-by-id") {

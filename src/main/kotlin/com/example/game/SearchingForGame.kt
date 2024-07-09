@@ -1,7 +1,5 @@
-package com.example.game.searching
+package com.example.game
 
-import com.example.game.Connection
-import com.example.game.Games
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

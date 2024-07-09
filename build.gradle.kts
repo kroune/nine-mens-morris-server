@@ -27,8 +27,8 @@ dependencies {
     implementation("io.ktor:ktor-server-netty-jvm")
     implementation("io.ktor:ktor-server-websockets")
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
-    implementation("io.ktor:ktor-client-cio-jvm:2.3.11")
     implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation("io.ktor:ktor-server-rate-limit:$ktor_version")
 
     // other libs
     implementation("ch.qos.logback:logback-classic:$logback_version")

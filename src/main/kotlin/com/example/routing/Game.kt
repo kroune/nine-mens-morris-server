@@ -1,9 +1,9 @@
 package com.example.routing
 
+import com.example.CustomJwtToken
 import com.example.game.Connection
 import com.example.game.Games
-import com.example.game.searching.SearchingForGame
-import com.example.jwtToken.CustomJwtToken
+import com.example.game.SearchingForGame
 import com.example.users.Users
 import com.example.users.Users.validateJwtToken
 import com.kr8ne.mensMorris.PIECES_TO_FLY
@@ -42,7 +42,7 @@ fun Route.gameRouting() {
             close()
             return@webSocket
         }
-        val thisConnection = Connection(jwtToken, this, Users.getIdByJwtToken(jwtToken).getOrThrow())
+        val thisConnection = Connection(jwtToken, this)
         SearchingForGame.addUser(thisConnection)
     }
     webSocket("/game") {
@@ -51,7 +51,6 @@ fun Route.gameRouting() {
         val game = Games.getGame(id)
         if (game == null) {
             notify(401, "incorrect game id")
-            println("incorrect game id")
             close()
             return@webSocket
         }
@@ -100,14 +99,14 @@ fun Route.gameRouting() {
                 game.sendMove(jwtToken, move, true)
                 // check if game has ended and then send this info
                 if (game.hasEnded()) {
-                    val firstUserRating = Users.getRatingById(game.firstUser.id).getOrThrow()
-                    val secondUserRating = Users.getRatingById(game.secondUser.id).getOrThrow()
+                    val firstUserRating = Users.getRatingById(game.firstUser.id().getOrThrow()).getOrThrow()
+                    val secondUserRating = Users.getRatingById(game.secondUser.id().getOrThrow()).getOrThrow()
                     val greenLost = game.position.greenPiecesAmount < PIECES_TO_FLY
                     val firstUserLost = greenLost == game.isFirstPlayerGreen
                     val delta =
                         (10 + (if (firstUserLost) secondUserRating - firstUserRating else firstUserRating - secondUserRating) / 100).coerceIn(-50L..50L)
-                    Users.updateRatingById(game.firstUser.id, if (firstUserLost) -delta else delta)
-                    Users.updateRatingById(game.secondUser.id, if (firstUserLost) delta else -delta)
+                    Users.updateRatingById(game.firstUser.id().getOrThrow(), if (firstUserLost) -delta else delta)
+                    Users.updateRatingById(game.secondUser.id().getOrThrow(), if (firstUserLost) delta else -delta)
                     game.sendMove(jwtToken, Movement(null, null), true)
                     game.sendMove(jwtToken, Movement(null, null), false)
                     return@webSocket

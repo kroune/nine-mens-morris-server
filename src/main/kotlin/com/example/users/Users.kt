@@ -1,6 +1,6 @@
 package com.example.users
 
-import com.example.jwtToken.CustomJwtToken
+import com.example.CustomJwtToken
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
