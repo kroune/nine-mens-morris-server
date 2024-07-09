@@ -61,6 +61,12 @@ object Users {
         }
     }
 
+    fun uploadPictureById(newPicture: ByteArray, id: Long) {
+        runCatching {
+            getUserById(id).getOrThrow().profilePicture = newPicture
+        }
+    }
+
     fun getPictureById(id: Long): Result<ByteArray> {
         return runCatching {
             getUserById(id).getOrThrow().profilePicture!!
@@ -170,5 +176,5 @@ data class User(
     @Serializable val date: Triple<Int, Int, Int>,
     @Serializable val jwtToken: CustomJwtToken,
     @Serializable var rating: Long,
-    @Serializable val profilePicture: ByteArray?
+    @Serializable var profilePicture: ByteArray?
 )

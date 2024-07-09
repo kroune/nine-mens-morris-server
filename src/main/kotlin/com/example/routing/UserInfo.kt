@@ -3,6 +3,7 @@ package com.example.routing
 import com.example.jwtToken.CustomJwtToken
 import com.example.users.Users
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
@@ -35,6 +36,17 @@ fun Route.userInfoRouting() {
         val jsonText = Json.encodeToString<Long?>(id)
         call.respondText { jsonText }
     }
+    post("upload-picture") {
+        // TODO: rework this
+        val jwtToken = call.parameters["jwtToken"]!!
+        val jwtTokenObject = CustomJwtToken(jwtToken)
+        if (!Users.validateJwtToken(jwtTokenObject)) {
+            return@post
+        }
+        val id = Users.getIdByJwtToken(jwtTokenObject).getOrThrow()
+        val byteArray = call.receive<ByteArray>()
+        Users.uploadPictureById(byteArray, id)
+    }
     get("get-picture-by-id") {
         val id = call.parameters["id"]!!.toLong()
         val defaultPicture = File("default/img.png")
@@ -44,7 +56,7 @@ fun Route.userInfoRouting() {
         call.respondText { jsonText }
     }
     get("get-id-by-jwt-token") {
-        val jwtToken = call.parameters["jwtToken"]!!.toString()
+        val jwtToken = call.parameters["jwtToken"]!!
         val jwtTokenObject = CustomJwtToken(jwtToken)
         if (!Users.validateJwtToken(jwtTokenObject)) {
             call.respond { Json.encodeToString<Long>(-1L) }
