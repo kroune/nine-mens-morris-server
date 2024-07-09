@@ -10,9 +10,6 @@ import io.ktor.server.application.*
 import io.ktor.server.routing.*
 
 fun Route.accountRouting() {
-    /**
-     * @return JWT token or `HttpStatusCode.Conflict` if login is already used
-     */
     get("reg") {
         val login = call.parameters["login"]!!
         val password = call.parameters["password"]!!
@@ -38,9 +35,6 @@ fun Route.accountRouting() {
             return@get
         }
     }
-    /**
-     * @return JWT token
-     */
     get("login") {
         val login = call.parameters["login"]!!
         val password = call.parameters["password"]!!

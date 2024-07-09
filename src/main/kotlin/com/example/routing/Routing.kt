@@ -41,4 +41,5 @@ suspend fun DefaultWebSocketSession.notify(
     println(NetworkResponse(code, message).encode())
 }
 
-val SECRET_SERVER_TOKEN = System.getenv("SECRET_SERVER_TOKEN") ?: throw IllegalStateException("missing env variable")
+val SECRET_SERVER_TOKEN = System.getenv("SECRET_SERVER_TOKEN")
+    ?: throw IllegalStateException("missing env variable, you need to set \"SECRET_SERVER_TOKEN\" to any string (used for encryption")

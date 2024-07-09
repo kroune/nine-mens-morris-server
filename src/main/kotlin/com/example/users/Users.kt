@@ -9,36 +9,61 @@ import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
+val dataDir = File("data")
 
 object Users {
     private val users = Collections.synchronizedList<User>(mutableListOf())
     private val loginsToIdMap = mutableMapOf<String, Long>()
     private val idToUsersMap = mutableMapOf<Long, User>()
-    val idCounter = AtomicLong(0)
+    private val idCounter = AtomicLong(0)
 
     init {
+        dataDir.mkdirs()
         run {
-            val file = File("data/users")
-            if (!file.exists()) {
-                file.createNewFile()
-                file.writeText("[]")
-            }
-            val data = file.readText()
-            Json.decodeFromString<List<User>>(data).forEach {
-                println("new info ${it.login} ${it.id} ${it.date} ${it.jwtToken}")
-                users.add(it)
-                idToUsersMap[it. id] = it
-                loginsToIdMap[it.login] = it.id
+            val usersDir = File(dataDir, "users")
+            usersDir.mkdirs()
+            usersDir.listFiles()!!.forEach { file ->
+                val data = file.readText()
+                Json.decodeFromString<User>(data).let {
+                    println("new info ${it.login} ${it.id} ${it.date} ${it.jwtToken}")
+                    users.add(it)
+                    idToUsersMap[it. id] = it
+                    loginsToIdMap[it.login] = it.id
+                }
             }
         }
         run {
-            val file = File("data/counter")
+            val file = File(dataDir, "counter")
             if (!file.exists()) {
                 file.createNewFile()
                 file.writeText("0")
             }
             val data = file.readText()
             idCounter.set(data.toLong())
+        }
+    }
+
+    private fun store() {
+        dataDir.mkdirs()
+        run {
+            // this is top level security
+            val usersDir = File(dataDir, "users")
+            users.forEach {
+                val userDataFile = File(usersDir, it.login)
+                val text = Json.encodeToString(it)
+                userDataFile.writeText(text)
+            }
+        }
+        run {
+            val file = File(dataDir, "counter")
+            val text = idCounter.get().toString()
+            file.writeText(text)
+        }
+    }
+
+    fun getPictureById(id: Long): Result<ByteArray> {
+        return runCatching {
+            getUserById(id).getOrThrow().profilePicture!!
         }
     }
 
@@ -57,10 +82,22 @@ object Users {
         }
     }
 
+    fun getRatingById(id: Long): Result<Long> {
+        return runCatching {
+            getUserById(id).getOrThrow().rating
+        }
+    }
+
     fun getCreationDateById(id: Long): Result<Triple<Int, Int, Int>> {
         return runCatching {
             getUserById(id).getOrThrow().date
         }
+    }
+
+    fun updateRatingById(id: Long, deltaRating: Long) {
+        val user = idToUsersMap[id] ?: return
+        user.rating = (deltaRating + user.rating).coerceAtLeast(0)
+        store()
     }
 
     private fun getUserById(id: Long): Result<User> {
@@ -75,6 +112,12 @@ object Users {
     private fun getUserByLogin(login: String): Result<User> {
         return runCatching {
             getUserById(getIdByLogin(login).getOrThrow()).getOrThrow()
+        }
+    }
+
+    fun getIdByJwtToken(jwtToken: CustomJwtToken): Result<Long> {
+        return runCatching {
+            loginsToIdMap[jwtToken.getLogin().getOrThrow()]!!
         }
     }
 
@@ -99,28 +142,14 @@ object Users {
             }
             val jwtToken = CustomJwtToken(login, password)
             val date = LocalDate.now().let {
-                Triple(it.dayOfYear, it.monthValue, it.year)
+                Triple(it.dayOfMonth, it.monthValue, it.year)
             }
             val id = idCounter.incrementAndGet()
-            val user = User(login, id, date, jwtToken)
+            val user = User(login, id, date, jwtToken, 1000L, byteArrayOf())
             users.add(user)
             loginsToIdMap[login] = id
             idToUsersMap[id] = user
             store()
-        }
-    }
-
-    private fun store() {
-        run {
-            // this is top level security
-            val file = File("data/users")
-            val text = Json.encodeToString(users)
-            file.writeText(text)
-        }
-        run {
-            val file = File("data/counter")
-            val text = idCounter.get().toString()
-            file.writeText(text)
         }
     }
 
@@ -139,5 +168,7 @@ data class User(
     @Serializable val login: String,
     @Serializable val id: Long,
     @Serializable val date: Triple<Int, Int, Int>,
-    @Serializable val jwtToken: CustomJwtToken
+    @Serializable val jwtToken: CustomJwtToken,
+    @Serializable var rating: Long,
+    @Serializable val profilePicture: ByteArray?
 )

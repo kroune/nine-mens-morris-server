@@ -13,12 +13,11 @@ import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
 class GameData(val firstUser: Connection, val secondUser: Connection) {
-    private var position: Position = gameStartPosition
+    var position: Position = gameStartPosition
     val isFirstPlayerGreen = Random.nextBoolean()
 
-    private fun getPosition(): String {
+    private fun getPositionAsJson(): String {
         val result = Json.encodeToString<Position>(position)
-        println(result)
         return result
     }
 
@@ -44,7 +43,7 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
     }
 
     suspend fun sendPosition(jwtToken: CustomJwtToken, opposite: Boolean) {
-        val pos = getPosition()
+        val pos = getPositionAsJson()
         when {
             firstUser.jwtToken == jwtToken -> {
                 val user = if (opposite) secondUser else firstUser
@@ -97,4 +96,4 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
 }
 
 //{"startIndex":null,"endIndex":5}
-class Connection(var jwtToken: CustomJwtToken, var session: DefaultWebSocketSession)
+class Connection(var jwtToken: CustomJwtToken, var session: DefaultWebSocketSession, val id: Long)

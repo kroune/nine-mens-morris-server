@@ -7,6 +7,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.File
 
 
 fun Route.userInfoRouting() {
@@ -22,10 +23,24 @@ fun Route.userInfoRouting() {
         val jsonText = Json.encodeToString<Triple<Int, Int, Int>?>(text)
         call.respondText { jsonText }
     }
+    get("get-rating-by-id") {
+        val id = call.parameters["id"]!!.toLong()
+        val text = Users.getRatingById(id).getOrNull()
+        val jsonText = Json.encodeToString<Long?>(text)
+        call.respondText { jsonText }
+    }
     get("get-id-by-login") {
         val login = call.parameters["login"]!!.toString()
         val id = Users.getIdByLogin(login).getOrNull()
         val jsonText = Json.encodeToString<Long?>(id)
+        call.respondText { jsonText }
+    }
+    get("get-picture-by-id") {
+        val id = call.parameters["id"]!!.toLong()
+        val defaultPicture = File("default/img.png")
+        require(defaultPicture.exists())
+        val picture = Users.getPictureById(id).getOrDefault(defaultPicture.readBytes())
+        val jsonText = Json.encodeToString<ByteArray>(picture)
         call.respondText { jsonText }
     }
     get("get-id-by-jwt-token") {
