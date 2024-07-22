@@ -1,8 +1,10 @@
 package com.example
 
-import com.example.routing.accountRouting
+import com.example.routing.api.userInfoRouting
+import com.example.routing.auth.accountRouting
 import com.example.routing.gameRouting
-import com.example.routing.userInfoRouting
+import com.example.routing.miscRouting
+import com.kroune.NetworkResponse
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -12,6 +14,8 @@ import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.util.pipeline.*
+import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
 import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -47,9 +51,7 @@ fun Application.module() {
         }
     }
     routing {
-        get("/") {
-            call.respondText("Hello, world!")
-        }
+        miscRouting()
         route("/api/v1/user/") {
             userInfoRouting()
             gameRouting()
@@ -57,3 +59,26 @@ fun Application.module() {
         }
     }
 }
+
+suspend fun PipelineContext<Unit, ApplicationCall>.notify(
+    code: Int, message: String = ""
+) {
+    this.call.notify(code, message)
+}
+
+suspend fun ApplicationCall.notify(
+    code: Int, message: String = ""
+) {
+    this.respondText { NetworkResponse(code, message).encode() }
+    println(NetworkResponse(code, message).encode())
+}
+
+suspend fun DefaultWebSocketSession.notify(
+    code: Int, message: String = "", session: DefaultWebSocketSession = this
+) {
+    session.send(NetworkResponse(code, message).encode())
+    println(NetworkResponse(code, message).encode())
+}
+
+val SECRET_SERVER_TOKEN = System.getenv("SECRET_SERVER_TOKEN")
+    ?: throw IllegalStateException("missing env variable, you need to set \"SECRET_SERVER_TOKEN\" to any string (used for encryption")

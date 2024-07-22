@@ -1,30 +1,15 @@
 package com.example.routing
 
-import com.kroune.NetworkResponse
 import io.ktor.server.application.*
 import io.ktor.server.response.*
-import io.ktor.util.pipeline.*
-import io.ktor.websocket.*
+import io.ktor.server.routing.*
 
-suspend fun PipelineContext<Unit, ApplicationCall>.notify(
-    code: Int, message: String = ""
-) {
-    this.call.notify(code, message)
+fun Route.miscRouting() {
+    get("/") {
+        call.respondText("Hello, world!")
+    }
+    // used to calculate ping & check server status
+    get("ping") {
+        call.respondText("pong")
+    }
 }
-
-suspend fun ApplicationCall.notify(
-    code: Int, message: String = ""
-) {
-    this.respondText { NetworkResponse(code, message).encode() }
-    println(NetworkResponse(code, message).encode())
-}
-
-suspend fun DefaultWebSocketSession.notify(
-    code: Int, message: String = "", session: DefaultWebSocketSession = this
-) {
-    session.send(NetworkResponse(code, message).encode())
-    println(NetworkResponse(code, message).encode())
-}
-
-val SECRET_SERVER_TOKEN = System.getenv("SECRET_SERVER_TOKEN")
-    ?: throw IllegalStateException("missing env variable, you need to set \"SECRET_SERVER_TOKEN\" to any string (used for encryption")

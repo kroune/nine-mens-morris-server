@@ -1,9 +1,9 @@
 package com.example.users
 
 import com.example.CustomJwtToken
+import com.example.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import java.io.File
 import java.time.LocalDate
 import java.util.*
@@ -24,10 +24,10 @@ object Users {
             usersDir.mkdirs()
             usersDir.listFiles()!!.forEach { file ->
                 val data = file.readText()
-                Json.decodeFromString<User>(data).let {
+                json.decodeFromString<User>(data).let {
                     println("new info ${it.login} ${it.id} ${it.date} ${it.jwtToken}")
                     users.add(it)
-                    idToUsersMap[it. id] = it
+                    idToUsersMap[it.id] = it
                     loginsToIdMap[it.login] = it.id
                 }
             }
@@ -49,8 +49,8 @@ object Users {
             // this is top level security
             val usersDir = File(dataDir, "users")
             users.forEach {
-                val userDataFile = File(usersDir, it.login)
-                val text = Json.encodeToString(it)
+                val userDataFile = File(usersDir, "${it.login}.json")
+                val text = json.encodeToString(it)
                 userDataFile.writeText(text)
             }
         }
@@ -130,6 +130,11 @@ object Users {
     fun checkLoginData(login: String, password: String): Boolean {
         val jwtToken = CustomJwtToken(login, password)
         return validateJwtToken(jwtToken)
+    }
+
+    fun validateJwtToken(jwtToken: String): Boolean {
+        val jwtTokenObject = CustomJwtToken(jwtToken)
+        return validateJwtToken(jwtTokenObject)
     }
 
     fun validateJwtToken(jwtToken: CustomJwtToken): Boolean {
