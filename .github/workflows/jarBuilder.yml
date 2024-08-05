@@ -23,5 +23,5 @@ jobs:
     - name: Upload jar file
       uses: actions/upload-artifact@v4
       with:
-        name: $(date +'%Y-%m-%d') - $(echo '${{ github.repository }}' | awk -F '/' '{print $2}') - Jar
+        name: $(date +'%Y-%m-%d') - ${{ github.event.repository.name }} - Jar
         path: build/libs/MensMorris-backend-all.jar
