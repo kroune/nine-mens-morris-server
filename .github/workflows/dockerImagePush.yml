@@ -1,4 +1,4 @@
-name: Jar file builder
+name: Builds docker image and pushes it
 
 on:
   workflow_dispatch:
