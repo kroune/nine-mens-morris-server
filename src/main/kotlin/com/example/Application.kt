@@ -21,6 +21,8 @@ import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
+    // TODO: remove later
+    println(SECRET_SERVER_TOKEN)
     embeddedServer(
         Netty,
         port = 8080,
