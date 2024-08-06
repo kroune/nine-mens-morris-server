@@ -1,7 +1,7 @@
 package com.example.routing.userInfo.post
 
-import com.example.responses.get.imageIsNotValid
 import com.example.requireValidJwtToken
+import com.example.responses.get.imageIsNotValid
 import com.example.users.Users
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -23,7 +23,7 @@ fun Route.userInfoRoutingPOST() {
         try {
             ImageIO.read(bytes)
         } catch (_: IOException) {
-            com.example.responses.get.imageIsNotValid()
+            imageIsNotValid()
             return@post
         }
         Users.uploadPictureById(byteArray, id)

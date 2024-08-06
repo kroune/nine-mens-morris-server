@@ -4,6 +4,8 @@ import com.example.*
 import com.example.game.Connection
 import com.example.game.Games
 import com.example.game.SearchingForGame
+import com.example.responses.ws.jwtTokenIsNotValidForThisGame
+import com.example.responses.ws.someThingsWentWrong
 import com.example.users.Users
 import com.kr8ne.mensMorris.PIECES_TO_FLY
 import com.kr8ne.mensMorris.move.Movement
@@ -34,7 +36,7 @@ fun Route.gameRoutingWS() {
         val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
         val game = Games.getGame(gameId)!!
         if (!game.isParticipating(jwtToken)) {
-            com.example.responses.ws.jwtTokenIsNotValidForThisGame()
+            jwtTokenIsNotValidForThisGame()
             return@webSocket
         }
         try {
@@ -66,7 +68,7 @@ fun Route.gameRoutingWS() {
                         gameId,
                         "error decoding client movement: frame - [$frame] stack trace - [${e.stackTraceToString()}]"
                     )
-                    com.example.responses.ws.someThingsWentWrong("error decoding client movement")
+                    someThingsWentWrong("error decoding client movement")
                     return@webSocket
                 }
                 if (!game.isValidMove(move, jwtToken)) {
@@ -74,7 +76,7 @@ fun Route.gameRoutingWS() {
                         gameId,
                         "received an illegal move - [$move]"
                     )
-                    com.example.responses.ws.someThingsWentWrong("received an illegal move")
+                    someThingsWentWrong("received an illegal move")
                     return@webSocket
                 }
                 game.applyMove(move)
