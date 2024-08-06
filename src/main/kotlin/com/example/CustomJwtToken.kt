@@ -2,6 +2,7 @@ package com.example
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTDecodeException
 import kotlinx.serialization.Serializable
 import java.time.Duration
 import java.util.*
@@ -16,12 +17,19 @@ class CustomJwtToken(var token: String = "") {
             .sign(Algorithm.HMAC256(SECRET_SERVER_TOKEN))
     )
 
+    /**
+     * possible results:
+     *
+     * [JWTDecodeException] - error while decoding token
+     * [NullPointerException] - no login claim exists
+     */
     fun getLogin(): Result<String> {
         return runCatching {
             val token = JWT.decode(token)
             token.claims["login"]!!.asString()
         }
     }
+
     fun validate(login: String, password: String): Boolean {
         val token = JWT.decode(token)
         val loginMatches = token.claims["login"]?.asString() == login

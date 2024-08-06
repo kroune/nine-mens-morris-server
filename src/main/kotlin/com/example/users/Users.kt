@@ -1,5 +1,6 @@
 package com.example.users
 
+import com.auth0.jwt.exceptions.JWTDecodeException
 import com.example.CustomJwtToken
 import com.example.json
 import kotlinx.serialization.Serializable
@@ -43,6 +44,7 @@ object Users {
         }
     }
 
+    @Throws(SecurityException::class)
     private fun store() {
         dataDir.mkdirs()
         run {
@@ -67,18 +69,39 @@ object Users {
         }
     }
 
+    /**
+     * possible results:
+     *
+     * [NullPointerException] - getting user by id failed | profile picture is null
+     *
+     * [ByteArray] - image file as a byte array
+     */
     fun getPictureById(id: Long): Result<ByteArray> {
         return runCatching {
             getUserById(id).getOrThrow().profilePicture!!
         }
     }
 
+    /**
+     * possible results:
+     *
+     * [NullPointerException] - no user with such id exists
+     *
+     * [Long] - id of the user
+     */
     fun getIdByLogin(login: String): Result<Long> {
         return runCatching {
             loginsToIdMap[login]!!
         }
     }
 
+    /**
+     * possible results:
+     *
+     * [NullPointerException] - getting user by id failed
+     *
+     * [String] - login
+     */
     fun getLoginById(id: Long): Result<String> {
         return runCatching {
             getUserById(id).getOrThrow().login
@@ -94,6 +117,14 @@ object Users {
         }
     }
 
+    /**
+     * possible results:
+     *
+     *
+     * [NullPointerException] - getting user by id failed
+     *
+     * [Triple] - date (Y, M, D)
+     */
     fun getCreationDateById(id: Long): Result<Triple<Int, Int, Int>> {
         return runCatching {
             getUserById(id).getOrThrow().date
@@ -106,6 +137,13 @@ object Users {
         store()
     }
 
+    /**
+     * possible results:
+     *
+     * [NullPointerException] - no user with such id
+     *
+     * [User] - user
+     */
     private fun getUserById(id: Long): Result<User> {
         return runCatching {
             idToUsersMap[id]!!
@@ -115,37 +153,96 @@ object Users {
         }
     }
 
+    /**
+     * possible results:
+     *
+     * [NullPointerException] - getting id by login failed | getting user by id failed
+     *
+     * [User] - user
+     */
     private fun getUserByLogin(login: String): Result<User> {
         return runCatching {
             getUserById(getIdByLogin(login).getOrThrow()).getOrThrow()
         }
     }
 
+    /**
+     * possible results:
+     *
+     * [JWTDecodeException] - getting login failed
+     *
+     * [NullPointerException] - getting login failed | getting id by login failed
+     *
+     * [User] - user
+     */
+    fun getIdByJwtToken(jwtToken: String): Result<Long> {
+        return runCatching {
+            getIdByJwtToken(CustomJwtToken(jwtToken)).getOrThrow()
+        }
+    }
+
+    /**
+     * possible results:
+     *
+     * [JWTDecodeException] - getting login failed
+     *
+     * [NullPointerException] - getting login failed | getting id by login failed
+     *
+     * [User] - user
+     */
     fun getIdByJwtToken(jwtToken: CustomJwtToken): Result<Long> {
         return runCatching {
             loginsToIdMap[jwtToken.getLogin().getOrThrow()]!!
         }
     }
 
-    fun checkLoginData(login: String, password: String): Boolean {
+    /**
+     * true if login + password are in the database
+     *
+     * false otherwise
+     */
+    fun validateLoginData(login: String, password: String): Boolean {
         val jwtToken = CustomJwtToken(login, password)
         return validateJwtToken(jwtToken)
     }
 
+
+    /**
+     * true if user exist with provided login & password
+     *
+     * false if user doesn't exist | jwt token isn't proper
+     */
     fun validateJwtToken(jwtToken: String): Boolean {
         val jwtTokenObject = CustomJwtToken(jwtToken)
         return validateJwtToken(jwtTokenObject)
     }
 
+    /**
+     * true if user exist with provided login & password
+     *
+     * false if user doesn't exist | jwt token isn't proper
+     */
     fun validateJwtToken(jwtToken: CustomJwtToken): Boolean {
         val login = jwtToken.getLogin().getOrNull() ?: return false
         return getUserByLogin(login).getOrNull()?.jwtToken == jwtToken
     }
 
+    /**
+     * true if user with such login exists
+     *
+     * false otherwise
+     */
     fun isLoginPresent(login: String): Boolean {
         return getIdByLogin(login).isSuccess
     }
 
+    /**
+     * possible results:
+     *
+     * [IllegalStateException] if user with the same login already exists
+     *
+     * [Unit] otherwise
+     */
     fun register(login: String, password: String): Result<Unit> {
         return runCatching {
             if (isLoginPresent(login)) {
@@ -163,10 +260,16 @@ object Users {
             store()
         }
     }
-
+    /**
+     * possible results:
+     *
+     * [IllegalStateException] if cookie isn't present
+     *
+     * [String] (jwt token) otherwise
+     */
     fun login(login: String, password: String): Result<String> {
         return runCatching {
-            if (!checkLoginData(login, password)) {
+            if (!validateLoginData(login, password)) {
                 error("cookie isn't present")
             }
             CustomJwtToken(login, password).token

@@ -5,10 +5,11 @@ import com.example.game.Connection
 import com.example.game.Games
 import com.example.game.SearchingForGame
 import com.example.users.Users
-import com.example.users.Users.validateJwtToken
 import com.kr8ne.mensMorris.PIECES_TO_FLY
 import com.kr8ne.mensMorris.move.Movement
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -16,68 +17,47 @@ import kotlinx.coroutines.channels.consumeEach
 import java.io.IOException
 
 fun Route.gameRouting() {
+    /**
+     * 400 = incorrect jwt token
+     * null = user isn't playing currently
+     * [Long] = game id
+     *
+     * 500 = internal server error
+     */
     get("/is-playing") {
+        requireValidJwtToken {
+            return@get
+        }
         val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
-        val checkResult = validateJwtToken(jwtToken)
-        if (!checkResult) {
-            notify(401, "incorrect jwt token")
-            println("jwt token check failed")
+        val gameId = Games.gameId(jwtToken).onFailure {
+            call.respond(HttpStatusCode.InternalServerError, "server error")
             return@get
         }
-        val gameId = Games.gameId(jwtToken)
-        if (gameId.isFailure) {
-            notify(409, "server error")
-            return@get
-        } else {
-            notify(200, gameId.getOrThrow().toString())
-        }
+        call.respondText(gameId.getOrThrow().toString())
     }
     webSocket("/search-for-game") {
-        val jwtToken = call.parameters["jwtToken"]
-        if (jwtToken == null) {
-            noJwtToken()
+        requireValidJwtToken {
             return@webSocket
         }
-        if (!validateJwtToken(jwtToken)) {
-            jwtTokenIsNotValid()
-            return@webSocket
-        }
+
+        val jwtToken = call.parameters["jwtToken"]!!
         val thisConnection = Connection(jwtToken, this)
         SearchingForGame.addUser(thisConnection)
     }
     webSocket("/game") {
-        run {
-            val jwtTokenParameter = call.parameters["jwtToken"]
-            if (jwtTokenParameter == null) {
-                noJwtToken()
-                return@webSocket
-            }
-            if (!validateJwtToken(jwtTokenParameter)) {
-                jwtTokenIsNotValid()
-                return@webSocket
-            }
-            val gameId = call.parameters["gameId"]
-            if (gameId == null) {
-                noGameId()
-                return@webSocket
-            }
-            if (gameId.toLongOrNull() == null) {
-                gameIdIsNotLong()
-                return@webSocket
-            }
-            val game = Games.getGame(gameId.toLong())
-            if (game == null) {
-                gameIdIsNotValid()
-                return@webSocket
-            }
-            if (!game.isParticipating(jwtTokenParameter)) {
-                jwtTokenIsNotValidForThisGame()
-                return@webSocket
-            }
+        requireValidJwtToken {
+            return@webSocket
+        }
+        requireGameId {
+            return@webSocket
         }
         val gameId = call.parameters["gameId"]!!.toLong()
         val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
         val game = Games.getGame(gameId)!!
+        if (!game.isParticipating(jwtToken)) {
+            jwtTokenIsNotValidForThisGame()
+            return@webSocket
+        }
         try {
             game.updateSession(jwtToken, this)
             val isGreen = when (jwtToken) {

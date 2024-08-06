@@ -1,59 +1,102 @@
 package com.example.routing.auth
 
-import com.example.CustomJwtToken
-import com.example.notify
-import com.example.users.Users.checkLoginData
+import com.example.*
 import com.example.users.Users.isLoginPresent
 import com.example.users.Users.login
 import com.example.users.Users.register
-import com.example.users.Users.validateJwtToken
+import com.example.users.Users.validateLoginData
+import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.encodeToString
 
 fun Route.accountRouting() {
+    /**
+     * possible responses:
+     *
+     * [noLogin]
+     *
+     * [noPassword]
+     *
+     * [HttpStatusCode.Conflict] - login is already in use
+     *
+     * [HttpStatusCode.InternalServerError]
+     *
+     * [String] - jwt token
+     */
     get("reg") {
+        requireLogin {
+            return@get
+        }
+        requirePassword {
+            return@get
+        }
+
         val login = call.parameters["login"]!!
         val password = call.parameters["password"]!!
         if (isLoginPresent(login)) {
-            notify(409, "login is already in use")
+            call.respond(HttpStatusCode.Conflict, "login is already in use")
             return@get
         }
-        try {
-            register(login, password).getOrThrow()
-        } catch (e: IllegalStateException) {
-            notify(401, "server error")
-            println("error registering")
-            e.printStackTrace()
+        register(login, password).getOrElse {
+            call.respond(HttpStatusCode.InternalServerError)
             return@get
         }
-        try {
-            val jwtToken = login(login, password).getOrThrow()
-            notify(200, jwtToken)
-        } catch (e: IllegalStateException) {
-            notify(401, "server error")
-            println("error logging in")
-            e.printStackTrace()
+        val jwtToken = login(login, password).getOrElse {
+            call.respond(HttpStatusCode.InternalServerError)
             return@get
         }
+        val jsonText = json.encodeToString<String>(jwtToken)
+        call.respondText(jsonText)
     }
+    /**
+     * possible responses:
+     *
+     * [noLogin]
+     *
+     * [noPassword]
+     *
+     * [HttpStatusCode.Unauthorized] - login + password aren't present in the db
+     *
+     * [HttpStatusCode.InternalServerError]
+     */
     get("login") {
+        requireLogin {
+            return@get
+        }
+        requirePassword {
+            return@get
+        }
+
         val login = call.parameters["login"]!!
         val password = call.parameters["password"]!!
-        try {
-            if (!checkLoginData(login, password)) {
-                error("cookie isn't present")
-            }
-            val bdCallResult = login(login, password).getOrThrow()
-            notify(200, bdCallResult)
-        } catch (e: IllegalStateException) {
-            notify(401, "server error")
-            println("error logging in")
-            e.printStackTrace()
+        if (!validateLoginData(login, password)) {
+            call.respond(HttpStatusCode.Unauthorized, "login + password aren't present in the db")
             return@get
         }
+        val jwtToken = login(login, password).getOrElse {
+            call.respond(HttpStatusCode.InternalServerError)
+            return@get
+        }
+        val jsonText = json.encodeToString<String>(jwtToken)
+        call.respondText(jsonText)
     }
+    /**
+     * possible responses:
+     *
+     * [noJwtToken]
+     *
+     * [jwtTokenIsNotValid]
+     *
+     * [Boolean] - true
+     */
     get("check-jwt-token") {
-        val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
-        notify(200, validateJwtToken(jwtToken).toString())
+        requireValidJwtToken {
+            return@get
+        }
+
+        val jsonText = json.encodeToString<Boolean>(true)
+        call.respondText(jsonText)
     }
 }

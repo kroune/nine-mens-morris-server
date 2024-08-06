@@ -1,7 +1,6 @@
 package com.example.routing.api
 
-import com.example.CustomJwtToken
-import com.example.json
+import com.example.*
 import com.example.users.Users
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -10,69 +9,87 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.IOException
 import javax.imageio.ImageIO
-
 
 fun Route.userInfoRouting() {
     get("get-login-by-id") {
+        requireValidUserId {
+            return@get
+        }
+
         val id = call.parameters["id"]!!.toLong()
-        val text = Users.getLoginById(id).getOrNull()
+        val text = Users.getLoginById(id).getOrThrow()
         val jsonText = json.encodeToString<String?>(text)
-        call.respondText { jsonText }
+        call.respondText(jsonText)
     }
     get("get-creation-date-by-id") {
+        requireValidUserId {
+            return@get
+        }
+
         val id = call.parameters["id"]!!.toLong()
-        val text = Users.getCreationDateById(id).getOrNull()
+        val text = Users.getCreationDateById(id).getOrThrow()
         val jsonText = json.encodeToString<Triple<Int, Int, Int>?>(text)
-        call.respondText { jsonText }
+        call.respondText(jsonText)
     }
     get("get-rating-by-id") {
+        requireValidUserId {
+            return@get
+        }
+
         val id = call.parameters["id"]!!.toLong()
-        val text = Users.getRatingById(id).getOrNull()
-        val jsonText = json.encodeToString<Long?>(text)
-        call.respondText { jsonText }
+        val text = Users.getRatingById(id).getOrThrow()
+        val jsonText = json.encodeToString<Long>(text)
+        call.respondText(jsonText)
     }
     get("get-id-by-login") {
+        requireValidLogin {
+            return@get
+        }
+
         val login = call.parameters["login"]!!.toString()
-        val id = Users.getIdByLogin(login).getOrNull()
-        val jsonText = json.encodeToString<Long?>(id)
-        call.respondText { jsonText }
+        val id: Long = Users.getIdByLogin(login).getOrThrow()
+        val jsonText = json.encodeToString<Long>(id)
+        call.respondText(jsonText)
     }
     post("upload-picture") {
-        val jwtToken = call.parameters["jwtToken"]!!
-        val jwtTokenObject = CustomJwtToken(jwtToken)
-        if (!Users.validateJwtToken(jwtTokenObject)) {
+        requireValidJwtToken {
             return@post
         }
-        val id = Users.getIdByJwtToken(jwtTokenObject).getOrThrow()
+
+        val jwtToken = call.parameters["jwtToken"]!!
+        val id = Users.getIdByJwtToken(jwtToken).getOrThrow()
         val byteArray = call.receive<ByteArray>()
         val bytes = ByteArrayInputStream(byteArray)
-        ImageIO.read(bytes)
+        try {
+            ImageIO.read(bytes)
+        } catch (_: IOException) {
+            imageIsNotValid()
+            return@post
+        }
         Users.uploadPictureById(byteArray, id)
     }
     get("get-picture-by-id") {
+        requireValidUserId {
+            return@get
+        }
+
         val id = call.parameters["id"]!!.toLong()
         val defaultPicture = File("default/img.png")
         require(defaultPicture.exists())
         val picture = Users.getPictureById(id).getOrDefault(defaultPicture.readBytes())
         val jsonText = json.encodeToString<ByteArray>(picture)
-        call.respondText { jsonText }
+        call.respondText(jsonText)
     }
     get("get-id-by-jwt-token") {
+        requireValidJwtToken {
+            return@get
+        }
+
         val jwtToken = call.parameters["jwtToken"]!!
-        val jwtTokenObject = CustomJwtToken(jwtToken)
-        if (!Users.validateJwtToken(jwtTokenObject)) {
-            call.respond { json.encodeToString<Long>(-1L) }
-            return@get
-        }
-        val login = jwtTokenObject.getLogin().getOrElse {
-            call.respond { json.encodeToString<Long>(-1L) }
-            return@get
-        }
-        val id = Users.getIdByLogin(login).getOrElse {
-            call.respond { json.encodeToString<Long>(-1L) }
-            return@get
-        }
-        call.respondText { json.encodeToString<Long>(id) }
+        val id: Long = Users.getIdByJwtToken(jwtToken).getOrThrow()
+        val jsonText = json.encodeToString<Long>(id)
+        call.respondText(jsonText)
     }
 }

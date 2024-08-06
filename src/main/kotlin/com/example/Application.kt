@@ -15,7 +15,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.pipeline.*
-import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
 import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -70,13 +69,6 @@ suspend fun ApplicationCall.notify(
     code: Int, message: String = ""
 ) {
     this.respondText { NetworkResponse(code, message).encode() }
-    println(NetworkResponse(code, message).encode())
-}
-
-suspend fun DefaultWebSocketSession.notify(
-    code: Int, message: String = "", session: DefaultWebSocketSession = this
-) {
-    session.send(NetworkResponse(code, message).encode())
     println(NetworkResponse(code, message).encode())
 }
 
