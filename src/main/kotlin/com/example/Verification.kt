@@ -1,6 +1,8 @@
 package com.example
 
 import com.example.game.Games
+import com.example.responses.get.*
+import com.example.responses.ws.*
 import com.example.users.Users
 import com.example.users.Users.validateJwtToken
 import io.ktor.server.application.*

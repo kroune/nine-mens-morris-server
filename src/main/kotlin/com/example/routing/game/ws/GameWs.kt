@@ -1,4 +1,4 @@
-package com.example.routing
+package com.example.routing.game.ws
 
 import com.example.*
 import com.example.game.Connection
@@ -7,34 +7,13 @@ import com.example.game.SearchingForGame
 import com.example.users.Users
 import com.kr8ne.mensMorris.PIECES_TO_FLY
 import com.kr8ne.mensMorris.move.Movement
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.consumeEach
 import java.io.IOException
 
-fun Route.gameRouting() {
-    /**
-     * 400 = incorrect jwt token
-     * null = user isn't playing currently
-     * [Long] = game id
-     *
-     * 500 = internal server error
-     */
-    get("/is-playing") {
-        requireValidJwtToken {
-            return@get
-        }
-        val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
-        val gameId = Games.gameId(jwtToken).onFailure {
-            call.respond(HttpStatusCode.InternalServerError, "server error")
-            return@get
-        }
-        call.respondText(gameId.getOrThrow().toString())
-    }
+fun Route.gameRoutingWS() {
     webSocket("/search-for-game") {
         requireValidJwtToken {
             return@webSocket
@@ -55,7 +34,7 @@ fun Route.gameRouting() {
         val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
         val game = Games.getGame(gameId)!!
         if (!game.isParticipating(jwtToken)) {
-            jwtTokenIsNotValidForThisGame()
+            com.example.responses.ws.jwtTokenIsNotValidForThisGame()
             return@webSocket
         }
         try {
@@ -87,7 +66,7 @@ fun Route.gameRouting() {
                         gameId,
                         "error decoding client movement: frame - [$frame] stack trace - [${e.stackTraceToString()}]"
                     )
-                    someThingsWentWrong("error decoding client movement")
+                    com.example.responses.ws.someThingsWentWrong("error decoding client movement")
                     return@webSocket
                 }
                 if (!game.isValidMove(move, jwtToken)) {
@@ -95,7 +74,7 @@ fun Route.gameRouting() {
                         gameId,
                         "received an illegal move - [$move]"
                     )
-                    someThingsWentWrong("received an illegal move")
+                    com.example.responses.ws.someThingsWentWrong("received an illegal move")
                     return@webSocket
                 }
                 game.applyMove(move)

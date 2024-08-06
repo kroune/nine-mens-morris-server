@@ -4,8 +4,6 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTDecodeException
 import kotlinx.serialization.Serializable
-import java.time.Duration
-import java.util.*
 
 @Serializable
 class CustomJwtToken(var token: String = "") {
@@ -13,7 +11,6 @@ class CustomJwtToken(var token: String = "") {
         JWT.create()
             .withClaim("login", login)
             .withClaim("password", password)
-            .withExpiresAt(Date(System.currentTimeMillis() + Duration.ofHours(1L).toMillis()))
             .sign(Algorithm.HMAC256(SECRET_SERVER_TOKEN))
     )
 

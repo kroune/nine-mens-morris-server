@@ -1,18 +1,17 @@
-package com.example.routing.api
+package com.example.routing.userInfo.get
 
-import com.example.*
+import com.example.json
+import com.example.requireValidJwtToken
+import com.example.requireValidLogin
+import com.example.requireValidUserId
 import com.example.users.Users
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
-import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.IOException
-import javax.imageio.ImageIO
 
-fun Route.userInfoRouting() {
+fun Route.userInfoRoutingGET() {
     get("get-login-by-id") {
         requireValidUserId {
             return@get
@@ -52,23 +51,6 @@ fun Route.userInfoRouting() {
         val id: Long = Users.getIdByLogin(login).getOrThrow()
         val jsonText = json.encodeToString<Long>(id)
         call.respondText(jsonText)
-    }
-    post("upload-picture") {
-        requireValidJwtToken {
-            return@post
-        }
-
-        val jwtToken = call.parameters["jwtToken"]!!
-        val id = Users.getIdByJwtToken(jwtToken).getOrThrow()
-        val byteArray = call.receive<ByteArray>()
-        val bytes = ByteArrayInputStream(byteArray)
-        try {
-            ImageIO.read(bytes)
-        } catch (_: IOException) {
-            imageIsNotValid()
-            return@post
-        }
-        Users.uploadPictureById(byteArray, id)
     }
     get("get-picture-by-id") {
         requireValidUserId {
