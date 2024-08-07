@@ -1,8 +1,6 @@
 package com.example
 
-import io.ktor.server.application.*
 import io.ktor.server.websocket.*
-import io.ktor.util.pipeline.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -23,7 +21,7 @@ fun DefaultWebSocketServerSession.log(gameId: Long, text: String) {
     }
 }
 
-fun PipelineContext<Unit, ApplicationCall>.log(text: String, logLevel: LogPriority = LogPriority.Info) {
+fun log(text: String, logLevel: LogPriority = LogPriority.Info) {
     val shouldPrint = logLevel >= currentLogLevel
     if (!shouldPrint) {
         return
@@ -36,7 +34,7 @@ fun PipelineContext<Unit, ApplicationCall>.log(text: String, logLevel: LogPriori
 val currentLogLevel = when (System.getenv("CURRENT_LOG_LEVEL")) {
     "DEBUG" -> LogPriority.Debug
     "INFO" -> LogPriority.Info
-    else -> LogPriority.Errors
+    else -> LogPriority.Debug
 }
 
 sealed class LogPriority(private val priority: Int) : Comparable<LogPriority> {

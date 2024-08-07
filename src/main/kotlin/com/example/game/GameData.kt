@@ -106,6 +106,7 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
             }
         }
     }
+
     fun applyMove(move: Movement) {
         position = move.producePosition(position)
         botMove()
@@ -145,9 +146,13 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
  */
 class Connection(
     var jwtToken: CustomJwtToken,
-    var session: DefaultWebSocketSession?,
+    var session: DefaultWebSocketServerSession?,
 ) {
-    constructor(jwtToken: String, session: DefaultWebSocketSession?) : this(CustomJwtToken(jwtToken), session)
+    constructor(jwtToken: String, session: DefaultWebSocketServerSession?) : this(CustomJwtToken(jwtToken), session)
+
+    fun raiting(): Result<Long> {
+        return Users.getRatingById(id().getOrThrow())
+    }
 
     fun id(): Result<Long> {
         return Users.getIdByJwtToken(jwtToken)

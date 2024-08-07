@@ -14,14 +14,12 @@ object Games {
     }
 
     fun createGame(firstUser: Connection, secondUser: Connection): Long {
-        synchronized(this) {
-            val id = atomicGameId.incrementAndGet()
-            games[id] = GameData(firstUser, secondUser)
-            gamesMap[firstUser.jwtToken.getLogin().getOrThrow()] = id
-            gamesMap[secondUser.jwtToken.getLogin().getOrThrow()] = id
-            println("created game with ${firstUser.jwtToken.token} and ${secondUser.jwtToken.token}")
-            return id
-        }
+        val id = atomicGameId.incrementAndGet()
+        games[id] = GameData(firstUser, secondUser)
+        gamesMap[firstUser.jwtToken.getLogin().getOrThrow()] = id
+        gamesMap[secondUser.jwtToken.getLogin().getOrThrow()] = id
+        println("created game with id - $id and users - ${firstUser.jwtToken.token} and ${secondUser.jwtToken.token}")
+        return id
     }
 
 

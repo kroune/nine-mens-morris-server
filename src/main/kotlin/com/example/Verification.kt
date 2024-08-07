@@ -150,17 +150,20 @@ suspend inline fun DefaultWebSocketServerSession.requireValidJwtToken(lambda: ()
 suspend inline fun DefaultWebSocketServerSession.requireGameId(lambda: () -> Unit) {
     val gameId = call.parameters["gameId"]
     if (gameId == null) {
+        log("no game id parameter found $gameId", LogPriority.Debug)
         noGameId()
         lambda()
         return
     }
     if (gameId.toLongOrNull() == null) {
+        log("game id parameter is not a long $gameId", LogPriority.Debug)
         gameIdIsNotLong()
         lambda()
         return
     }
     val game = Games.getGame(gameId.toLong())
     if (game == null) {
+        log("game id parameter is not valid $gameId", LogPriority.Debug)
         gameIdIsNotValid()
         lambda()
         return

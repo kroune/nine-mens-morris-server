@@ -12,7 +12,10 @@ import com.kr8ne.mensMorris.move.Movement
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.IOException
 
 fun Route.gameRoutingWS() {
@@ -23,7 +26,16 @@ fun Route.gameRoutingWS() {
 
         val jwtToken = call.parameters["jwtToken"]!!
         val thisConnection = Connection(jwtToken, this)
-        SearchingForGame.addUser(thisConnection)
+        val channel = Channel<Pair<Boolean, Long>>()
+        SearchingForGame.addUser(thisConnection, channel)
+        channel.consumeEach { (isWaitingTime, it) ->
+            val jsonText = Json.encodeToString<Pair<Boolean, Long>>(Pair(isWaitingTime, it))
+            send(jsonText)
+            if (!isWaitingTime) {
+                channel.close()
+                close(CloseReason(CloseReason.Codes.NORMAL, it.toString()))
+            }
+        }
     }
     webSocket("/game") {
         requireValidJwtToken {

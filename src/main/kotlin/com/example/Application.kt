@@ -31,8 +31,8 @@ fun main() {
 
 fun Application.module() {
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(15)
-        timeout = Duration.ofSeconds(15)
+        pingPeriod = Duration.ofSeconds(3)
+        timeout = Duration.ofSeconds(30)
     }
     install(ContentNegotiation) {
         json(
