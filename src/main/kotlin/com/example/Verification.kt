@@ -21,11 +21,13 @@ import io.ktor.util.pipeline.*
 suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidJwtToken(lambda: () -> Unit) {
     val jwtToken = call.parameters["jwtToken"]
     if (jwtToken == null) {
+        log("jwt token is null")
         noJwtToken()
         lambda()
         return
     }
     if (!validateJwtToken(jwtToken)) {
+        log("jwt token is not valid")
         jwtTokenIsNotValid()
         lambda()
         return

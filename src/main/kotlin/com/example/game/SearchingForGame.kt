@@ -6,20 +6,32 @@ import com.example.log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
+
+val bucketSize = 100
 
 object SearchingForGame {
     @OptIn(ExperimentalCoroutinesApi::class)
     val searchingForGameScope = Dispatchers.IO.limitedParallelism(100)
     private val usersSearchingForGameJobsMap: MutableMap<String, Job> = mutableMapOf()
 
-    val bucketSize = 100
     val delayBeforeRecheckingBucket = 1_000L
 
     /**
      * array of buckets, represented by queue from [Pair] of [Connection] and [Channel]
      */
     private val usersSearchingForGame: Array<Queue<Pair<Connection, Channel<Pair<Boolean, Long>>>>> = Array(50) {
-        LinkedList()
+        ConcurrentLinkedQueue()
+    }
+
+    fun removeUser(user: Connection) {
+        val login = user.jwtToken.getLogin().getOrThrow()
+        val queueToAddUser = (user.raiting().getOrThrow() / bucketSize).toInt()
+        usersSearchingForGameJobsMap[login]?.cancel()
+        // TODO: optimize this
+        usersSearchingForGame[queueToAddUser].removeAll {
+            it.first == user
+        }
     }
 
     suspend fun addUser(user: Connection, channel: Channel<Pair<Boolean, Long>>) {
@@ -44,7 +56,8 @@ object SearchingForGame {
             if (usersSearchingForGameJobsMap[login] != null) {
                 println("no enemy was found for the user ${user.id().getOrNull()}, pairing with bot")
                 // we can't use any const value, or it would be possible to send moves from bot side
-                val botJwtToken = CustomJwtToken(login = getRandomString(8), password = getRandomString(8))
+                val (botLogin, botPassword) = BotGenerator.getBotFromBucket(queueToAddUser)
+                val botJwtToken = CustomJwtToken(login = botLogin, password = botPassword)
                 val secondUser = Connection(botJwtToken, null)
                 val id = Games.createGame(user, secondUser)
                 channel.send(Pair(false, id))
@@ -58,6 +71,9 @@ object SearchingForGame {
         usersSearchingForGame.forEach { bucket ->
             CoroutineScope(searchingForGameScope).launch {
                 while (true) {
+                    if (bucket.size > 0) {
+                        log("bucket.size - ${bucket.size}", LogPriority.Debug)
+                    }
                     if (bucket.size < 2) {
                         // TODO: add average game search time updater
                         val expectedWaitingTime = 15L

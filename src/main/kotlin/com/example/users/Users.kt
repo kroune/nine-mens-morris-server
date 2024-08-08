@@ -26,7 +26,7 @@ object Users {
             usersDir.listFiles()!!.forEach { file ->
                 val data = file.readText()
                 json.decodeFromString<User>(data).let {
-                    println("new info ${it.login} ${it.id} ${it.date} ${it.jwtToken}")
+                    println("new info ${it.login} ${it.id} ${it.date} ${it.jwtToken.getLogin()}")
                     users.add(it)
                     idToUsersMap[it.id] = it
                     loginsToIdMap[it.login] = it.id
@@ -63,9 +63,15 @@ object Users {
         }
     }
 
-    fun uploadPictureById(newPicture: ByteArray, id: Long) {
+    fun uploadPictureById(id: Long, newPicture: ByteArray) {
         runCatching {
             getUserById(id).getOrThrow().profilePicture = newPicture
+        }
+    }
+
+    fun uploadPictureByLogin(login: String, newPicture: ByteArray) {
+        runCatching {
+            getUserByLogin(login).getOrThrow().profilePicture = newPicture
         }
     }
 
@@ -111,6 +117,12 @@ object Users {
         }
     }
 
+    fun getRatingByLogin(login: String): Result<Long> {
+        return runCatching {
+            getUserByLogin(login).getOrThrow().rating
+        }
+    }
+
     fun getRatingById(id: Long): Result<Long> {
         return runCatching {
             getUserById(id).getOrThrow().rating
@@ -131,8 +143,20 @@ object Users {
         }
     }
 
+    fun setRatingByLogin(login: String, newRating: Long) {
+        val user = getUserByLogin(login).getOrThrow()
+        user.rating = newRating.coerceAtLeast(0)
+        store()
+    }
+
+    fun updateRatingByLogin(login: String, deltaRating: Long) {
+        val user = getUserByLogin(login).getOrThrow()
+        user.rating = (deltaRating + user.rating).coerceAtLeast(0)
+        store()
+    }
+
     fun updateRatingById(id: Long, deltaRating: Long) {
-        val user = idToUsersMap[id] ?: return
+        val user = getUserById(id).getOrThrow()
         user.rating = (deltaRating + user.rating).coerceAtLeast(0)
         store()
     }
@@ -193,6 +217,11 @@ object Users {
     fun getIdByJwtToken(jwtToken: CustomJwtToken): Result<Long> {
         return runCatching {
             loginsToIdMap[jwtToken.getLogin().getOrThrow()]!!
+        }.onFailure {
+            println("login - ${jwtToken.getLogin().getOrNull()}")
+            loginsToIdMap.forEach {
+                println("key - ${it.key}, value - ${it.value}")
+            }
         }
     }
 

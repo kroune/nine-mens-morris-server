@@ -26,6 +26,6 @@ fun Route.userInfoRoutingPOST() {
             imageIsNotValid()
             return@post
         }
-        Users.uploadPictureById(byteArray, id)
+        Users.uploadPictureById(id, byteArray)
     }
 }

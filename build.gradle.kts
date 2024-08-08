@@ -30,6 +30,7 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-rate-limit:$ktor_version")
+    implementation("io.ktor:ktor-client-okhttp:$ktor_version")
 
     // other libs
     implementation("ch.qos.logback:logback-classic:$logback_version")

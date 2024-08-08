@@ -1,6 +1,7 @@
 package com.example.routing.game.ws
 
 import com.example.*
+import com.example.game.BotGenerator
 import com.example.game.Connection
 import com.example.game.Games
 import com.example.game.SearchingForGame
@@ -12,8 +13,11 @@ import com.kr8ne.mensMorris.move.Movement
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.IOException
@@ -28,10 +32,16 @@ fun Route.gameRoutingWS() {
         val thisConnection = Connection(jwtToken, this)
         val channel = Channel<Pair<Boolean, Long>>()
         SearchingForGame.addUser(thisConnection, channel)
+        CoroutineScope(Dispatchers.IO).launch {
+            this@webSocket.closeReason.join()
+            log("user disconnected from searching for game", LogPriority.Debug)
+            SearchingForGame.removeUser(thisConnection)
+        }
         channel.consumeEach { (isWaitingTime, it) ->
             val jsonText = Json.encodeToString<Pair<Boolean, Long>>(Pair(isWaitingTime, it))
             send(jsonText)
             if (!isWaitingTime) {
+                log("sending game id to the user gameId - $it", LogPriority.Debug)
                 channel.close()
                 close(CloseReason(CloseReason.Codes.NORMAL, it.toString()))
             }
@@ -52,6 +62,28 @@ fun Route.gameRoutingWS() {
             return@webSocket
         }
         try {
+            val gameEndAction: suspend () -> Unit = {
+                val firstUserRating = Users.getRatingById(game.firstUser.id().getOrThrow()).getOrThrow()
+                val secondUserRating = Users.getRatingById(game.secondUser.id().getOrThrow()).getOrThrow()
+                val greenLost = game.position.greenPiecesAmount < PIECES_TO_FLY
+                val firstUserLost = greenLost == game.isFirstPlayerGreen
+                val delta =
+                    (10 + (if (firstUserLost) secondUserRating - firstUserRating else firstUserRating - secondUserRating) / 100).coerceIn(
+                        -50L..50L
+                    )
+                Users.updateRatingById(game.firstUser.id().getOrThrow(), if (firstUserLost) -delta else delta)
+                Users.updateRatingById(game.secondUser.id().getOrThrow(), if (firstUserLost) delta else -delta)
+                game.sendMove(jwtToken, Movement(null, null), true)
+                game.sendMove(jwtToken, Movement(null, null), false)
+                game.firstUser.session?.close()
+                game.secondUser.session?.close()
+                if (BotGenerator.isBot(game.firstUser.jwtToken.getLogin().getOrThrow())) {
+                    BotGenerator.botGotFree(game.firstUser.jwtToken.getLogin().getOrThrow())
+                }
+                if (BotGenerator.isBot(game.secondUser.jwtToken.getLogin().getOrThrow())) {
+                    BotGenerator.botGotFree(game.secondUser.jwtToken.getLogin().getOrThrow())
+                }
+            }
             game.updateSession(jwtToken, this)
             val isGreen = when (jwtToken) {
                 game.firstUser.jwtToken -> {
@@ -83,6 +115,12 @@ fun Route.gameRoutingWS() {
                     someThingsWentWrong("error decoding client movement")
                     return@webSocket
                 }
+                // user gave up
+                if (move.startIndex == null && move.endIndex == null) {
+                    log(gameId, "user gave up")
+                    gameEndAction()
+                    return@webSocket
+                }
                 if (!game.isValidMove(move, jwtToken)) {
                     log(
                         gameId,
@@ -96,18 +134,7 @@ fun Route.gameRoutingWS() {
                 game.sendMove(jwtToken, move, true)
                 // check if game has ended and then send this info
                 if (game.hasEnded()) {
-                    val firstUserRating = Users.getRatingById(game.firstUser.id().getOrThrow()).getOrThrow()
-                    val secondUserRating = Users.getRatingById(game.secondUser.id().getOrThrow()).getOrThrow()
-                    val greenLost = game.position.greenPiecesAmount < PIECES_TO_FLY
-                    val firstUserLost = greenLost == game.isFirstPlayerGreen
-                    val delta =
-                        (10 + (if (firstUserLost) secondUserRating - firstUserRating else firstUserRating - secondUserRating) / 100).coerceIn(
-                            -50L..50L
-                        )
-                    Users.updateRatingById(game.firstUser.id().getOrThrow(), if (firstUserLost) -delta else delta)
-                    Users.updateRatingById(game.secondUser.id().getOrThrow(), if (firstUserLost) delta else -delta)
-                    game.sendMove(jwtToken, Movement(null, null), true)
-                    game.sendMove(jwtToken, Movement(null, null), false)
+                    gameEndAction()
                     return@webSocket
                 }
             }
