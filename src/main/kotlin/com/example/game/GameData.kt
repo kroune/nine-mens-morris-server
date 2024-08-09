@@ -2,12 +2,12 @@ package com.example.game
 
 import com.example.*
 import com.example.users.Users
-import com.kr8ne.mensMorris.GameState
-import com.kr8ne.mensMorris.PIECES_TO_FLY
-import com.kr8ne.mensMorris.Position
-import com.kr8ne.mensMorris.gameStartPosition
-import com.kr8ne.mensMorris.move.Movement
 import com.kroune.GameEndReason
+import com.kroune.nineMensMorrisLib.GameState
+import com.kroune.nineMensMorrisLib.PIECES_TO_FLY
+import com.kroune.nineMensMorrisLib.Position
+import com.kroune.nineMensMorrisLib.gameStartPosition
+import com.kroune.nineMensMorrisLib.move.Movement
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
