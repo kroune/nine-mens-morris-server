@@ -1,11 +1,12 @@
 package com.example
 
 import io.ktor.server.websocket.*
+import kotlinx.serialization.Serializable
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 
-val gameLogsPath = File("logs/game")
+val gameLogsPath = File(currentConfig.fileConfig.gameLogsPath)
 
 fun DefaultWebSocketServerSession.log(gameId: Long, text: String) {
     gameLogsPath.mkdirs()
@@ -31,15 +32,15 @@ fun log(text: String, logLevel: LogPriority = LogPriority.Info) {
     println("$currentDate $text")
 }
 
-val currentLogLevel = when (System.getenv("CURRENT_LOG_LEVEL")) {
-    "DEBUG" -> LogPriority.Debug
-    "INFO" -> LogPriority.Info
-    else -> LogPriority.Debug
-}
+val currentLogLevel = currentConfig.currentLogPriority
 
+@Serializable
 sealed class LogPriority(private val priority: Int) : Comparable<LogPriority> {
+    @Serializable
     data object Errors : LogPriority(5)
+    @Serializable
     data object Info : LogPriority(1)
+    @Serializable
     data object Debug : LogPriority(0)
 
     override fun compareTo(other: LogPriority): Int {

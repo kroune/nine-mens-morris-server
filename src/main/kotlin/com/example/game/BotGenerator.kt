@@ -1,11 +1,13 @@
 package com.example.game
 
+import com.example.LogPriority
+import com.example.currentConfig
+import com.example.log
 import com.example.users.Users
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -33,6 +35,7 @@ object BotGenerator {
         val botRating = Users.getRatingByLogin(login).getOrThrow()
         val queueToAddBot = (botRating / bucketSize).toInt()
         availableBotsBuckets[queueToAddBot].add(Pair(login, botsList[login]!!))
+        log("bot got free $login", LogPriority.Debug)
     }
 
     fun isBot(login: String): Boolean {
@@ -42,7 +45,7 @@ object BotGenerator {
         return availableBotsBuckets[bucket].poll() ?: createBot(bucket * bucketSize..bucket * (bucketSize + 1L))
     }
 
-    suspend fun createBot(rating: LongRange = 0..1000L): Pair<String, String> {
+    private suspend fun createBot(rating: LongRange = 0..1000L): Pair<String, String> {
         val result = network.get("https://randomuser.me/api/?inc=login,picture").bodyAsText()
         val serviceData = jsonClient.decodeFromString<ServiceResponse>(result)
         val login = serviceData.username()
@@ -50,6 +53,7 @@ object BotGenerator {
         val botRating = Random.nextLong(rating)
         val registerAttempt = Users.register(serviceData.username(), password)
         if (registerAttempt.isFailure) {
+            log("creating bot failed $login", LogPriority.Debug)
             return createBot()
         }
         Users.setRatingByLogin(login, botRating)
@@ -59,26 +63,32 @@ object BotGenerator {
         val queueToAddBot = (botRating / bucketSize).toInt()
         availableBotsBuckets[queueToAddBot].add(Pair(login, password))
         save()
+        log("created bot with $login $password", LogPriority.Debug)
         return Pair(login, password)
     }
 
     private fun save() {
         botsDataDir.mkdirs()
         run {
-            val botsFile = File(botsDataDir, "botsNames")
+            val botsFile = File(botsDataDir, "botsNames.json")
             botsFile.createNewFile()
-            val encodedText = jsonClient.encodeToString(botsList)
+            val botsListAsList = botsList.map { (login, password) ->
+                Pair(login, password)
+            }
+            val encodedText = jsonClient.encodeToString(botsListAsList)
             botsFile.writeText(encodedText)
         }
     }
 
-    private val botsDataDir = File("data/bots")
+    private val botsDataDir = File(currentConfig.fileConfig.botsDataDir)
 
     init {
         botsDataDir.mkdirs()
         run {
-            val botsFile = File(botsDataDir, "botsNames")
-            botsFile.createNewFile()
+            val botsFile = File(botsDataDir, "botsNames.json")
+            if (botsFile.createNewFile()) {
+                botsFile.writeText("[]")
+            }
             val text = botsFile.readText()
             val botsListFromFile = Json.decodeFromString<MutableList<Pair<String, String>>>(text)
             botsListFromFile.forEach { (login, password) ->
@@ -110,9 +120,3 @@ private class login(val username: String)
 
 @Serializable
 private class picture(val medium: String)
-
-fun main() {
-    runBlocking {
-        BotGenerator.createBot()
-    }
-}

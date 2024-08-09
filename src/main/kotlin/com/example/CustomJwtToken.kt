@@ -11,7 +11,7 @@ class CustomJwtToken(var token: String = "") {
         JWT.create()
             .withClaim("login", login)
             .withClaim("password", password)
-            .sign(Algorithm.HMAC256(SECRET_SERVER_TOKEN))
+            .sign(Algorithm.HMAC256(currentConfig.encryptionToken))
     )
 
     /**
@@ -24,6 +24,9 @@ class CustomJwtToken(var token: String = "") {
         return runCatching {
             val token = JWT.decode(token)
             token.claims["login"]!!.asString()
+        }.onFailure {
+            log("error decoding login", LogPriority.Info)
+            it.printStackTrace()
         }
     }
 

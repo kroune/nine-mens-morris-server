@@ -1,15 +1,14 @@
 package com.example.routing.game.ws
 
 import com.example.*
-import com.example.game.BotGenerator
 import com.example.game.Connection
-import com.example.game.Games
+import com.example.game.GamesDB
 import com.example.game.SearchingForGame
 import com.example.responses.ws.jwtTokenIsNotValidForThisGame
 import com.example.responses.ws.someThingsWentWrong
 import com.example.users.Users
-import com.kr8ne.mensMorris.PIECES_TO_FLY
 import com.kr8ne.mensMorris.move.Movement
+import com.kroune.GameEndReason
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -56,42 +55,23 @@ fun Route.gameRoutingWS() {
         }
         val gameId = call.parameters["gameId"]!!.toLong()
         val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
-        val game = Games.getGame(gameId)!!
+        val game = GamesDB.getGame(gameId)!!
         if (!game.isParticipating(jwtToken)) {
             jwtTokenIsNotValidForThisGame()
             return@webSocket
         }
         try {
-            val gameEndAction: suspend () -> Unit = {
-                val firstUserRating = Users.getRatingById(game.firstUser.id().getOrThrow()).getOrThrow()
-                val secondUserRating = Users.getRatingById(game.secondUser.id().getOrThrow()).getOrThrow()
-                val greenLost = game.position.greenPiecesAmount < PIECES_TO_FLY
-                val firstUserLost = greenLost == game.isFirstPlayerGreen
-                val delta =
-                    (10 + (if (firstUserLost) secondUserRating - firstUserRating else firstUserRating - secondUserRating) / 100).coerceIn(
-                        -50L..50L
-                    )
-                Users.updateRatingById(game.firstUser.id().getOrThrow(), if (firstUserLost) -delta else delta)
-                Users.updateRatingById(game.secondUser.id().getOrThrow(), if (firstUserLost) delta else -delta)
-                game.sendMove(jwtToken, Movement(null, null), true)
-                game.sendMove(jwtToken, Movement(null, null), false)
-                game.firstUser.session?.close()
-                game.secondUser.session?.close()
-                if (BotGenerator.isBot(game.firstUser.jwtToken.getLogin().getOrThrow())) {
-                    BotGenerator.botGotFree(game.firstUser.jwtToken.getLogin().getOrThrow())
-                }
-                if (BotGenerator.isBot(game.secondUser.jwtToken.getLogin().getOrThrow())) {
-                    BotGenerator.botGotFree(game.secondUser.jwtToken.getLogin().getOrThrow())
-                }
-            }
+            val isFirstUser: Boolean
             game.updateSession(jwtToken, this)
-            val isGreen = when (jwtToken) {
+            val (isGreen, enemyId) = when (jwtToken) {
                 game.firstUser.jwtToken -> {
-                    game.isFirstPlayerGreen
+                    isFirstUser = true
+                    Pair(game.isFirstPlayerGreen, Users.getIdByJwtToken(game.secondUser.jwtToken).getOrThrow())
                 }
 
                 game.secondUser.jwtToken -> {
-                    !game.isFirstPlayerGreen
+                    isFirstUser = false
+                    Pair(!game.isFirstPlayerGreen, Users.getIdByJwtToken(game.firstUser.jwtToken).getOrThrow())
                 }
 
                 else -> {
@@ -102,7 +82,9 @@ fun Route.gameRoutingWS() {
             log(gameId, "sending isGreen info - [$isGreen]")
             // we send position to the new connection
             game.sendPosition(jwtToken, false)
-            log(gameId, "sending position info - [${game.getPositionAsJson()}]")
+            log(gameId, "sending position info")
+            send(enemyId.toString())
+            log(gameId, "sending enemy id info - [$enemyId]")
             incoming.consumeEach { frame ->
                 if (frame !is Frame.Text) return@consumeEach
                 val move = try {
@@ -110,7 +92,7 @@ fun Route.gameRoutingWS() {
                 } catch (e: Exception) {
                     log(
                         gameId,
-                        "error decoding client movement: frame - [$frame] stack trace - [${e.stackTraceToString()}]"
+                        "error decoding client movement: frame - [${frame.frameType}] stack trace - [${e.stackTraceToString()}]"
                     )
                     someThingsWentWrong("error decoding client movement")
                     return@webSocket
@@ -118,10 +100,10 @@ fun Route.gameRoutingWS() {
                 // user gave up
                 if (move.startIndex == null && move.endIndex == null) {
                     log(gameId, "user gave up")
-                    gameEndAction()
+                    game.handleGameEnd(GameEndReason.UserGaveUp(isFirstUser))
                     return@webSocket
                 }
-                if (!game.isValidMove(move, jwtToken)) {
+                if (!game.isMovePossible(move, jwtToken)) {
                     log(
                         gameId,
                         "received an illegal move - [$move]"
@@ -132,11 +114,7 @@ fun Route.gameRoutingWS() {
                 game.applyMove(move)
                 // send new position to the enemy
                 game.sendMove(jwtToken, move, true)
-                // check if game has ended and then send this info
-                if (game.hasEnded()) {
-                    gameEndAction()
-                    return@webSocket
-                }
+                // note: checking if the game has ended happens in [GameData.applyMove]
             }
         } catch (e: IOException) {
             log(gameId, "uncaught exception ${e.stackTraceToString()}")

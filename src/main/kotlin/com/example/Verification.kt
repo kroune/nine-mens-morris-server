@@ -1,6 +1,6 @@
 package com.example
 
-import com.example.game.Games
+import com.example.game.GamesDB
 import com.example.responses.get.*
 import com.example.responses.ws.*
 import com.example.users.Users
@@ -163,7 +163,7 @@ suspend inline fun DefaultWebSocketServerSession.requireGameId(lambda: () -> Uni
         lambda()
         return
     }
-    val game = Games.getGame(gameId.toLong())
+    val game = GamesDB.getGame(gameId.toLong())
     if (game == null) {
         log("game id parameter is not valid $gameId", LogPriority.Debug)
         gameIdIsNotValid()

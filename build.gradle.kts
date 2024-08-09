@@ -35,10 +35,13 @@ dependencies {
     // other libs
     implementation("ch.qos.logback:logback-classic:$logback_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
     implementation("at.favre.lib:bcrypt:0.10.2")
+
+    // serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
+    implementation("com.charleskorn.kaml:kaml:0.60.0")
 
     // my own dependencies
     implementation("com.github.kroune:9-men-s-morris-lib:297220e0e1")
-    implementation("com.github.kroune:9-men-s-morris-shared:068a583b9b")
+    implementation("com.github.kroune:9-men-s-morris-shared:3c4cfc2af3")
 }

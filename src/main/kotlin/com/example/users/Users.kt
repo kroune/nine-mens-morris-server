@@ -1,8 +1,7 @@
 package com.example.users
 
 import com.auth0.jwt.exceptions.JWTDecodeException
-import com.example.CustomJwtToken
-import com.example.json
+import com.example.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import java.io.File
@@ -10,7 +9,7 @@ import java.time.LocalDate
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
-val dataDir = File("data")
+val dataDir = File(currentConfig.fileConfig.dataDir)
 
 object Users {
     private val users = Collections.synchronizedList<User>(mutableListOf())
@@ -44,7 +43,6 @@ object Users {
         }
     }
 
-    @Throws(SecurityException::class)
     private fun store() {
         dataDir.mkdirs()
         run {
@@ -63,15 +61,22 @@ object Users {
         }
     }
 
-    fun uploadPictureById(id: Long, newPicture: ByteArray) {
-        runCatching {
+    fun uploadPictureById(id: Long, newPicture: ByteArray): Result<Unit> {
+        return runCatching {
             getUserById(id).getOrThrow().profilePicture = newPicture
+        }.onFailure {
+            log("uploading picture failed", LogPriority.Errors)
+            it.printStackTrace()
         }
     }
 
-    fun uploadPictureByLogin(login: String, newPicture: ByteArray) {
-        runCatching {
+    fun uploadPictureByLogin(login: String, newPicture: ByteArray): Result<Unit> {
+        return runCatching {
             getUserByLogin(login).getOrThrow().profilePicture = newPicture
+            store()
+        }.onFailure {
+            log("uploading picture failed", LogPriority.Errors)
+            it.printStackTrace()
         }
     }
 
@@ -85,6 +90,9 @@ object Users {
     fun getPictureById(id: Long): Result<ByteArray> {
         return runCatching {
             getUserById(id).getOrThrow().profilePicture!!
+        }.onFailure {
+            log("getting picture failed", LogPriority.Errors)
+            it.printStackTrace()
         }
     }
 

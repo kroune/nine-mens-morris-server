@@ -1,6 +1,13 @@
 package com.example.routing.auth.get
 
-import com.example.*
+import com.example.json
+import com.example.requireLogin
+import com.example.requirePassword
+import com.example.requireValidJwtToken
+import com.example.responses.get.jwtTokenIsNotValid
+import com.example.responses.get.noJwtToken
+import com.example.responses.get.noLogin
+import com.example.responses.get.noPassword
 import com.example.users.Users.isLoginPresent
 import com.example.users.Users.login
 import com.example.users.Users.register

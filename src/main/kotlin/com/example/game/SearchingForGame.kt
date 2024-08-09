@@ -2,20 +2,20 @@ package com.example.game
 
 import com.example.CustomJwtToken
 import com.example.LogPriority
+import com.example.currentConfig
 import com.example.log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
-val bucketSize = 100
+val bucketSize = currentConfig.gameConfig.bucketSize
+val delayBeforeRecheckingBucket = currentConfig.gameConfig.delayBeforeRecheckingBucket
 
 object SearchingForGame {
     @OptIn(ExperimentalCoroutinesApi::class)
     val searchingForGameScope = Dispatchers.IO.limitedParallelism(100)
     private val usersSearchingForGameJobsMap: MutableMap<String, Job> = mutableMapOf()
-
-    val delayBeforeRecheckingBucket = 1_000L
 
     /**
      * array of buckets, represented by queue from [Pair] of [Connection] and [Channel]
@@ -26,7 +26,7 @@ object SearchingForGame {
 
     fun removeUser(user: Connection) {
         val login = user.jwtToken.getLogin().getOrThrow()
-        val queueToAddUser = (user.raiting().getOrThrow() / bucketSize).toInt()
+        val queueToAddUser = (user.rating().getOrThrow() / bucketSize).toInt()
         usersSearchingForGameJobsMap[login]?.cancel()
         // TODO: optimize this
         usersSearchingForGame[queueToAddUser].removeAll {
@@ -37,11 +37,11 @@ object SearchingForGame {
     suspend fun addUser(user: Connection, channel: Channel<Pair<Boolean, Long>>) {
         val login = user.jwtToken.getLogin().getOrThrow()
         val oldJob = usersSearchingForGameJobsMap[login]
-        // cancel previous searching if it exist
+        // cancel previous searching if it exists
         oldJob?.cancel()
         val job = CoroutineScope(searchingForGameScope).launch {
             require(user.session != null)
-            val gameId: Long? = Games.gameId(user.jwtToken).getOrNull()
+            val gameId: Long? = GamesDB.gameId(user.jwtToken).getOrNull()
             if (gameId != null) {
                 // user is already in a game
                 channel.send(Pair(false, gameId))
@@ -49,7 +49,7 @@ object SearchingForGame {
                 return@launch
             }
             log("Added user to the queue $login", LogPriority.Debug)
-            val queueToAddUser = (user.raiting().getOrThrow() / bucketSize).toInt()
+            val queueToAddUser = (user.rating().getOrThrow() / bucketSize).toInt()
             usersSearchingForGame[queueToAddUser].add(Pair(user, channel))
             delay(20_000)
             // check if we are still searching
@@ -59,7 +59,7 @@ object SearchingForGame {
                 val (botLogin, botPassword) = BotGenerator.getBotFromBucket(queueToAddUser)
                 val botJwtToken = CustomJwtToken(login = botLogin, password = botPassword)
                 val secondUser = Connection(botJwtToken, null)
-                val id = Games.createGame(user, secondUser)
+                val id = GamesDB.createGame(user, secondUser)
                 channel.send(Pair(false, id))
                 usersSearchingForGameJobsMap.remove(login)
             }
@@ -83,7 +83,7 @@ object SearchingForGame {
                     }
                     val firstUser = bucket.poll()!!
                     val secondUser = bucket.poll()!!
-                    val id = Games.createGame(firstUser.first, secondUser.first)
+                    val id = GamesDB.createGame(firstUser.first, secondUser.first)
                     listOf(firstUser, secondUser).forEach { (connection, channel) ->
                         val login = connection.jwtToken.getLogin().getOrThrow()
                         channel.send(Pair(false, id))

@@ -13,14 +13,14 @@ import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.json.Json
-import java.time.Duration
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
 
 fun main() {
+    val serverConfig = currentConfig.serverConfig
     embeddedServer(
         Netty,
-        port = 8080,
-        host = "0.0.0.0",
+        port = serverConfig.port,
+        host = serverConfig.host,
         configure = {
             requestReadTimeoutSeconds = 15
             responseWriteTimeoutSeconds = 15
@@ -31,8 +31,9 @@ fun main() {
 
 fun Application.module() {
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(3)
-        timeout = Duration.ofSeconds(30)
+        val webSocketConfig = currentConfig.webSocketConfig
+        pingPeriod = webSocketConfig.pingPeriod.toJavaDuration()
+        timeout = webSocketConfig.timeout.toJavaDuration()
     }
     install(ContentNegotiation) {
         json(
@@ -43,7 +44,8 @@ fun Application.module() {
     }
     install(RateLimit) {
         global {
-            rateLimiter(limit = 30, refillPeriod = 60.seconds)
+            val rateLimitConfig = currentConfig.rateLimitConfig
+            rateLimiter(limit = rateLimitConfig.rateLimit, refillPeriod = rateLimitConfig.refillSpeed)
         }
     }
     routing {
@@ -55,6 +57,3 @@ fun Application.module() {
         }
     }
 }
-
-val SECRET_SERVER_TOKEN = System.getenv("SECRET_SERVER_TOKEN")
-    ?: throw IllegalStateException("missing env variable, you need to set \"SECRET_SERVER_TOKEN\" to any string (used for encryption")

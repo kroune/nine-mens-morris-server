@@ -4,7 +4,7 @@ import com.example.CustomJwtToken
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
-object Games {
+object GamesDB {
     private val gamesMap: MutableMap<String, Long> = Collections.synchronizedMap(mutableMapOf())
     private val games: MutableMap<Long, GameData> = Collections.synchronizedMap(mutableMapOf<Long, GameData>())
     private val atomicGameId = AtomicLong(0)
