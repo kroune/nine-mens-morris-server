@@ -6,13 +6,15 @@ import kotlinx.serialization.decodeFromString
 import java.io.File
 
 val currentConfig: Config = run {
-    val configFile = File("server-config.yaml")
-    if (!configFile.exists()) {
-        error("config file wasn't provided")
+    val configDirList = listOf("server-config.yaml", "/etc/config/server-config.yaml")
+    configDirList.forEach {
+        val file = File(it)
+        if (file.exists()) {
+            // we found a working file
+            return@run Yaml.default.decodeFromString<Config>(file.readText())
+        }
     }
-    val config = Yaml.default.decodeFromString<Config>(configFile.readText())
-    println("decoded config successfully")
-    config
+    error("config file wasn't provided")
 }
 
 @Serializable
