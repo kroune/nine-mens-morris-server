@@ -7,6 +7,7 @@ import com.kroune.nineMensMorrisLib.PIECES_TO_FLY
 import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.gameStartPosition
 import com.kroune.nineMensMorrisLib.move.Movement
+import com.kroune.nineMensMorrisShared.GameEndReason
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
