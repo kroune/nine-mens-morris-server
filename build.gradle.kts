@@ -42,6 +42,6 @@ dependencies {
     implementation("com.charleskorn.kaml:kaml:0.60.0")
 
     // my own dependencies
+//    implementation("com.github.kroune:9-men-s-morris-shared:5e3bae4d42")
     implementation("com.github.kroune:9-men-s-morris-lib:v1.0.0")
-    implementation("com.github.kroune:9-men-s-morris-shared:3c4cfc2af3")
 }

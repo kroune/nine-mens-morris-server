@@ -87,9 +87,9 @@ object Users {
      *
      * [ByteArray] - image file as a byte array
      */
-    fun getPictureById(id: Long): Result<ByteArray> {
+    fun getPictureById(id: Long): Result<ByteArray?> {
         return runCatching {
-            getUserById(id).getOrThrow().profilePicture!!
+            getUserById(id).getOrThrow().profilePicture
         }.onFailure {
             log("getting picture failed", LogPriority.Errors)
             it.printStackTrace()

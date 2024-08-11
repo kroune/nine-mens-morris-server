@@ -25,7 +25,9 @@ fun main() {
             requestReadTimeoutSeconds = 15
             responseWriteTimeoutSeconds = 15
         },
-        module = Application::module
+        module = {
+            module()
+        }
     ).start(wait = true)
 }
 

@@ -60,7 +60,7 @@ fun Route.userInfoRoutingGET() {
         val id = call.parameters["id"]!!.toLong()
         val defaultPicture = File("default/img.png")
         require(defaultPicture.exists())
-        val picture = Users.getPictureById(id).getOrDefault(defaultPicture.readBytes())
+        val picture = Users.getPictureById(id).getOrNull() ?: defaultPicture.readBytes()
         val jsonText = json.encodeToString<ByteArray>(picture)
         call.respondText(jsonText)
     }

@@ -7,7 +7,6 @@ import com.example.game.SearchingForGame
 import com.example.responses.ws.jwtTokenIsNotValidForThisGame
 import com.example.responses.ws.someThingsWentWrong
 import com.example.users.Users
-import com.kroune.GameEndReason
 import com.kroune.nineMensMorrisLib.move.Movement
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*

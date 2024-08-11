@@ -2,7 +2,6 @@ package com.example.game
 
 import com.example.*
 import com.example.users.Users
-import com.kroune.GameEndReason
 import com.kroune.nineMensMorrisLib.GameState
 import com.kroune.nineMensMorrisLib.PIECES_TO_FLY
 import com.kroune.nineMensMorrisLib.Position

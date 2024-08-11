@@ -6,7 +6,7 @@ import kotlinx.serialization.decodeFromString
 import java.io.File
 
 val currentConfig: Config = run {
-    val configFile = File("/etc/config/server-config.yaml")
+    val configFile = File("server-config.yaml")
     if (!configFile.exists()) {
         error("config file wasn't provided")
     }
