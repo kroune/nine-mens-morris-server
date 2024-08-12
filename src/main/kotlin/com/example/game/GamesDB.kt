@@ -15,7 +15,7 @@ object GamesDB {
 
     fun createGame(firstUser: Connection, secondUser: Connection): Long {
         val id = atomicGameId.incrementAndGet()
-        games[id] = GameData(firstUser, secondUser)
+        games[id] = GameData(firstUser, secondUser, id)
         gamesMap[firstUser.jwtToken.getLogin().getOrThrow()] = id
         gamesMap[secondUser.jwtToken.getLogin().getOrThrow()] = id
         println("created game with id - $id and users - ${firstUser.jwtToken.token} and ${secondUser.jwtToken.token}")

@@ -111,9 +111,9 @@ fun Route.gameRoutingWS() {
                     someThingsWentWrong("received an illegal move")
                     return@webSocket
                 }
-                game.applyMove(move)
                 // send new position to the enemy
                 game.sendMove(jwtToken, move, true)
+                game.applyMove(move)
                 // note: checking if the game has ended happens in [GameData.applyMove]
             }
         } catch (e: IOException) {

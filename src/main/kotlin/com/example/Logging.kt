@@ -1,6 +1,5 @@
 package com.example
 
-import io.ktor.server.websocket.*
 import kotlinx.serialization.Serializable
 import java.io.File
 import java.text.SimpleDateFormat
@@ -8,7 +7,7 @@ import java.util.*
 
 val gameLogsPath = File(currentConfig.fileConfig.gameLogsPath)
 
-fun DefaultWebSocketServerSession.log(gameId: Long, text: String) {
+fun log(gameId: Long, text: String) {
     gameLogsPath.mkdirs()
     run {
         val game = File(gameLogsPath, gameId.toString())
@@ -18,7 +17,7 @@ fun DefaultWebSocketServerSession.log(gameId: Long, text: String) {
         val sdf = SimpleDateFormat("hh:mm:ss dd/M/yyyy ")
         val currentDate = sdf.format(Date())
         println("$currentDate $text")
-        game.appendText("$currentDate $text")
+        game.appendText("$currentDate $text\n")
     }
 }
 

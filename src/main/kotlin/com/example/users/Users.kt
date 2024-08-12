@@ -7,13 +7,14 @@ import kotlinx.serialization.encodeToString
 import java.io.File
 import java.time.LocalDate
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
 val dataDir = File(currentConfig.fileConfig.dataDir)
 
 object Users {
     private val users = Collections.synchronizedList<User>(mutableListOf())
-    private val loginsToIdMap = mutableMapOf<String, Long>()
+    private val loginsToIdMap = ConcurrentHashMap<String, Long>()
     private val idToUsersMap = mutableMapOf<Long, User>()
     private val idCounter = AtomicLong(0)
 

@@ -4,7 +4,11 @@ import com.example.json
 import com.example.requireValidJwtToken
 import com.example.requireValidLogin
 import com.example.requireValidUserId
+import com.example.responses.get.jwtTokenIsNotValid
+import com.example.responses.get.noJwtToken
+import com.example.responses.ws.jwtTokenIsNotValid
 import com.example.users.Users
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -64,13 +68,27 @@ fun Route.userInfoRoutingGET() {
         val jsonText = json.encodeToString<ByteArray>(picture)
         call.respondText(jsonText)
     }
+    /**
+     * possible responses:
+     *
+     * [noJwtToken]
+     *
+     * [jwtTokenIsNotValid]
+     *
+     * [HttpStatusCode.InternalServerError]
+     *
+     * [Long] - user id
+     */
     get("get-id-by-jwt-token") {
         requireValidJwtToken {
             return@get
         }
 
         val jwtToken = call.parameters["jwtToken"]!!
-        val id: Long = Users.getIdByJwtToken(jwtToken).getOrThrow()
+        val id: Long = Users.getIdByJwtToken(jwtToken).getOrElse {
+            call.respond(HttpStatusCode.InternalServerError)
+            return@get
+        }
         val jsonText = json.encodeToString<Long>(id)
         call.respondText(jsonText)
     }

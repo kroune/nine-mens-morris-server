@@ -1,6 +1,9 @@
 package com.example.game
 
-import com.example.*
+import com.example.CustomJwtToken
+import com.example.currentConfig
+import com.example.json
+import com.example.log
 import com.example.users.Users
 import com.kroune.nineMensMorrisLib.GameState
 import com.kroune.nineMensMorrisLib.PIECES_TO_FLY
@@ -19,7 +22,7 @@ import kotlinx.serialization.encodeToString
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
 
-class GameData(val firstUser: Connection, val secondUser: Connection) {
+class GameData(val firstUser: Connection, val secondUser: Connection, private val gameId: Long) {
     private var position: Position = gameStartPosition
     val isFirstPlayerGreen = Random.nextBoolean()
     private var playedMoves = AtomicInteger(0)
@@ -80,7 +83,7 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
      * @throws IllegalStateException if jwt token doesn't much either of player
      */
     private suspend fun sendDataTo(jwtToken: CustomJwtToken, opposite: Boolean, data: String) {
-        log("sending data to user $data", LogPriority.Debug)
+        log(gameId, "sending data to user $data")
         when (jwtToken) {
             firstUser.jwtToken -> {
                 val user = if (opposite) secondUser else firstUser
@@ -160,7 +163,7 @@ class GameData(val firstUser: Connection, val secondUser: Connection) {
                 // if no moves were performed
                 if (playedMoves.get() == currentMoveCount) {
                     val firstUserLost = position.pieceToMove == isFirstPlayerGreen
-                    log("game was ended, because no move were performed in $timeForMove")
+                    log(gameId, "game was ended, because no move were performed in $timeForMove")
                     handleGameEnd(GameEndReason.UserWasTooSlow(firstUserLost))
                 }
             }
