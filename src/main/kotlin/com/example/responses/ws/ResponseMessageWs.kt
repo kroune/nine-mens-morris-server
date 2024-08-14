@@ -51,3 +51,7 @@ suspend inline fun DefaultWebSocketServerSession.noJwtToken() {
 suspend inline fun DefaultWebSocketServerSession.jwtTokenIsNotValid() {
     close(CloseReason(403_0, "[jwtToken] parameter is not valid"))
 }
+
+suspend inline fun DefaultWebSocketServerSession.internalServerError() {
+    close(CloseReason(500_0, "Internal server error"))
+}

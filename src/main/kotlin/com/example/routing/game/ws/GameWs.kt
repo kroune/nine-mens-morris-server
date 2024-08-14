@@ -1,12 +1,14 @@
 package com.example.routing.game.ws
 
 import com.example.*
+import com.example.encryption.CustomJwtToken
 import com.example.game.Connection
 import com.example.game.GamesDB
 import com.example.game.SearchingForGame
+import com.example.data.usersRepository
+import com.example.responses.ws.internalServerError
 import com.example.responses.ws.jwtTokenIsNotValidForThisGame
 import com.example.responses.ws.someThingsWentWrong
-import com.example.users.Users
 import com.kroune.nineMensMorrisLib.move.Movement
 import com.kroune.nineMensMorrisShared.GameEndReason
 import io.ktor.server.routing.*
@@ -28,7 +30,8 @@ fun Route.gameRoutingWS() {
         }
 
         val jwtToken = call.parameters["jwtToken"]!!
-        val thisConnection = Connection(jwtToken, this)
+        val jwtTokenObject = CustomJwtToken(jwtToken)
+        val thisConnection = Connection(jwtTokenObject.getLogin().getOrThrow(), this)
         val channel = Channel<Pair<Boolean, Long>>()
         SearchingForGame.addUser(thisConnection, channel)
         CoroutineScope(Dispatchers.IO).launch {
@@ -53,25 +56,35 @@ fun Route.gameRoutingWS() {
         requireGameId {
             return@webSocket
         }
+
         val gameId = call.parameters["gameId"]!!.toLong()
         val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
+        val login = jwtToken.getLogin().getOrThrow()
         val game = GamesDB.getGame(gameId)!!
-        if (!game.isParticipating(jwtToken)) {
+        if (!game.isParticipating(login)) {
             jwtTokenIsNotValidForThisGame()
             return@webSocket
         }
         try {
             val isFirstUser: Boolean
-            game.updateSession(jwtToken, this)
-            val (isGreen, enemyId) = when (jwtToken) {
-                game.firstUser.jwtToken -> {
+            game.updateSession(login, this)
+            val (isGreen, enemyId) = when (login) {
+                game.firstUser.login -> {
                     isFirstUser = true
-                    Pair(game.isFirstPlayerGreen, Users.getIdByJwtToken(game.secondUser.jwtToken).getOrThrow())
+                    val enemyLogin = usersRepository.getIdByLogin(game.secondUser.login) ?: run {
+                        internalServerError()
+                        return@webSocket
+                    }
+                    Pair(game.isFirstPlayerGreen, enemyLogin)
                 }
 
-                game.secondUser.jwtToken -> {
+                game.secondUser.login -> {
                     isFirstUser = false
-                    Pair(!game.isFirstPlayerGreen, Users.getIdByJwtToken(game.firstUser.jwtToken).getOrThrow())
+                    val enemyLogin = usersRepository.getIdByLogin(game.firstUser.login) ?: run {
+                        internalServerError()
+                        return@webSocket
+                    }
+                    Pair(!game.isFirstPlayerGreen, enemyLogin)
                 }
 
                 else -> {
@@ -81,7 +94,7 @@ fun Route.gameRoutingWS() {
             send(isGreen.toString())
             log(gameId, "sending isGreen info - [$isGreen]")
             // we send position to the new connection
-            game.sendPosition(jwtToken, false)
+            game.sendPosition(login, false)
             log(gameId, "sending position info")
             send(enemyId.toString())
             log(gameId, "sending enemy id info - [$enemyId]")
@@ -103,7 +116,7 @@ fun Route.gameRoutingWS() {
                     game.handleGameEnd(GameEndReason.UserGaveUp(isFirstUser))
                     return@webSocket
                 }
-                if (!game.isMovePossible(move, jwtToken)) {
+                if (!game.isMovePossible(move, login)) {
                     log(
                         gameId,
                         "received an illegal move - [$move]"
@@ -112,7 +125,7 @@ fun Route.gameRoutingWS() {
                     return@webSocket
                 }
                 // send new position to the enemy
-                game.sendMove(jwtToken, move, true)
+                game.sendMove(login, move, true)
                 game.applyMove(move)
                 // note: checking if the game has ended happens in [GameData.applyMove]
             }

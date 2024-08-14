@@ -40,3 +40,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.userIdIsNotValid() {
 suspend inline fun PipelineContext<Unit, ApplicationCall>.imageIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "provided image (byte array) is not valid")
 }
+
+suspend inline fun PipelineContext<Unit, ApplicationCall>.internalServerError() {
+    call.respond(HttpStatusCode.InternalServerError, "Internal server error")
+}

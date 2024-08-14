@@ -1,12 +1,15 @@
 package com.example
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import com.example.routing.auth.accountRouting
 import com.example.routing.game.gameRouting
 import com.example.routing.misc.miscRouting
 import com.example.routing.userInfo.userInfoRouting
-import com.kroune.nineMensMorrisLib.move.Movement
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -14,6 +17,7 @@ import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.Database
 import kotlin.time.toJavaDuration
 
 fun main() {
@@ -33,6 +37,30 @@ fun main() {
 }
 
 fun Application.module() {
+    Database.connect(
+        "jdbc:postgresql://localhost:5432/postgres",
+        driver = "org.postgresql.Driver",
+        user = "postgres",
+        password = "1234"
+    )
+    install(Authentication) {
+        jwt {
+            verifier(
+                JWT
+                    .require(Algorithm.HMAC256(currentConfig.encryptionToken))
+                    .withClaimPresence("login")
+                    .withClaimPresence("password")
+                    .build()
+            )
+//            validate { credential ->
+//                if (credential.payload.getClaim("username").asString() != "") {
+//                    JWTPrincipal(credential.payload)
+//                } else {
+//                    null
+//                }
+//            }
+        }
+    }
     install(WebSockets) {
         val webSocketConfig = currentConfig.webSocketConfig
         pingPeriod = webSocketConfig.pingPeriod.toJavaDuration()

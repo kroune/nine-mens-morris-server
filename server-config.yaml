@@ -1,0 +1,19 @@
+serverConfig:
+  host: "0.0.0.0"
+  port: 8080
+rateLimitConfig:
+  rateLimit: 30
+  refillSpeed: "PT1M"
+webSocketConfig:
+  pingPeriod: "PT3S"
+  timeout: "PT60S"
+encryptionToken: "AIkjDRWCktbcdFJoFzmeoYyfcxtYoMvNcfDmyLpPApqkNdZgzAyMxFMzKsxFKvmQ"
+fileConfig:
+  gameLogsPath: "logs/game"
+  dataDir: "data"
+  botsDataDir: "data/bots"
+currentLogPriority: !<com.example.LogPriority.Debug> {}
+gameConfig:
+  timeForMove: 300000000
+  bucketSize: 100
+  delayBeforeRecheckingBucket: 3000

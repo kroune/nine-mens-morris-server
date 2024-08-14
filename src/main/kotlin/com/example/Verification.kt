@@ -1,10 +1,10 @@
 package com.example
 
+import com.example.encryption.CustomJwtToken
 import com.example.game.GamesDB
+import com.example.data.usersRepository
 import com.example.responses.get.*
 import com.example.responses.ws.*
-import com.example.users.Users
-import com.example.users.Users.validateJwtToken
 import io.ktor.server.application.*
 import io.ktor.server.websocket.*
 import io.ktor.util.pipeline.*
@@ -26,7 +26,7 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidJwtToken(l
         lambda()
         return
     }
-    if (!validateJwtToken(jwtToken)) {
+    if (!CustomJwtToken(jwtToken).verify()) {
         log("jwt token is not valid")
         jwtTokenIsNotValid()
         lambda()
@@ -62,7 +62,7 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidLogin(lamb
         lambda()
         return
     }
-    if (!Users.isLoginPresent(login)) {
+    if (!usersRepository.isLoginPresent(login)) {
         noValidLogin()
         lambda()
         return
@@ -108,7 +108,7 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidUserId(lam
         lambda()
         return
     }
-    if (Users.getLoginById(id.toLong()).isFailure) {
+    if (usersRepository.getLoginById(id.toLong()) == null) {
         userIdIsNotValid()
         lambda()
         return
@@ -131,7 +131,7 @@ suspend inline fun DefaultWebSocketServerSession.requireValidJwtToken(lambda: ()
         lambda()
         return
     }
-    if (!validateJwtToken(jwtToken)) {
+    if (!CustomJwtToken(jwtToken).verify()) {
         jwtTokenIsNotValid()
         lambda()
         return

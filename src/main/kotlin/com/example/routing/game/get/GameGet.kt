@@ -1,6 +1,6 @@
 package com.example.routing.game.get
 
-import com.example.CustomJwtToken
+import com.example.encryption.CustomJwtToken
 import com.example.game.GamesDB
 import com.example.requireValidJwtToken
 import io.ktor.http.*
@@ -21,7 +21,8 @@ fun Route.gameRoutingGET() {
             return@get
         }
         val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
-        val gameId = GamesDB.gameId(jwtToken).onFailure {
+        val login = jwtToken.getLogin().getOrThrow()
+        val gameId = GamesDB.gameId(login).onFailure {
             call.respond(HttpStatusCode.InternalServerError, "server error")
             return@get
         }

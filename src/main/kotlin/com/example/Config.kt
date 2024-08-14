@@ -31,7 +31,7 @@ data class Config(
 @Serializable
 class GameConfig(
     val timeForMove: Long,
-    val bucketSize: Long,
+    val bucketSize: Int,
     val delayBeforeRecheckingBucket: Long
 )
 

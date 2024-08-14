@@ -1,8 +1,12 @@
-package com.example
+package com.example.encryption
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTDecodeException
+import com.example.LogPriority
+import com.example.currentConfig
+import com.example.data.usersRepository
+import com.example.log
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -18,6 +22,7 @@ class CustomJwtToken(var token: String = "") {
      * possible results:
      *
      * [JWTDecodeException] - error while decoding token
+     *
      * [NullPointerException] - no login claim exists
      */
     fun getLogin(): Result<String> {
@@ -30,11 +35,33 @@ class CustomJwtToken(var token: String = "") {
         }
     }
 
-    fun validate(login: String, password: String): Boolean {
-        val token = JWT.decode(token)
-        val loginMatches = token.claims["login"]?.asString() == login
-        val passwordMatches = token.claims["password"]?.asString() == password
-        return loginMatches && passwordMatches
+    /**
+     * possible results:
+     *
+     * [JWTDecodeException] - error while decoding token
+     *
+     * [NullPointerException] - no password_hash claim exists
+     */
+    private fun getPassword(): Result<String> {
+        return runCatching {
+            val token = JWT.decode(token)
+            token.claims["password"]!!.asString()
+        }.onFailure {
+            log("error decoding login", LogPriority.Info)
+            it.printStackTrace()
+        }
+    }
+
+    suspend fun verify(): Boolean {
+        val login = getLogin().getOrElse {
+            println("DEBUG: login error")
+            return false
+        }
+        val password = getPassword().getOrElse {
+            println("DEBUG: password hash error")
+            return false
+        }
+        return usersRepository.exists(login, password)
     }
 
     override fun equals(other: Any?): Boolean {

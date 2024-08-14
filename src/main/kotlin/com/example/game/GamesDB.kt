@@ -1,11 +1,10 @@
 package com.example.game
 
-import com.example.CustomJwtToken
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
 object GamesDB {
-    private val gamesMap: MutableMap<String, Long> = Collections.synchronizedMap(mutableMapOf())
+    private val loginToGameIdMap: MutableMap<String, Long> = Collections.synchronizedMap(mutableMapOf())
     private val games: MutableMap<Long, GameData> = Collections.synchronizedMap(mutableMapOf<Long, GameData>())
     private val atomicGameId = AtomicLong(0)
 
@@ -13,19 +12,19 @@ object GamesDB {
         return games[id]
     }
 
-    fun createGame(firstUser: Connection, secondUser: Connection): Long {
+    fun createGame(firstUser: Connection, secondUser: Connection, botAtGame: Boolean): Long {
         val id = atomicGameId.incrementAndGet()
-        games[id] = GameData(firstUser, secondUser, id)
-        gamesMap[firstUser.jwtToken.getLogin().getOrThrow()] = id
-        gamesMap[secondUser.jwtToken.getLogin().getOrThrow()] = id
-        println("created game with id - $id and users - ${firstUser.jwtToken.token} and ${secondUser.jwtToken.token}")
+        games[id] = GameData(firstUser, secondUser, id, botAtGame)
+        loginToGameIdMap[firstUser.login] = id
+        loginToGameIdMap[secondUser.login] = id
+        println("created game with id - $id and users - ${firstUser.login} and ${secondUser.login}")
         return id
     }
 
 
-    fun gameId(jwtToken: CustomJwtToken): Result<Long?> {
+    fun gameId(login: String): Result<Long?> {
         return runCatching {
-            gamesMap[jwtToken.getLogin().getOrThrow()]
+            loginToGameIdMap[login]
         }
     }
 }

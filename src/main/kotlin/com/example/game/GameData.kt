@@ -1,10 +1,9 @@
 package com.example.game
 
-import com.example.CustomJwtToken
 import com.example.currentConfig
 import com.example.json
+import com.example.data.usersRepository
 import com.example.log
-import com.example.users.Users
 import com.kroune.nineMensMorrisLib.GameState
 import com.kroune.nineMensMorrisLib.PIECES_TO_FLY
 import com.kroune.nineMensMorrisLib.Position
@@ -22,7 +21,10 @@ import kotlinx.serialization.encodeToString
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
 
-class GameData(val firstUser: Connection, val secondUser: Connection, private val gameId: Long) {
+/**
+ * if a bot exists in game - it is [secondUser]
+ */
+class GameData(val firstUser: Connection, val secondUser: Connection, private val gameId: Long, private val botAtGame: Boolean ) {
     private var position: Position = gameStartPosition
     val isFirstPlayerGreen = Random.nextBoolean()
     private var playedMoves = AtomicInteger(0)
@@ -45,30 +47,30 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
     ) {
         val isFirstUserLost = reason.isFirstUser
         CoroutineScope(Dispatchers.Default).launch {
-            val firstUserRating = Users.getRatingById(firstUser.id().getOrThrow()).getOrThrow()
-            val secondUserRating = Users.getRatingById(secondUser.id().getOrThrow()).getOrThrow()
+            val firstUserRating = usersRepository.getRatingById(firstUser.id())!!
+            val secondUserRating = usersRepository.getRatingById(secondUser.id())!!
             val delta =
                 (10 + (if (isFirstUserLost) secondUserRating - firstUserRating else firstUserRating - secondUserRating) / 100).coerceIn(
-                    -50L..50L
+                    -50..50
                 )
-            Users.updateRatingById(firstUser.id().getOrThrow(), if (isFirstUserLost) -delta else delta)
-            Users.updateRatingById(secondUser.id().getOrThrow(), if (isFirstUserLost) delta else -delta)
+            usersRepository.updateRatingById(firstUser.id(), if (isFirstUserLost) -delta else delta)
+            usersRepository.updateRatingById(secondUser.id(), if (isFirstUserLost) delta else -delta)
             listOf(firstUser, secondUser).forEach { user ->
-                sendMove(user.jwtToken, Movement(null, null), false)
-                sendDataTo(user.jwtToken, false, "")
+                sendMove(user.login, Movement(null, null), false)
+                sendDataTo(user.login, false, "")
                 user.session?.close()
-                if (BotGenerator.isBot(user.getLogin())) {
-                    BotGenerator.botGotFree(user.getLogin())
+                if (BotGenerator.isBot(user.login)) {
+                    BotGenerator.botGotFree(user.login)
                 }
             }
         }
     }
 
 
-    suspend fun sendMove(jwtToken: CustomJwtToken, movement: Movement, opposite: Boolean) {
+    suspend fun sendMove(login: String, movement: Movement, opposite: Boolean) {
         val move = json.encodeToString<Movement>(movement)
         sendDataTo(
-            jwtToken = jwtToken,
+            login = login,
             opposite = opposite,
             data = move
         )
@@ -82,15 +84,15 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
      *
      * @throws IllegalStateException if jwt token doesn't much either of player
      */
-    private suspend fun sendDataTo(jwtToken: CustomJwtToken, opposite: Boolean, data: String) {
+    private suspend fun sendDataTo(login: String, opposite: Boolean, data: String) {
         log(gameId, "sending data to user $data")
-        when (jwtToken) {
-            firstUser.jwtToken -> {
+        when (login) {
+            firstUser.login -> {
                 val user = if (opposite) secondUser else firstUser
                 user.session?.send(data)
             }
 
-            secondUser.jwtToken -> {
+            secondUser.login -> {
                 val user = if (opposite) firstUser else secondUser
                 user.session?.send(data)
             }
@@ -108,10 +110,10 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
      * @throws SerializationException if encoding failed
      * @throws IllegalArgumentException if encoding failed
      */
-    suspend fun sendPosition(jwtToken: CustomJwtToken, opposite: Boolean) {
+    suspend fun sendPosition(login: String, opposite: Boolean) {
         val pos = json.encodeToString<Position>(position)
         sendDataTo(
-            jwtToken = jwtToken,
+            login = login,
             opposite = opposite,
             data = pos
         )
@@ -123,11 +125,11 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
      * @param move move to check
      * @param jwtToken jwt token of the player, who tries performed such move
      */
-    fun isMovePossible(move: Movement, jwtToken: CustomJwtToken): Boolean {
-        if (firstUser.jwtToken == jwtToken) {
+    fun isMovePossible(move: Movement, login: String): Boolean {
+        if (firstUser.login == login) {
             return position.generateMoves().contains(move) && position.pieceToMove == isFirstPlayerGreen
         }
-        if (secondUser.jwtToken == jwtToken) {
+        if (secondUser.login == login) {
             return position.generateMoves().contains(move) && position.pieceToMove == !isFirstPlayerGreen
         }
         return false
@@ -135,16 +137,15 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
 
     private fun botMove() {
         // if bot should make move
-        val firstPlayerIsBotAndCanMakeAMove = position.pieceToMove == isFirstPlayerGreen && firstUser.session == null
-        val secondPlayerIsBotAndCanMakeAMove = position.pieceToMove != isFirstPlayerGreen && secondUser.session == null
-        if (firstPlayerIsBotAndCanMakeAMove || secondPlayerIsBotAndCanMakeAMove) {
+        val botExistsAndCanMakeAMove = position.pieceToMove != isFirstPlayerGreen && botAtGame
+        if (botExistsAndCanMakeAMove) {
             CoroutineScope(Dispatchers.Default).launch {
                 val newMove = position.findBestMove(Random.nextInt(2, 4).toUByte()) ?: error("no move found")
                 // this shouldn't cause stackoverflow, since you can move at max 3 times in a row
                 applyMove(newMove)
                 // in one of those cases move won't be sent (since one user is bot)
-                sendMove(firstUser.jwtToken, newMove, false)
-                sendMove(secondUser.jwtToken, newMove, false)
+                sendMove(firstUser.login, newMove, false)
+                sendMove(secondUser.login, newMove, false)
             }
         }
     }
@@ -170,21 +171,11 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
         }
     }
 
-    fun isParticipating(jwtToken: String): Boolean {
-        val jwtTokenObject = CustomJwtToken(jwtToken)
-        return isParticipating(jwtTokenObject)
-    }
-
     /**
      * @return if the user participates in the game
      */
-    fun isParticipating(jwtToken: CustomJwtToken): Boolean {
-        return firstUser.jwtToken == jwtToken || secondUser.jwtToken == jwtToken
-    }
-
-    fun updateSession(jwtToken: String, session: DefaultWebSocketServerSession) {
-        val jwtTokenObject = CustomJwtToken(jwtToken)
-        updateSession(jwtTokenObject, session)
+    fun isParticipating(login: String): Boolean {
+        return firstUser.login == login || secondUser.login == login
     }
 
     /**
@@ -193,13 +184,13 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
      * @param jwtToken jwt token of the player
      * @param session new session of this player
      */
-    fun updateSession(jwtToken: CustomJwtToken, session: DefaultWebSocketServerSession) {
-        when (jwtToken) {
-            firstUser.jwtToken -> {
+    fun updateSession(login: String, session: DefaultWebSocketServerSession) {
+        when (login) {
+            firstUser.login -> {
                 firstUser.session = session
             }
 
-            secondUser.jwtToken -> {
+            secondUser.login -> {
                 secondUser.session = session
             }
 
@@ -215,20 +206,15 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
  * @param session user session or null if player is bot
  */
 class Connection(
-    var jwtToken: CustomJwtToken,
+    var login: String,
     var session: DefaultWebSocketServerSession?,
 ) {
-    constructor(jwtToken: String, session: DefaultWebSocketServerSession?) : this(CustomJwtToken(jwtToken), session)
 
-    fun rating(): Result<Long> {
-        return Users.getRatingById(id().getOrThrow())
+    suspend fun rating(): Int {
+        return usersRepository.getRatingById(id())!!
     }
 
-    fun getLogin(): String {
-        return jwtToken.getLogin().getOrThrow()
-    }
-
-    fun id(): Result<Long> {
-        return Users.getIdByJwtToken(jwtToken)
+    suspend fun id(): Long {
+        return usersRepository.getIdByLogin(login)!!
     }
 }
