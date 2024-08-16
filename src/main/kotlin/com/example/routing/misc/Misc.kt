@@ -4,8 +4,5 @@ import com.example.routing.misc.get.miscRoutingGET
 import io.ktor.server.routing.*
 
 fun Route.miscRouting() {
-//    install(CORS) {
-//        anyHost()
-//    }
     miscRoutingGET()
 }

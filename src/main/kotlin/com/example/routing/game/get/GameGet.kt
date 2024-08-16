@@ -2,7 +2,7 @@ package com.example.routing.game.get
 
 import com.example.data.gamesRepository
 import com.example.data.usersRepository
-import com.example.requireValidJwtToken
+import com.example.responses.requireValidJwtToken
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*

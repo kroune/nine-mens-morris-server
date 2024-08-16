@@ -3,7 +3,7 @@ package com.example.data.users.repository
 import com.example.data.users.UserData
 import com.example.data.users.UsersDataTable
 import com.example.encryption.Bcrypter
-import com.example.encryption.CustomJwtToken
+import com.example.encryption.JwtTokenImpl
 import kotlinx.datetime.LocalDate
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
@@ -139,7 +139,7 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
     }
 
     override suspend fun getIdByJwtToken(jwtToken: String): Long? {
-        val login = CustomJwtToken(jwtToken).getLogin().getOrNull() ?: return null
+        val login = JwtTokenImpl(jwtToken).getLogin().getOrNull() ?: return null
         return getIdByLogin(login)
     }
 

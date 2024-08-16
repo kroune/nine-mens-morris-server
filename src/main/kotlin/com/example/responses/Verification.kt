@@ -1,13 +1,29 @@
-package com.example
+package com.example.responses
 
+import com.example.LogPriority
 import com.example.data.gamesRepository
 import com.example.data.usersRepository
-import com.example.encryption.CustomJwtToken
-import com.example.responses.get.*
-import com.example.responses.ws.*
+import com.example.encryption.JwtTokenImpl
+import com.example.log
+import com.example.responses.get.jwtTokenIsNotValid
+import com.example.responses.get.noJwtToken
+import com.example.responses.get.noLogin
+import com.example.responses.get.noPassword
+import com.example.responses.get.noUserId
+import com.example.responses.get.noValidLogin
+import com.example.responses.get.userIdIsNotLong
+import com.example.responses.get.userIdIsNotValid
+import com.example.responses.ws.gameIdIsNotLong
+import com.example.responses.ws.gameIdIsNotValid
+import com.example.responses.ws.jwtTokenIsNotValid
+import com.example.responses.ws.noGameId
+import com.example.responses.ws.noJwtToken
 import io.ktor.server.application.*
+import io.ktor.server.application.call
 import io.ktor.server.websocket.*
 import io.ktor.util.pipeline.*
+import kotlin.text.toLong
+import kotlin.text.toLongOrNull
 
 /**
  * possible responses:
@@ -26,7 +42,7 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidJwtToken(l
         lambda()
         return
     }
-    if (!CustomJwtToken(jwtToken).verify()) {
+    if (!JwtTokenImpl(jwtToken).verify()) {
         log("jwt token is not valid")
         jwtTokenIsNotValid()
         lambda()
@@ -131,7 +147,7 @@ suspend inline fun DefaultWebSocketServerSession.requireValidJwtToken(lambda: ()
         lambda()
         return
     }
-    if (!CustomJwtToken(jwtToken).verify()) {
+    if (!JwtTokenImpl(jwtToken).verify()) {
         jwtTokenIsNotValid()
         lambda()
         return

@@ -1,13 +1,12 @@
 package com.example.routing.userInfo.post
 
-import com.example.encryption.CustomJwtToken
+import com.example.currentConfig
 import com.example.data.usersRepository
-import com.example.requireValidJwtToken
+import com.example.encryption.JwtTokenImpl
 import com.example.responses.get.imageIsNotValid
+import com.example.responses.get.imageIsTooLarge
 import com.example.responses.get.internalServerError
-import com.example.responses.get.jwtTokenIsNotValid
-import com.example.responses.get.noJwtToken
-import io.ktor.http.*
+import com.example.responses.requireValidJwtToken
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
@@ -27,6 +26,8 @@ fun Route.userInfoRoutingPOST() {
      *
      * [imageIsNotValid]
      *
+     * [imageIsTooLarge]
+     *
      * [Nothing] - success
      */
     post("upload-picture") {
@@ -35,7 +36,7 @@ fun Route.userInfoRoutingPOST() {
         }
 
         val jwtToken = call.parameters["jwtToken"]!!
-        val jwtTokenObject = CustomJwtToken(jwtToken)
+        val jwtTokenObject = JwtTokenImpl(jwtToken)
         val login = jwtTokenObject.getLogin().getOrElse {
             internalServerError()
             return@post
@@ -46,11 +47,16 @@ fun Route.userInfoRoutingPOST() {
             imageIsNotValid()
             return@post
         }
-        val bytes = ByteArrayInputStream(byteArray)
-        try {
-            ImageIO.read(bytes)
+        val decodedVariant = try {
+            val bytes = ByteArrayInputStream(byteArray)
+            ImageIO.read(bytes)!!
         } catch (_: IOException) {
             imageIsNotValid()
+            return@post
+        }
+        val maxSize = currentConfig.fileConfig.profilePictureMaxSize
+        if (decodedVariant.height > maxSize || decodedVariant.width > maxSize) {
+            imageIsTooLarge()
             return@post
         }
         usersRepository.updatePictureByLogin(login, byteArray)

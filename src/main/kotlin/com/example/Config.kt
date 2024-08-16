@@ -32,7 +32,9 @@ data class Config(
 class GameConfig(
     val timeForMove: Long,
     val bucketSize: Int,
-    val delayBeforeRecheckingBucket: Long
+    val delayBeforeRecheckingBucket: Long,
+    val minTimeBeforePairingWithBot: Long,
+    val maxTimeBeforePairingWithBot: Long
 )
 
 @Serializable
@@ -56,6 +58,5 @@ class RateLimitConfig(
 @Serializable
 class FileConfig(
     val gameLogsPath: String,
-    val dataDir: String,
-    val botsDataDir: String
+    val profilePictureMaxSize: Int
 )

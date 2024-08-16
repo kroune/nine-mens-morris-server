@@ -3,10 +3,10 @@ package com.example.routing.game.ws
 import com.example.*
 import com.example.data.gamesRepository
 import com.example.data.usersRepository
-import com.example.encryption.CustomJwtToken
-import com.example.game.Connection
 import com.example.game.GameDataFactory
 import com.example.game.SearchingForGame
+import com.example.responses.requireGameId
+import com.example.responses.requireValidJwtToken
 import com.example.responses.ws.jwtTokenIsNotValidForThisGame
 import com.example.responses.ws.someThingsWentWrong
 import com.kroune.nineMensMorrisLib.move.Movement
@@ -30,14 +30,13 @@ fun Route.gameRoutingWS() {
         }
 
         val jwtToken = call.parameters["jwtToken"]!!
-        val jwtTokenObject = CustomJwtToken(jwtToken)
-        val thisConnection = Connection(jwtTokenObject.getLogin().getOrThrow(), this)
+        val userId = usersRepository.getIdByJwtToken(jwtToken)!!
         val channel = Channel<Pair<Boolean, Long>>()
-        SearchingForGame.addUser(thisConnection, channel)
+        SearchingForGame.addUser(userId, channel)
         CoroutineScope(Dispatchers.IO).launch {
             this@webSocket.closeReason.join()
             log("user disconnected from searching for game", LogPriority.Debug)
-            SearchingForGame.removeUser(thisConnection)
+            SearchingForGame.removeUser(userId)
         }
         channel.consumeEach { (isWaitingTime, it) ->
             val jsonText = Json.encodeToString<Pair<Boolean, Long>>(Pair(isWaitingTime, it))

@@ -53,7 +53,6 @@ class Game(
     init {
         // it is possible that bot should make first move
         runBlocking {
-            println("init")
             botMove()
         }
     }
@@ -68,7 +67,7 @@ class Game(
         val isFirstUserLost = reason.isFirstUser
         CoroutineScope(Dispatchers.Default).launch {
             val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
-            val secondPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+            val secondPlayerId = gamesRepository.getSecondUserIdByGameId(gameId)!!
             val firstUserRating = usersRepository.getRatingById(firstPlayerId)!!
             val secondUserRating = usersRepository.getRatingById(secondPlayerId)!!
             val delta =
@@ -77,22 +76,15 @@ class Game(
                 )
             usersRepository.updateRatingById(firstPlayerId, if (isFirstUserLost) -delta else delta)
             usersRepository.updateRatingById(secondPlayerId, if (isFirstUserLost) delta else -delta)
-            run {
-                sendMove(firstPlayerId, Movement(null, null), false)
-                sendDataTo(firstPlayerId, false, "game ended")
-                firstPlayer.close()
-                if (BotGenerator.isBot(firstPlayerId)) {
-                    BotGenerator.botGotFree(firstPlayerId)
+            listOf(firstPlayerId, secondPlayerId).forEach { userId ->
+                sendMove(userId, Movement(null, null), false)
+                sendDataTo(userId, false, "game ended")
+                if (BotProvider.isBot(userId)) {
+                    BotProvider.botGotFree(userId)
                 }
             }
-            run {
-                sendMove(secondPlayerId, Movement(null, null), false)
-                sendDataTo(secondPlayerId, false, "game ended")
-                firstPlayer.close()
-                if (BotGenerator.isBot(secondPlayerId)) {
-                    BotGenerator.botGotFree(secondPlayerId)
-                }
-            }
+            firstPlayer.close()
+            secondPlayer.close()
         }
     }
 
@@ -115,7 +107,6 @@ class Game(
      * @throws IllegalStateException if jwt token doesn't much either of player
      */
     private suspend fun sendDataTo(userId: Long, opposite: Boolean, data: String) {
-        log(gameId, "sending data to user $data")
         val firstUserId = gamesRepository.getFirstUserIdByGameId(gameId)!!
         val secondUserId = gamesRepository.getSecondUserIdByGameId(gameId)!!
         when (userId) {
@@ -235,7 +226,6 @@ class Game(
                 if (currentMoveCount == previousMoveCount) {
                     val firstPlayerMovesFirst = gamesRepository.getFirstPlayerMovesFirstByGameId(gameId)
                     val firstUserWon = position.pieceToMove != firstPlayerMovesFirst
-                    log(gameId, "game was ended, because no move were performed in $timeForMove")
                     handleGameEnd(GameEndReason.UserWasTooSlow(firstUserWon))
                 }
             }
@@ -263,6 +253,7 @@ class Game(
             }
         }
     }
+
     /**
      * updates user session in order to send data successfully
      *
@@ -294,23 +285,6 @@ class Game(
     }
 }
 
-/**
- * @param jwtToken user jwt token
- * @param session user session or null if player is bot
- */
-class Connection(
-    var login: String,
-    var session: DefaultWebSocketServerSession?,
-) {
-    suspend fun rating(): Int {
-        return usersRepository.getRatingById(id())!!
-    }
-
-    suspend fun id(): Long {
-        return usersRepository.getIdByLogin(login)!!
-    }
-}
-
 object EmptySession : DefaultWebSocketServerSession {
     override suspend fun send(frame: Frame) {
         log("sending frame in empty session")
@@ -320,39 +294,24 @@ object EmptySession : DefaultWebSocketServerSession {
         log("flushing in empty session")
     }
 
-    override val closeReason: Deferred<CloseReason?>
-        get() = TODO("Not yet implemented")
-    override var pingIntervalMillis: Long
-        get() = TODO("Not yet implemented")
-        set(value) {}
-    override var timeoutMillis: Long
-        get() = TODO("Not yet implemented")
-        set(value) {}
+    override val closeReason: Deferred<CloseReason?> = notGonnaNeedThis
+    override var pingIntervalMillis: Long = notGonnaNeedThis
+    override var timeoutMillis: Long = notGonnaNeedThis
 
     @InternalAPI
-    override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
-        TODO("Not yet implemented")
-    }
+    override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) = notGonnaNeedThis
+    override val extensions: List<WebSocketExtension<*>> = notGonnaNeedThis
+    override val incoming: ReceiveChannel<Frame> = notGonnaNeedThis
+    override var masking: Boolean = notGonnaNeedThis
+    override var maxFrameSize: Long = notGonnaNeedThis
+    override val outgoing: SendChannel<Frame> = notGonnaNeedThis
 
-    override val extensions: List<WebSocketExtension<*>>
-        get() = TODO("Not yet implemented")
-    override val incoming: ReceiveChannel<Frame>
-        get() = TODO("Not yet implemented")
-    override var masking: Boolean
-        get() = TODO("Not yet implemented")
-        set(value) {}
-    override var maxFrameSize: Long
-        get() = TODO("Not yet implemented")
-        set(value) {}
-    override val outgoing: SendChannel<Frame>
-        get() = TODO("Not yet implemented")
-
-    override fun terminate() {
-        TODO("Not yet implemented")
-    }
-
-    override val coroutineContext: CoroutineContext
-        get() = TODO("Not yet implemented")
-    override val call: ApplicationCall
-        get() = TODO("Not yet implemented")
+    @Deprecated("Use cancel() instead.", ReplaceWith("cancel()", "kotlinx.coroutines.cancel"))
+    override fun terminate() = notGonnaNeedThis
+    override val coroutineContext: CoroutineContext = notGonnaNeedThis
+    override val call: ApplicationCall = notGonnaNeedThis
+    val notGonnaNeedThis: Nothing
+        get() {
+            error("this shouldn't be used")
+        }
 }

@@ -1,5 +1,6 @@
 package com.example.responses.get
 
+import com.example.currentConfig
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -35,6 +36,13 @@ suspend fun PipelineContext<Unit, ApplicationCall>.userIdIsNotLong() {
 
 suspend fun PipelineContext<Unit, ApplicationCall>.userIdIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "[id] parameter is not valid")
+}
+
+suspend inline fun PipelineContext<Unit, ApplicationCall>.imageIsTooLarge() {
+    call.respond(
+        HttpStatusCode.Forbidden,
+        "provided image (byte array) is too large, it can be ${currentConfig.fileConfig.profilePictureMaxSize}x${currentConfig.fileConfig.profilePictureMaxSize} at max"
+    )
 }
 
 suspend inline fun PipelineContext<Unit, ApplicationCall>.imageIsNotValid() {

@@ -1,13 +1,11 @@
 package com.example.routing.userInfo.get
 
-import com.example.json
 import com.example.data.usersRepository
-import com.example.requireValidJwtToken
-import com.example.requireValidLogin
-import com.example.requireValidUserId
+import com.example.json
 import com.example.responses.get.*
-import com.example.responses.ws.jwtTokenIsNotValid
-import io.ktor.http.*
+import com.example.responses.requireValidJwtToken
+import com.example.responses.requireValidLogin
+import com.example.responses.requireValidUserId
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -24,7 +22,7 @@ fun Route.userInfoRoutingGET() {
      *
      * [userIdIsNotValid]
      *
-     * [HttpStatusCode.InternalServerError]
+     * [internalServerError]
      *
      * [String] - login
      */
@@ -50,7 +48,7 @@ fun Route.userInfoRoutingGET() {
      *
      * [userIdIsNotValid]
      *
-     * [HttpStatusCode.InternalServerError]
+     * [internalServerError]
      *
      * [Int] - rating
      */
@@ -78,7 +76,7 @@ fun Route.userInfoRoutingGET() {
      *
      * [userIdIsNotValid]
      *
-     * [HttpStatusCode.InternalServerError]
+     * [internalServerError]
      *
      * [Int] - rating
      */
@@ -102,7 +100,7 @@ fun Route.userInfoRoutingGET() {
      *
      * [noValidLogin]
      *
-     * [HttpStatusCode.InternalServerError]
+     * [internalServerError]
      *
      * [Long] - profile id
      */
@@ -136,6 +134,7 @@ fun Route.userInfoRoutingGET() {
         }
 
         val id = call.parameters["id"]!!.toLong()
+        // TODO: change this
         val defaultPicture = File("default/img.png")
         require(defaultPicture.exists())
         val picture = usersRepository.getPictureById(id) ?: defaultPicture.readBytes()
@@ -149,7 +148,7 @@ fun Route.userInfoRoutingGET() {
      *
      * [jwtTokenIsNotValid]
      *
-     * [HttpStatusCode.InternalServerError]
+     * [internalServerError]
      *
      * [Long] - user id
      */

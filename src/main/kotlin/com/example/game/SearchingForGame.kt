@@ -4,80 +4,83 @@ import com.example.LogPriority
 import com.example.currentConfig
 import com.example.data.games.GameData
 import com.example.data.gamesRepository
+import com.example.data.usersRepository
 import com.example.log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import java.util.*
+import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.random.Random
 
+val minPairWithBotTime = currentConfig.gameConfig.minTimeBeforePairingWithBot
+val maxPairWithBotTime = currentConfig.gameConfig.maxTimeBeforePairingWithBot
 val bucketSize = currentConfig.gameConfig.bucketSize
 val delayBeforeRecheckingBucket = currentConfig.gameConfig.delayBeforeRecheckingBucket
 
 object SearchingForGame {
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val searchingForGameScope = Dispatchers.IO.limitedParallelism(100)
-    private val usersSearchingForGameJobsMap: MutableMap<String, Job> = mutableMapOf()
+    val searchingForGameScope = Dispatchers.IO
+    private val usersSearchingForGameJobsMap: MutableMap<Long, Job> = mutableMapOf()
 
     /**
      * array of buckets, represented by queue from [Pair] of [Connection] and [Channel]
      */
-    private val usersSearchingForGame: Array<Queue<Pair<Connection, Channel<Pair<Boolean, Long>>>>> = Array(50) {
+    private val bucketsOfUsersSearchingForGame: Array<Queue<Pair<Long, Channel<Pair<Boolean, Long>>>>> = Array(50) {
         ConcurrentLinkedQueue()
     }
 
-    suspend fun removeUser(user: Connection) {
-        val login = user.login
-        val queueToAddUser = (user.rating() / bucketSize).toInt()
-        usersSearchingForGameJobsMap[login]?.cancel()
+    suspend fun removeUser(userId: Long) {
+        val rating = usersRepository.getRatingById(userId)!!
+        val queueToAddUser = (rating / bucketSize).toInt()
+        usersSearchingForGameJobsMap[userId]?.cancel()
         // TODO: optimize this
-        usersSearchingForGame[queueToAddUser].removeAll {
-            it.first == user
+        bucketsOfUsersSearchingForGame[queueToAddUser].removeAll {
+            it.first == userId
         }
     }
-
-    suspend fun addUser(user: Connection, channel: Channel<Pair<Boolean, Long>>) {
-        val login = user.login
-        val oldJob = usersSearchingForGameJobsMap[login]
+    suspend fun addUser(userId: Long, channel: Channel<Pair<Boolean, Long>>) {
+        val rating = usersRepository.getRatingById(userId)!!
+        val oldJob = usersSearchingForGameJobsMap[userId]
         // cancel previous searching if it exists
         oldJob?.cancel()
         val job = CoroutineScope(searchingForGameScope).launch {
-            require(user.session != null)
-            val userId = user.id()
-            val gameId: Long? = gamesRepository.getGameIdByUserId(userId)
-            if (gameId != null) {
-                // user is already in a game
-                channel.send(Pair(false, gameId))
-                usersSearchingForGameJobsMap.remove(login)
-                return@launch
-            }
-            log("Added user to the queue $login", LogPriority.Debug)
-            val queueToAddUser = (user.rating() / bucketSize)
-            usersSearchingForGame[queueToAddUser].add(Pair(user, channel))
-            delay(20_000)
-            // check if we are still searching
-            if (usersSearchingForGameJobsMap[login] != null) {
-                println("no enemy was found for the user ${user.id()}, pairing with bot")
-                // we can't use any const value, or it would be possible to send moves from bot side
-                val botId = BotGenerator.getBotFromBucket(queueToAddUser)
-                val gameData = GameData(
-                    firstPlayerId = userId,
-                    secondPlayerId = botId,
-                    botId = botId
-                )
-                gamesRepository.create(gameData)
-                val gameId = gamesRepository.getGameIdByUserId(userId)!!
-                channel.send(Pair(false, gameId))
-                usersSearchingForGameJobsMap.remove(login)
+            // coroutine should end normal, this is just to make sure
+            withTimeout(24*60*60*1000) {
+                val gameId: Long? = gamesRepository.getGameIdByUserId(userId)
+                if (gameId != null) {
+                    // user is already in a game
+                    channel.send(Pair(false, gameId))
+                    usersSearchingForGameJobsMap.remove(userId)
+                    return@withTimeout
+                }
+                log("Added user to the queue $userId", LogPriority.Debug)
+                val queueToAddUser = (rating / bucketSize)
+                bucketsOfUsersSearchingForGame[queueToAddUser].add(Pair(userId, channel))
+                val currentDelay = Random.nextLong(minPairWithBotTime, maxPairWithBotTime)
+                delay(currentDelay)
+                // check if we are still searching
+                if (usersSearchingForGameJobsMap[userId] != null) {
+                    println("no enemy was found for the user $userId, pairing with bot")
+                    val botId = BotProvider.getBotFromBucket(queueToAddUser)
+                    val gameData = GameData(
+                        firstPlayerId = userId,
+                        secondPlayerId = botId,
+                        botId = botId
+                    )
+                    gamesRepository.create(gameData)
+                    val gameId = gamesRepository.getGameIdByUserId(userId)!!
+                    channel.send(Pair(false, gameId))
+                    usersSearchingForGameJobsMap.remove(userId)
+                }
             }
         }
-        usersSearchingForGameJobsMap[login] = job
+        usersSearchingForGameJobsMap[userId] = job
     }
 
     init {
-        usersSearchingForGame.forEach { bucket ->
+        bucketsOfUsersSearchingForGame.forEach { bucket ->
             CoroutineScope(searchingForGameScope).launch {
                 while (true) {
-                    if (bucket.size > 0) {
+                    if (bucket.isNotEmpty()) {
                         log("bucket.size - ${bucket.size}", LogPriority.Debug)
                     }
                     if (bucket.size < 2) {
@@ -90,24 +93,18 @@ object SearchingForGame {
                     val firstUser = bucket.poll()!!
                     val secondUser = bucket.poll()!!
                     val gameData = GameData(
-                        firstPlayerId = firstUser.first.id(),
-                        secondPlayerId = secondUser.first.id(),
+                        firstPlayerId = firstUser.first,
+                        secondPlayerId = secondUser.first,
                         botId = null
                     )
                     gamesRepository.create(gameData)
-                    val gameId = gamesRepository.getGameIdByUserId(firstUser.first.id())!!
-                    listOf(firstUser, secondUser).forEach { (connection, channel) ->
-                        val login = connection.login
+                    val gameId = gamesRepository.getGameIdByUserId(firstUser.first)!!
+                    listOf(firstUser, secondUser).forEach { (userId, channel) ->
                         channel.send(Pair(false, gameId))
-                        usersSearchingForGameJobsMap.remove(login)
+                        usersSearchingForGameJobsMap.remove(userId)
                     }
                 }
             }
         }
     }
-}
-
-fun getRandomString(length: Int): String {
-    val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
-    return (1..length).map { allowedChars.random() }.joinToString("")
 }

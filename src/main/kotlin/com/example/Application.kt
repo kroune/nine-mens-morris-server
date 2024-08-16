@@ -1,7 +1,5 @@
 package com.example
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import com.example.data.botsRepository
 import com.example.data.gamesRepository
 import com.example.data.usersRepository
@@ -11,8 +9,6 @@ import com.example.routing.misc.miscRouting
 import com.example.routing.userInfo.userInfoRouting
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
@@ -49,24 +45,6 @@ fun Application.module() {
     usersRepository
     gamesRepository
     botsRepository
-    install(Authentication) {
-        jwt {
-            verifier(
-                JWT
-                    .require(Algorithm.HMAC256(currentConfig.encryptionToken))
-                    .withClaimPresence("login")
-                    .withClaimPresence("password")
-                    .build()
-            )
-//            validate { credential ->
-//                if (credential.payload.getClaim("username").asString() != "") {
-//                    JWTPrincipal(credential.payload)
-//                } else {
-//                    null
-//                }
-//            }
-        }
-    }
     install(WebSockets) {
         val webSocketConfig = currentConfig.webSocketConfig
         pingPeriod = webSocketConfig.pingPeriod.toJavaDuration()

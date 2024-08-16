@@ -2,19 +2,21 @@ package com.example.encryption
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.exceptions.JWTDecodeException
 import com.example.LogPriority
 import com.example.currentConfig
 import com.example.data.usersRepository
 import com.example.log
+import kotlinx.datetime.Clock
+import kotlinx.datetime.toJavaInstant
 import kotlinx.serialization.Serializable
 
 @Serializable
-class CustomJwtToken(var token: String = "") {
+class JwtTokenImpl(val token: String) {
     constructor(login: String, password: String) : this(
         JWT.create()
             .withClaim("login", login)
             .withClaim("password", password)
+            .withIssuedAt(Clock.System.now().toJavaInstant())
             .sign(Algorithm.HMAC256(currentConfig.encryptionToken))
     )
 
@@ -54,24 +56,15 @@ class CustomJwtToken(var token: String = "") {
 
     suspend fun verify(): Boolean {
         val login = getLogin().getOrElse {
-            println("DEBUG: login error")
             return false
         }
         val password = getPassword().getOrElse {
-            println("DEBUG: password hash error")
             return false
         }
         return usersRepository.exists(login, password)
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other !is CustomJwtToken) {
-            error("don't compare jwt tokens with non jwt token")
-        }
-        val token1 = JWT.decode(token)
-        val token2 = JWT.decode(other.token)
-        val loginMatches = token1.claims["login"]?.asString() == token2.claims["login"]?.asString()
-        val passwordMatches = token1.claims["password"]?.asString() == token2.claims["password"]?.asString()
-        return loginMatches && passwordMatches
+        error("don't compare jwt tokens")
     }
 }
