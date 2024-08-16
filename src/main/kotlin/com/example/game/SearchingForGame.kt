@@ -2,7 +2,8 @@ package com.example.game
 
 import com.example.LogPriority
 import com.example.currentConfig
-import com.example.data.usersRepository
+import com.example.data.games.GameData
+import com.example.data.gamesRepository
 import com.example.log
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -41,7 +42,8 @@ object SearchingForGame {
         oldJob?.cancel()
         val job = CoroutineScope(searchingForGameScope).launch {
             require(user.session != null)
-            val gameId: Long? = GamesDB.gameId(login).getOrNull()
+            val userId = user.id()
+            val gameId: Long? = gamesRepository.getGameIdByUserId(userId)
             if (gameId != null) {
                 // user is already in a game
                 channel.send(Pair(false, gameId))
@@ -57,10 +59,14 @@ object SearchingForGame {
                 println("no enemy was found for the user ${user.id()}, pairing with bot")
                 // we can't use any const value, or it would be possible to send moves from bot side
                 val botId = BotGenerator.getBotFromBucket(queueToAddUser)
-                val botLogin = usersRepository.getLoginById(botId)!!
-                val bot = Connection(botLogin, null)
-                val id = GamesDB.createGame(user, bot, true)
-                channel.send(Pair(false, id))
+                val gameData = GameData(
+                    firstPlayerId = userId,
+                    secondPlayerId = botId,
+                    botId = botId
+                )
+                gamesRepository.create(gameData)
+                val gameId = gamesRepository.getGameIdByUserId(userId)!!
+                channel.send(Pair(false, gameId))
                 usersSearchingForGameJobsMap.remove(login)
             }
         }
@@ -83,10 +89,16 @@ object SearchingForGame {
                     }
                     val firstUser = bucket.poll()!!
                     val secondUser = bucket.poll()!!
-                    val id = GamesDB.createGame(firstUser.first, secondUser.first, false)
+                    val gameData = GameData(
+                        firstPlayerId = firstUser.first.id(),
+                        secondPlayerId = secondUser.first.id(),
+                        botId = null
+                    )
+                    gamesRepository.create(gameData)
+                    val gameId = gamesRepository.getGameIdByUserId(firstUser.first.id())!!
                     listOf(firstUser, secondUser).forEach { (connection, channel) ->
                         val login = connection.login
-                        channel.send(Pair(false, id))
+                        channel.send(Pair(false, gameId))
                         usersSearchingForGameJobsMap.remove(login)
                     }
                 }

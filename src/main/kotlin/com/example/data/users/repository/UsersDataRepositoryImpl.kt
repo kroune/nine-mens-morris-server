@@ -12,7 +12,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 
-class UserRepositoryImpl : UserRepositoryI {
+class UsersDataRepositoryImpl : UsersDataRepositoryI {
     init {
         transaction {
             SchemaUtils.create(UsersDataTable)

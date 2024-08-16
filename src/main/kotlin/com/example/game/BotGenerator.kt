@@ -1,7 +1,7 @@
 package com.example.game
 
 import com.example.LogPriority
-import com.example.data.botFactory
+import com.example.data.botsRepository
 import com.example.data.users.UserData
 import com.example.data.usersRepository
 import com.example.log
@@ -22,7 +22,6 @@ import kotlin.random.Random
 import kotlin.random.nextInt
 
 object BotGenerator {
-    private val botRepository = botFactory
     /**
      * array of buckets, represented by queue of user ids
      */
@@ -35,6 +34,15 @@ object BotGenerator {
         ignoreUnknownKeys = true
     }
 
+    fun botGotFree(id: Long) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val botRating = usersRepository.getRatingById(id)!!
+            val queueToAddBot = (botRating / bucketSize)
+            availableBotsBuckets[queueToAddBot].add(id)
+            log("bot got free $id [id]", LogPriority.Debug)
+        }
+    }
+
     fun botGotFree(login: String) {
         CoroutineScope(Dispatchers.IO).launch {
             val botRating = usersRepository.getRatingByLogin(login)!!
@@ -45,9 +53,13 @@ object BotGenerator {
         }
     }
 
+    suspend fun isBot(id: Long): Boolean {
+        return botsRepository.get(id)
+    }
+
     suspend fun isBot(login: String): Boolean {
         val id = usersRepository.getIdByLogin(login)!!
-        return botRepository.get(id)
+        return botsRepository.get(id)
     }
 
     suspend fun getBotFromBucket(bucket: Int): Long {
@@ -75,7 +87,7 @@ object BotGenerator {
         usersRepository.updatePictureByLogin(login, profilePicture)
         val queueToAddBot = (botRating / bucketSize)
         val id = usersRepository.getIdByLogin(login)!!
-        botRepository.add(id)
+        botsRepository.add(id)
         availableBotsBuckets[queueToAddBot].add(id)
         log("created bot with $login $password", LogPriority.Debug)
         return id

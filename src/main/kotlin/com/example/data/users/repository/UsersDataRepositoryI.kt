@@ -3,7 +3,7 @@ package com.example.data.users.repository
 import com.example.data.users.UserData
 import kotlinx.datetime.LocalDate
 
-interface UserRepositoryI {
+interface UsersDataRepositoryI {
     suspend fun create(data: UserData)
     suspend fun getIdByLogin(login: String): Long?
     suspend fun getLoginById(id: Long): String?

@@ -1,8 +1,8 @@
 package com.example
 
-import com.example.encryption.CustomJwtToken
-import com.example.game.GamesDB
+import com.example.data.gamesRepository
 import com.example.data.usersRepository
+import com.example.encryption.CustomJwtToken
 import com.example.responses.get.*
 import com.example.responses.ws.*
 import io.ktor.server.application.*
@@ -163,8 +163,8 @@ suspend inline fun DefaultWebSocketServerSession.requireGameId(lambda: () -> Uni
         lambda()
         return
     }
-    val game = GamesDB.getGame(gameId.toLong())
-    if (game == null) {
+    val gameExists = gamesRepository.exists(gameId.toLong())
+    if (!gameExists) {
         log("game id parameter is not valid $gameId", LogPriority.Debug)
         gameIdIsNotValid()
         lambda()

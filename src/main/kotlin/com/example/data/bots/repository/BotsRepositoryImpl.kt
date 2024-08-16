@@ -1,22 +1,22 @@
 package com.example.data.bots.repository
 
-import com.example.data.bots.BotDataTable
+import com.example.data.bots.BotsDataTable
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class BotRepositoryImpl: BotRepositoryI {
+class BotsRepositoryImpl: BotsRepositoryI {
     init {
         transaction {
-            SchemaUtils.create(BotDataTable)
+            SchemaUtils.create(BotsDataTable)
         }
     }
 
     override suspend fun add(id: Long) {
         newSuspendedTransaction {
-            BotDataTable.insert {
+            BotsDataTable.insert {
                 it[userId] = id
             }
         }
@@ -24,10 +24,10 @@ class BotRepositoryImpl: BotRepositoryI {
 
     override suspend fun get(id: Long): Boolean {
         return newSuspendedTransaction {
-            BotDataTable.selectAll().where {
-                BotDataTable.userId eq id
+            BotsDataTable.selectAll().where {
+                BotsDataTable.userId eq id
             }.limit(1).map {
-                it[BotDataTable.userId]
+                it[BotsDataTable.userId]
             }.any()
         }
     }

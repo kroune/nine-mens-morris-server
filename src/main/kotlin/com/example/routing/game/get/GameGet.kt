@@ -1,12 +1,14 @@
 package com.example.routing.game.get
 
-import com.example.encryption.CustomJwtToken
-import com.example.game.GamesDB
+import com.example.data.gamesRepository
+import com.example.data.usersRepository
 import com.example.requireValidJwtToken
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 fun Route.gameRoutingGET() {
     /**
@@ -20,12 +22,13 @@ fun Route.gameRoutingGET() {
         requireValidJwtToken {
             return@get
         }
-        val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
-        val login = jwtToken.getLogin().getOrThrow()
-        val gameId = GamesDB.gameId(login).onFailure {
+        val jwtToken = call.parameters["jwtToken"]!!
+        val userId = usersRepository.getIdByJwtToken(jwtToken) ?: run {
             call.respond(HttpStatusCode.InternalServerError, "server error")
             return@get
         }
-        call.respondText(gameId.getOrThrow().toString())
+        val gameId = gamesRepository.getGameIdByUserId(userId)
+        val jsonText = Json.encodeToString<Long?>(gameId)
+        call.respondText(jsonText)
     }
 }

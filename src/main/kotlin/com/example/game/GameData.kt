@@ -1,37 +1,61 @@
 package com.example.game
 
 import com.example.currentConfig
-import com.example.json
+import com.example.data.gamesRepository
 import com.example.data.usersRepository
+import com.example.json
 import com.example.log
 import com.kroune.nineMensMorrisLib.GameState
-import com.kroune.nineMensMorrisLib.PIECES_TO_FLY
 import com.kroune.nineMensMorrisLib.Position
-import com.kroune.nineMensMorrisLib.gameStartPosition
 import com.kroune.nineMensMorrisLib.move.Movement
 import com.kroune.nineMensMorrisShared.GameEndReason
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.websocket.*
+import io.ktor.util.InternalAPI
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.serialization.SerializationException
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.Collections
+import kotlin.coroutines.CoroutineContext
 import kotlin.random.Random
+
+object GameDataFactory {
+    private val gamesCache = Collections.synchronizedMap(hashMapOf<Long, Game>())
+
+    fun getGame(gameId: Long): Game {
+        synchronized(gamesCache) {
+            val cache = gamesCache[gameId]
+            if (cache != null) {
+                return cache
+            }
+            val gameClass = Game(gameId)
+            gamesCache[gameId] = gameClass
+            return gameClass
+        }
+    }
+}
 
 /**
  * if a bot exists in game - it is [secondUser]
  */
-class GameData(val firstUser: Connection, val secondUser: Connection, private val gameId: Long, private val botAtGame: Boolean ) {
-    private var position: Position = gameStartPosition
-    val isFirstPlayerGreen = Random.nextBoolean()
-    private var playedMoves = AtomicInteger(0)
-
+class Game(
+    private val gameId: Long,
+    private var firstPlayer: DefaultWebSocketServerSession = EmptySession,
+    private var secondPlayer: DefaultWebSocketServerSession = EmptySession,
+) {
     init {
         // it is possible that bot should make first move
-        botMove()
+        runBlocking {
+            println("init")
+            botMove()
+        }
     }
 
     /**
@@ -39,38 +63,44 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
      * @param reason - reason why the game has ended
      */
     fun handleGameEnd(
-        reason: GameEndReason = GameEndReason.Normal(run {
-            val greenLost = position.greenPiecesAmount < PIECES_TO_FLY
-            val firstUserLost = greenLost == isFirstPlayerGreen
-            firstUserLost
-        })
+        reason: GameEndReason
     ) {
         val isFirstUserLost = reason.isFirstUser
         CoroutineScope(Dispatchers.Default).launch {
-            val firstUserRating = usersRepository.getRatingById(firstUser.id())!!
-            val secondUserRating = usersRepository.getRatingById(secondUser.id())!!
+            val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+            val secondPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+            val firstUserRating = usersRepository.getRatingById(firstPlayerId)!!
+            val secondUserRating = usersRepository.getRatingById(secondPlayerId)!!
             val delta =
                 (10 + (if (isFirstUserLost) secondUserRating - firstUserRating else firstUserRating - secondUserRating) / 100).coerceIn(
                     -50..50
                 )
-            usersRepository.updateRatingById(firstUser.id(), if (isFirstUserLost) -delta else delta)
-            usersRepository.updateRatingById(secondUser.id(), if (isFirstUserLost) delta else -delta)
-            listOf(firstUser, secondUser).forEach { user ->
-                sendMove(user.login, Movement(null, null), false)
-                sendDataTo(user.login, false, "")
-                user.session?.close()
-                if (BotGenerator.isBot(user.login)) {
-                    BotGenerator.botGotFree(user.login)
+            usersRepository.updateRatingById(firstPlayerId, if (isFirstUserLost) -delta else delta)
+            usersRepository.updateRatingById(secondPlayerId, if (isFirstUserLost) delta else -delta)
+            run {
+                sendMove(firstPlayerId, Movement(null, null), false)
+                sendDataTo(firstPlayerId, false, "game ended")
+                firstPlayer.close()
+                if (BotGenerator.isBot(firstPlayerId)) {
+                    BotGenerator.botGotFree(firstPlayerId)
+                }
+            }
+            run {
+                sendMove(secondPlayerId, Movement(null, null), false)
+                sendDataTo(secondPlayerId, false, "game ended")
+                firstPlayer.close()
+                if (BotGenerator.isBot(secondPlayerId)) {
+                    BotGenerator.botGotFree(secondPlayerId)
                 }
             }
         }
     }
 
 
-    suspend fun sendMove(login: String, movement: Movement, opposite: Boolean) {
+    suspend fun sendMove(userId: Long, movement: Movement, opposite: Boolean) {
         val move = json.encodeToString<Movement>(movement)
         sendDataTo(
-            login = login,
+            userId = userId,
             opposite = opposite,
             data = move
         )
@@ -84,17 +114,27 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
      *
      * @throws IllegalStateException if jwt token doesn't much either of player
      */
-    private suspend fun sendDataTo(login: String, opposite: Boolean, data: String) {
+    private suspend fun sendDataTo(userId: Long, opposite: Boolean, data: String) {
         log(gameId, "sending data to user $data")
-        when (login) {
-            firstUser.login -> {
-                val user = if (opposite) secondUser else firstUser
-                user.session?.send(data)
+        val firstUserId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+        val secondUserId = gamesRepository.getSecondUserIdByGameId(gameId)!!
+        when (userId) {
+            firstUserId -> {
+                val sendToFirstUser = !opposite
+                if (sendToFirstUser) {
+                    firstPlayer.send(data)
+                } else {
+                    secondPlayer.send(data)
+                }
             }
 
-            secondUser.login -> {
-                val user = if (opposite) firstUser else secondUser
-                user.session?.send(data)
+            secondUserId -> {
+                val sendToSecondUser = !opposite
+                if (sendToSecondUser) {
+                    secondPlayer.send(data)
+                } else {
+                    firstPlayer.send(data)
+                }
             }
 
             else -> {
@@ -110,10 +150,11 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
      * @throws SerializationException if encoding failed
      * @throws IllegalArgumentException if encoding failed
      */
-    suspend fun sendPosition(login: String, opposite: Boolean) {
+    suspend fun sendPosition(userId: Long, opposite: Boolean) {
+        val position = gamesRepository.getPositionByGameId(gameId)!!
         val pos = json.encodeToString<Position>(position)
         sendDataTo(
-            login = login,
+            userId = userId,
             opposite = opposite,
             data = pos
         )
@@ -125,79 +166,131 @@ class GameData(val firstUser: Connection, val secondUser: Connection, private va
      * @param move move to check
      * @param jwtToken jwt token of the player, who tries performed such move
      */
-    fun isMovePossible(move: Movement, login: String): Boolean {
-        if (firstUser.login == login) {
-            return position.generateMoves().contains(move) && position.pieceToMove == isFirstPlayerGreen
+    suspend fun isMovePossible(move: Movement, userId: Long): Boolean {
+        val firstUserId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+        val secondUserId = gamesRepository.getSecondUserIdByGameId(gameId)!!
+        val position = gamesRepository.getPositionByGameId(gameId)!!
+        val firstPlayerMovesFirst = gamesRepository.getFirstPlayerMovesFirstByGameId(gameId)!!
+        if (firstUserId == userId) {
+            return position.generateMoves().contains(move) && position.pieceToMove == firstPlayerMovesFirst
         }
-        if (secondUser.login == login) {
-            return position.generateMoves().contains(move) && position.pieceToMove == !isFirstPlayerGreen
+        if (secondUserId == userId) {
+            return position.generateMoves().contains(move) && position.pieceToMove == !firstPlayerMovesFirst
         }
         return false
     }
 
-    private fun botMove() {
+    private suspend fun botMove() {
+        val firstUserId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+        val secondUserId = gamesRepository.getSecondUserIdByGameId(gameId)!!
+        val botUserId = gamesRepository.getBotIdByGameId(gameId)!!
+        val position = gamesRepository.getPositionByGameId(gameId)!!
+        val firstPlayerMovesFirst = gamesRepository.getFirstPlayerMovesFirstByGameId(gameId)!!
         // if bot should make move
-        val botExistsAndCanMakeAMove = position.pieceToMove != isFirstPlayerGreen && botAtGame
-        if (botExistsAndCanMakeAMove) {
+        val isFirstPlayerBot = firstUserId == botUserId
+        val isSecondPlayerBot = secondUserId == botUserId
+        val firstPlayerMoves = position.pieceToMove == firstPlayerMovesFirst
+        val botExistsAndCanMakeMove =
+            (firstPlayerMoves && isFirstPlayerBot) || (!firstPlayerMoves && isSecondPlayerBot)
+        if (botExistsAndCanMakeMove) {
+            println("bot making a move...")
             CoroutineScope(Dispatchers.Default).launch {
                 val newMove = position.findBestMove(Random.nextInt(2, 4).toUByte()) ?: error("no move found")
                 // this shouldn't cause stackoverflow, since you can move at max 3 times in a row
-                applyMove(newMove)
+                applyMove(newMove, isFirstPlayerBot)
                 // in one of those cases move won't be sent (since one user is bot)
-                sendMove(firstUser.login, newMove, false)
-                sendMove(secondUser.login, newMove, false)
+                sendMove(firstUserId, newMove, false)
+                sendMove(secondUserId, newMove, false)
             }
         }
     }
 
     private val timeForMove = currentConfig.gameConfig.timeForMove
 
-    fun applyMove(move: Movement) {
-        position = move.producePosition(position)
-        val currentMoveCount = playedMoves.incrementAndGet()
-        botMove()
+    suspend fun applyMove(move: Movement, isFirstPlayerPerformedMove: Boolean) {
+        val previousMoveCount = gamesRepository.getMovesCountByGameId(gameId)
+        gamesRepository.applyMove(gameId, move)
+        val currentMoveCount = gamesRepository.getMovesCountByGameId(gameId)
+        val position = gamesRepository.getPositionByGameId(gameId)!!
         if (position.gameState() == GameState.End || position.generateMoves().isEmpty()) {
-            handleGameEnd()
+            /*
+             * if game has ended after players move it means, that other player lost
+             * because game ends when user can't make a move | has less than 3 pieces
+             *
+             * move performer got removal move after another move
+             * enemy couldn't perform any move yet, so move performer can always "undo" his move,
+             * so he always has a move to perform
+             *
+             * pieces count couldn't decrease either
+             *
+             * that means that the other player lost (not the one, who performed the move)
+             */
+            val firstPlayerWon = !isFirstPlayerPerformedMove
+            handleGameEnd(GameEndReason.Normal(firstPlayerWon))
         } else {
+            botMove()
             CoroutineScope(Dispatchers.IO).launch {
                 delay(timeForMove)
                 // if no moves were performed
-                if (playedMoves.get() == currentMoveCount) {
-                    val firstUserLost = position.pieceToMove == isFirstPlayerGreen
+                if (currentMoveCount == previousMoveCount) {
+                    val firstPlayerMovesFirst = gamesRepository.getFirstPlayerMovesFirstByGameId(gameId)
+                    val firstUserWon = position.pieceToMove != firstPlayerMovesFirst
                     log(gameId, "game was ended, because no move were performed in $timeForMove")
-                    handleGameEnd(GameEndReason.UserWasTooSlow(firstUserLost))
+                    handleGameEnd(GameEndReason.UserWasTooSlow(firstUserWon))
                 }
             }
         }
     }
 
-    /**
-     * @return if the user participates in the game
-     */
-    fun isParticipating(login: String): Boolean {
-        return firstUser.login == login || secondUser.login == login
+    suspend fun isFirstPlayerMovesFirst(): Boolean {
+        return gamesRepository.getFirstPlayerMovesFirstByGameId(gameId)!!
     }
 
+    suspend fun isFirstPlayer(userId: Long): Boolean {
+        val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)
+        val secondPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)
+        return when (userId) {
+            firstPlayerId -> {
+                true
+            }
+
+            secondPlayerId -> {
+                false
+            }
+
+            else -> {
+                error("not a participant")
+            }
+        }
+    }
     /**
      * updates user session in order to send data successfully
      *
      * @param jwtToken jwt token of the player
      * @param session new session of this player
      */
-    fun updateSession(login: String, session: DefaultWebSocketServerSession) {
-        when (login) {
-            firstUser.login -> {
-                firstUser.session = session
+    suspend fun updateSession(userId: Long, session: DefaultWebSocketServerSession) {
+        val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+        val secondPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+        when (userId) {
+            firstPlayerId -> {
+                firstPlayer = session
             }
 
-            secondUser.login -> {
-                secondUser.session = session
+            secondPlayerId -> {
+                secondPlayer = session
             }
 
             else -> {
-                error("jwt token must either belong to the first user or to second one")
+                error("")
             }
         }
+    }
+
+    suspend fun enemyId(userId: Long): Long {
+        val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+        val secondPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+        return if (isFirstPlayer(userId)) secondPlayerId else firstPlayerId
     }
 }
 
@@ -209,7 +302,6 @@ class Connection(
     var login: String,
     var session: DefaultWebSocketServerSession?,
 ) {
-
     suspend fun rating(): Int {
         return usersRepository.getRatingById(id())!!
     }
@@ -217,4 +309,50 @@ class Connection(
     suspend fun id(): Long {
         return usersRepository.getIdByLogin(login)!!
     }
+}
+
+object EmptySession : DefaultWebSocketServerSession {
+    override suspend fun send(frame: Frame) {
+        log("sending frame in empty session")
+    }
+
+    override suspend fun flush() {
+        log("flushing in empty session")
+    }
+
+    override val closeReason: Deferred<CloseReason?>
+        get() = TODO("Not yet implemented")
+    override var pingIntervalMillis: Long
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var timeoutMillis: Long
+        get() = TODO("Not yet implemented")
+        set(value) {}
+
+    @InternalAPI
+    override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
+        TODO("Not yet implemented")
+    }
+
+    override val extensions: List<WebSocketExtension<*>>
+        get() = TODO("Not yet implemented")
+    override val incoming: ReceiveChannel<Frame>
+        get() = TODO("Not yet implemented")
+    override var masking: Boolean
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var maxFrameSize: Long
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override val outgoing: SendChannel<Frame>
+        get() = TODO("Not yet implemented")
+
+    override fun terminate() {
+        TODO("Not yet implemented")
+    }
+
+    override val coroutineContext: CoroutineContext
+        get() = TODO("Not yet implemented")
+    override val call: ApplicationCall
+        get() = TODO("Not yet implemented")
 }

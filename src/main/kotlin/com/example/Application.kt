@@ -2,6 +2,9 @@ package com.example
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import com.example.data.botsRepository
+import com.example.data.gamesRepository
+import com.example.data.usersRepository
 import com.example.routing.auth.accountRouting
 import com.example.routing.game.gameRouting
 import com.example.routing.misc.miscRouting
@@ -43,6 +46,9 @@ fun Application.module() {
         user = "postgres",
         password = "1234"
     )
+    usersRepository
+    gamesRepository
+    botsRepository
     install(Authentication) {
         jwt {
             verifier(

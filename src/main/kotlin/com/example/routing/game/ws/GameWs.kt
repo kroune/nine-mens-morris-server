@@ -1,12 +1,12 @@
 package com.example.routing.game.ws
 
 import com.example.*
+import com.example.data.gamesRepository
+import com.example.data.usersRepository
 import com.example.encryption.CustomJwtToken
 import com.example.game.Connection
-import com.example.game.GamesDB
+import com.example.game.GameDataFactory
 import com.example.game.SearchingForGame
-import com.example.data.usersRepository
-import com.example.responses.ws.internalServerError
 import com.example.responses.ws.jwtTokenIsNotValidForThisGame
 import com.example.responses.ws.someThingsWentWrong
 import com.kroune.nineMensMorrisLib.move.Movement
@@ -58,43 +58,26 @@ fun Route.gameRoutingWS() {
         }
 
         val gameId = call.parameters["gameId"]!!.toLong()
-        val jwtToken = CustomJwtToken(call.parameters["jwtToken"]!!)
-        val login = jwtToken.getLogin().getOrThrow()
-        val game = GamesDB.getGame(gameId)!!
-        if (!game.isParticipating(login)) {
+        val jwtToken = call.parameters["jwtToken"]!!
+        val userId = usersRepository.getIdByJwtToken(jwtToken)!!
+        if (!gamesRepository.participates(userId)) {
             jwtTokenIsNotValidForThisGame()
             return@webSocket
         }
+        val game = GameDataFactory.getGame(gameId)
         try {
-            val isFirstUser: Boolean
-            game.updateSession(login, this)
-            val (isGreen, enemyId) = when (login) {
-                game.firstUser.login -> {
-                    isFirstUser = true
-                    val enemyLogin = usersRepository.getIdByLogin(game.secondUser.login) ?: run {
-                        internalServerError()
-                        return@webSocket
-                    }
-                    Pair(game.isFirstPlayerGreen, enemyLogin)
-                }
-
-                game.secondUser.login -> {
-                    isFirstUser = false
-                    val enemyLogin = usersRepository.getIdByLogin(game.firstUser.login) ?: run {
-                        internalServerError()
-                        return@webSocket
-                    }
-                    Pair(!game.isFirstPlayerGreen, enemyLogin)
-                }
-
-                else -> {
-                    error("this jwt token doesn't belong to this game")
-                }
+            val isFirstUser = game.isFirstPlayer(userId)
+            game.updateSession(userId, this)
+            val isGreen = if (game.isFirstPlayer(userId)) {
+                game.isFirstPlayerMovesFirst()
+            } else {
+                !game.isFirstPlayerMovesFirst()
             }
+            val enemyId = game.enemyId(userId)
             send(isGreen.toString())
             log(gameId, "sending isGreen info - [$isGreen]")
             // we send position to the new connection
-            game.sendPosition(login, false)
+            game.sendPosition(userId, opposite = false)
             log(gameId, "sending position info")
             send(enemyId.toString())
             log(gameId, "sending enemy id info - [$enemyId]")
@@ -116,7 +99,7 @@ fun Route.gameRoutingWS() {
                     game.handleGameEnd(GameEndReason.UserGaveUp(isFirstUser))
                     return@webSocket
                 }
-                if (!game.isMovePossible(move, login)) {
+                if (!game.isMovePossible(move, userId)) {
                     log(
                         gameId,
                         "received an illegal move - [$move]"
@@ -125,8 +108,8 @@ fun Route.gameRoutingWS() {
                     return@webSocket
                 }
                 // send new position to the enemy
-                game.sendMove(login, move, true)
-                game.applyMove(move)
+                game.sendMove(userId, move, true)
+                game.applyMove(move, isFirstUser)
                 // note: checking if the game has ended happens in [GameData.applyMove]
             }
         } catch (e: IOException) {

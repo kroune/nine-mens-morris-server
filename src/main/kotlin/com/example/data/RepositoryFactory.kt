@@ -1,9 +1,12 @@
 package com.example.data
 
-import com.example.data.bots.repository.BotRepositoryI
-import com.example.data.bots.repository.BotRepositoryImpl
-import com.example.data.users.repository.UserRepositoryI
-import com.example.data.users.repository.UserRepositoryImpl
+import com.example.data.bots.repository.BotsRepositoryI
+import com.example.data.bots.repository.BotsRepositoryImpl
+import com.example.data.games.repository.GamesDataRepositoryI
+import com.example.data.games.repository.GamesDataRepositoryImpl
+import com.example.data.users.repository.UsersDataRepositoryI
+import com.example.data.users.repository.UsersDataRepositoryImpl
 
-val usersRepository: UserRepositoryI = UserRepositoryImpl()
-val botFactory: BotRepositoryI = BotRepositoryImpl()
+val usersRepository: UsersDataRepositoryI = UsersDataRepositoryImpl()
+val botsRepository: BotsRepositoryI = BotsRepositoryImpl()
+val gamesRepository: GamesDataRepositoryI = GamesDataRepositoryImpl()
