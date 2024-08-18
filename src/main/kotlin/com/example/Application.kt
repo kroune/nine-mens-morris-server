@@ -37,7 +37,7 @@ fun main() {
 
 fun Application.module() {
     Database.connect(
-        "jdbc:postgresql://localhost:5432/postgres",
+        "jdbc:postgresql://127.0.0.1:5432/postgres",
         driver = "org.postgresql.Driver",
         user = "postgres",
         password = "1234"
