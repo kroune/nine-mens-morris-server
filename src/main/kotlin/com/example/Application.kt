@@ -36,8 +36,10 @@ fun main() {
 }
 
 fun Application.module() {
+    val ip = "127.0.0.1:5432"
+    val dns = "postgres-service.default.svc.cluster.local"
     Database.connect(
-        "jdbc:postgresql://127.0.0.1:5432/postgres",
+        "jdbc:postgresql://$dns/postgres",
         driver = "org.postgresql.Driver",
         user = "postgres",
         password = "1234"
