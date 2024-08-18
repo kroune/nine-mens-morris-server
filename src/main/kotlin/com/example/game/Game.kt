@@ -4,26 +4,19 @@ import com.example.currentConfig
 import com.example.data.gamesRepository
 import com.example.data.usersRepository
 import com.example.json
-import com.example.log
 import com.kroune.nineMensMorrisLib.GameState
 import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.move.Movement
 import com.kroune.nineMensMorrisShared.GameEndReason
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.websocket.*
-import io.ktor.util.InternalAPI
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import java.util.Collections
-import kotlin.coroutines.CoroutineContext
 import kotlin.random.Random
 
 object GameDataFactory {
@@ -50,8 +43,8 @@ object GameDataFactory {
  */
 class Game(
     private val gameId: Long,
-    private var firstPlayer: DefaultWebSocketServerSession = EmptySession,
-    private var secondPlayer: DefaultWebSocketServerSession = EmptySession,
+    private var firstPlayer: DefaultWebSocketServerSession? = null,
+    private var secondPlayer: DefaultWebSocketServerSession? = null,
 ) {
     init {
         // it is possible that bot should make first move
@@ -86,8 +79,8 @@ class Game(
                     BotProvider.botGotFree(userId)
                 }
             }
-            firstPlayer.close()
-            secondPlayer.close()
+            firstPlayer?.close()
+            secondPlayer?.close()
         }
     }
 
@@ -95,9 +88,7 @@ class Game(
     suspend fun sendMove(userId: Long, movement: Movement, opposite: Boolean) {
         val move = json.encodeToString<Movement>(movement)
         sendDataTo(
-            userId = userId,
-            opposite = opposite,
-            data = move
+            userId = userId, opposite = opposite, data = move
         )
     }
 
@@ -116,18 +107,18 @@ class Game(
             firstUserId -> {
                 val sendToFirstUser = !opposite
                 if (sendToFirstUser) {
-                    firstPlayer.send(data)
+                    firstPlayer?.send(data)
                 } else {
-                    secondPlayer.send(data)
+                    secondPlayer?.send(data)
                 }
             }
 
             secondUserId -> {
                 val sendToSecondUser = !opposite
                 if (sendToSecondUser) {
-                    secondPlayer.send(data)
+                    secondPlayer?.send(data)
                 } else {
-                    firstPlayer.send(data)
+                    firstPlayer?.send(data)
                 }
             }
 
@@ -148,9 +139,7 @@ class Game(
         val position = gamesRepository.getPositionByGameId(gameId)!!
         val pos = json.encodeToString<Position>(position)
         sendDataTo(
-            userId = userId,
-            opposite = opposite,
-            data = pos
+            userId = userId, opposite = opposite, data = pos
         )
     }
 
@@ -184,8 +173,7 @@ class Game(
         val isFirstPlayerBot = firstUserId == botUserId
         val isSecondPlayerBot = secondUserId == botUserId
         val firstPlayerMoves = position.pieceToMove == firstPlayerMovesFirst
-        val botExistsAndCanMakeMove =
-            (firstPlayerMoves && isFirstPlayerBot) || (!firstPlayerMoves && isSecondPlayerBot)
+        val botExistsAndCanMakeMove = (firstPlayerMoves && isFirstPlayerBot) || (!firstPlayerMoves && isSecondPlayerBot)
         if (botExistsAndCanMakeMove) {
             println("bot making a move...")
             CoroutineScope(Dispatchers.Default).launch {
@@ -206,8 +194,7 @@ class Game(
         gamesRepository.applyMove(gameId, move)
         val currentMoveCount = gamesRepository.getMovesCountByGameId(gameId)
         val position = gamesRepository.getPositionByGameId(gameId)!!
-        if (position.gameState() == GameState.End || position.generateMoves().isEmpty()) {
-            /*
+        if (position.gameState() == GameState.End || position.generateMoves().isEmpty()) {/*
              * if game has ended after players move it means, that other player lost
              * because game ends when user can't make a move | has less than 3 pieces
              *
@@ -286,35 +273,4 @@ class Game(
         val secondPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
         return if (isFirstPlayer(userId)) secondPlayerId else firstPlayerId
     }
-}
-
-object EmptySession : DefaultWebSocketServerSession {
-    override suspend fun send(frame: Frame) {
-        log("sending frame in empty session")
-    }
-
-    override suspend fun flush() {
-        log("flushing in empty session")
-    }
-
-    override val closeReason: Deferred<CloseReason?> = notGonnaNeedThis
-    override var pingIntervalMillis: Long = notGonnaNeedThis
-    override var timeoutMillis: Long = notGonnaNeedThis
-
-    @InternalAPI
-    override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) = notGonnaNeedThis
-    override val extensions: List<WebSocketExtension<*>> = notGonnaNeedThis
-    override val incoming: ReceiveChannel<Frame> = notGonnaNeedThis
-    override var masking: Boolean = notGonnaNeedThis
-    override var maxFrameSize: Long = notGonnaNeedThis
-    override val outgoing: SendChannel<Frame> = notGonnaNeedThis
-
-    @Deprecated("Use cancel() instead.", ReplaceWith("cancel()", "kotlinx.coroutines.cancel"))
-    override fun terminate() = notGonnaNeedThis
-    override val coroutineContext: CoroutineContext = notGonnaNeedThis
-    override val call: ApplicationCall = notGonnaNeedThis
-    val notGonnaNeedThis: Nothing
-        get() {
-            error("this shouldn't be used")
-        }
 }
