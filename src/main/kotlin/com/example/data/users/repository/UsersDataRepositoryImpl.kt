@@ -128,12 +128,13 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
         }
     }
 
-    override suspend fun updateRatingById(id: Long, newRating: Int) {
+    override suspend fun updateRatingById(id: Long, delta: Int) {
         newSuspendedTransaction {
+            val oldRating = getRatingById(id)!!
             UsersDataTable.update(
                 { UsersDataTable.id eq id }
             ) {
-                it[rating] = newRating
+                it[rating] = (oldRating + delta).coerceAtLeast(0)
             }
         }
     }
