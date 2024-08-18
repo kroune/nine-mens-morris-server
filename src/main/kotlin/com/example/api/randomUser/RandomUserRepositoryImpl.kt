@@ -28,7 +28,7 @@ class RandomUserRepositoryImpl : RandomUserRepositoryI {
 private class ServiceResponse(val results: Array<results>) {
     val username: String
         get() {
-            return results[0].picture.medium
+            return results[0].login.username
         }
 
     val pictureUrl: String
