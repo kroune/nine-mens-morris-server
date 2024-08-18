@@ -29,13 +29,16 @@ import kotlin.random.Random
 object GameDataFactory {
     private val gamesCache = Collections.synchronizedMap(hashMapOf<Long, Game>())
 
-    fun getGame(gameId: Long): Game {
+    fun getGame(gameId: Long, userId: Long, playerSession: DefaultWebSocketServerSession): Game {
         synchronized(gamesCache) {
             val cache = gamesCache[gameId]
             if (cache != null) {
                 return cache
             }
             val gameClass = Game(gameId)
+            runBlocking {
+                gameClass.updateSession(userId, playerSession)
+            }
             gamesCache[gameId] = gameClass
             return gameClass
         }

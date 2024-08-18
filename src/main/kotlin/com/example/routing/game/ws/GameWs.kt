@@ -63,7 +63,7 @@ fun Route.gameRoutingWS() {
             jwtTokenIsNotValidForThisGame()
             return@webSocket
         }
-        val game = GameDataFactory.getGame(gameId)
+        val game = GameDataFactory.getGame(gameId, userId, this)
         try {
             val isFirstUser = game.isFirstPlayer(userId)
             game.updateSession(userId, this)
