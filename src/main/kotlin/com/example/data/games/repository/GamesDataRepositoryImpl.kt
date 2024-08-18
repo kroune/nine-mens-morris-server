@@ -5,6 +5,8 @@ import com.example.data.users.GamesDataTable
 import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.move.Movement
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.selectAll
@@ -12,7 +14,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 
-class GamesDataRepositoryImpl: GamesDataRepositoryI {
+class GamesDataRepositoryImpl : GamesDataRepositoryI {
     init {
         transaction {
             SchemaUtils.create(GamesDataTable)
@@ -153,6 +155,14 @@ class GamesDataRepositoryImpl: GamesDataRepositoryI {
             }.limit(1).map {
                 it[GamesDataTable.gameId]
             }.any()
+        }
+    }
+
+    override suspend fun delete(gameId: Long) {
+        newSuspendedTransaction {
+            GamesDataTable.deleteWhere {
+                GamesDataTable.gameId eq gameId
+            }
         }
     }
 }

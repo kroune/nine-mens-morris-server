@@ -64,6 +64,7 @@ class Game(
         CoroutineScope(Dispatchers.Default).launch {
             val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
             val secondPlayerId = gamesRepository.getSecondUserIdByGameId(gameId)!!
+            gamesRepository.delete(gameId)
             val firstUserRating = usersRepository.getRatingById(firstPlayerId)!!
             val secondUserRating = usersRepository.getRatingById(secondPlayerId)!!
             val delta =

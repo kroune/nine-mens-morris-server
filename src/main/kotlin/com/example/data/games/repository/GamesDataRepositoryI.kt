@@ -17,4 +17,5 @@ interface GamesDataRepositoryI {
     suspend fun getGameIdByUserId(userId: Long): Long?
     suspend fun participates(userId: Long): Boolean
     suspend fun exists(gameId: Long): Boolean
+    suspend fun delete(gameId: Long)
 }
