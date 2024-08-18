@@ -10,7 +10,6 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
-import java.io.File
 
 fun Route.userInfoRoutingGET() {
     /**
@@ -134,10 +133,8 @@ fun Route.userInfoRoutingGET() {
         }
 
         val id = call.parameters["id"]!!.toLong()
-        // TODO: change this
-        val defaultPicture = File("default/img.png")
-        require(defaultPicture.exists())
-        val picture = usersRepository.getPictureById(id) ?: defaultPicture.readBytes()
+        val defaultPicture = this.javaClass.getResource("/default_profile_image.png")!!.readBytes()
+        val picture = usersRepository.getPictureById(id) ?: defaultPicture
         val jsonText = json.encodeToString<ByteArray>(picture)
         call.respondText(jsonText)
     }

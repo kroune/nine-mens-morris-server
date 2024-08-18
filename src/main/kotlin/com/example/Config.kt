@@ -25,7 +25,8 @@ data class Config(
     val encryptionToken: String,
     val fileConfig: FileConfig,
     val currentLogPriority: LogPriority,
-    val gameConfig: GameConfig
+    val gameConfig: GameConfig,
+    val isInKuber: Boolean = true
 )
 
 @Serializable
