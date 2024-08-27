@@ -18,4 +18,4 @@ gameConfig:
   delayBeforeRecheckingBucket: 3000
   minTimeBeforePairingWithBot: 20000
   maxTimeBeforePairingWithBot: 30000
-isInKuber: false
+isInKuber: true

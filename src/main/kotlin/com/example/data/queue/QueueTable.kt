@@ -17,19 +17,12 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package com.example.data.games
+package com.example.data.queue
 
-import com.kroune.nineMensMorrisLib.Position
-import com.kroune.nineMensMorrisLib.gameStartPosition
-import com.kroune.nineMensMorrisLib.move.Movement
-import kotlin.random.Random
+import org.jetbrains.exposed.sql.Table
 
-class GameData(
-    val firstPlayerId: Long,
-    val secondPlayerId: Long,
-    val botId: Long?,
-    val movesHistory: List<Movement> = listOf(),
-    val position: Position = gameStartPosition,
-    val firstPlayerMovesFirst: Boolean = Random.nextBoolean(),
-    val movesCount: Int = 0
-)
+object QueueTable: Table("queue") {
+    val bucketId = integer("bucketId")
+    val userId = long("userId")
+    override val primaryKey = PrimaryKey(bucketId)
+}

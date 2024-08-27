@@ -6,7 +6,7 @@ val exposedVersion: String by project
 plugins {
     kotlin("jvm") version "2.0.0"
     id("io.ktor.plugin") version "2.3.10"
-    kotlin("plugin.serialization") version "1.9.0"
+    kotlin("plugin.serialization") version "2.0.0"
     application
 }
 

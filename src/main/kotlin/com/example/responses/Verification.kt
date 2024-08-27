@@ -1,3 +1,22 @@
+/*
+ * This file is part of nine-mens-morris-server (https://github.com/kroune/nine-mens-morris-server)
+ * Copyright (C) 2024-2024  kroune
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Contact: kr0ne@tuta.io
+ */
 package com.example.responses
 
 import com.example.LogPriority
@@ -5,25 +24,11 @@ import com.example.data.gamesRepository
 import com.example.data.usersRepository
 import com.example.encryption.JwtTokenImpl
 import com.example.log
-import com.example.responses.get.jwtTokenIsNotValid
-import com.example.responses.get.noJwtToken
-import com.example.responses.get.noLogin
-import com.example.responses.get.noPassword
-import com.example.responses.get.noUserId
-import com.example.responses.get.noValidLogin
-import com.example.responses.get.userIdIsNotLong
-import com.example.responses.get.userIdIsNotValid
-import com.example.responses.ws.gameIdIsNotLong
-import com.example.responses.ws.gameIdIsNotValid
-import com.example.responses.ws.jwtTokenIsNotValid
-import com.example.responses.ws.noGameId
-import com.example.responses.ws.noJwtToken
+import com.example.responses.get.*
+import com.example.responses.ws.*
 import io.ktor.server.application.*
-import io.ktor.server.application.call
 import io.ktor.server.websocket.*
 import io.ktor.util.pipeline.*
-import kotlin.text.toLong
-import kotlin.text.toLongOrNull
 
 /**
  * possible responses:

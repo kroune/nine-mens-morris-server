@@ -17,37 +17,45 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package com.example.data.bots.repository
+package com.example.data.queue.repository
 
-import com.example.data.bots.BotsDataTable
-import org.jetbrains.exposed.sql.SchemaUtils
+import com.example.currentConfig
+import com.example.data.queue.QueueTable
+import com.example.data.usersRepository
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
+import kotlin.math.min
 
-class BotsRepositoryImpl: BotsRepositoryI {
-    init {
-        transaction {
-            SchemaUtils.create(BotsDataTable)
-        }
-    }
-
-    override suspend fun add(id: Long) {
+class QueueRepositoryImpl : QueueRepositoryI {
+    override suspend fun addUser(userId: Long) {
+        val rating = usersRepository.getRatingById(userId)!!
+        val bucketId = min(rating / currentConfig.gameConfig.bucketSize, currentConfig.gameConfig.maxBucketNumber)
         newSuspendedTransaction {
-            BotsDataTable.insert {
-                it[userId] = id
+            QueueTable.insert {
+                it[QueueTable.bucketId] = bucketId
+                it[QueueTable.userId] = userId
             }
         }
     }
 
-    override suspend fun get(id: Long): Boolean {
+    override suspend fun getUsers(bucket: Int): List<Long> {
         return newSuspendedTransaction {
-            BotsDataTable.selectAll().where {
-                BotsDataTable.userId eq id
-            }.limit(1).map {
-                it[BotsDataTable.userId]
-            }.any()
+            QueueTable.selectAll().where {
+                QueueTable.bucketId eq bucket
+            }.map {
+                it[QueueTable.userId]
+            }
+        }
+    }
+
+    override suspend fun deleteUser(userId: Long) {
+        newSuspendedTransaction {
+            QueueTable.deleteWhere {
+                QueueTable.userId eq userId
+            }
         }
     }
 }
