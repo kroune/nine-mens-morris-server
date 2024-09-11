@@ -95,34 +95,37 @@ fun Route.gameRoutingWS() {
             }
             val enemyId = game.enemyId(userId)
             send(isGreen.toString())
-            log(gameId, "sending isGreen info - [$isGreen]")
+            log("sending isGreen info - [$isGreen]", LogPriority.Debug)
             // we send position to the new connection
             game.sendPosition(userId, opposite = false)
-            log(gameId, "sending position info")
+            log("sending position info", LogPriority.Debug)
             send(enemyId.toString())
-            log(gameId, "sending enemy id info - [$enemyId]")
+            log("sending enemy id info - [$enemyId]", LogPriority.Debug)
             incoming.consumeEach { frame ->
                 if (frame !is Frame.Text) return@consumeEach
                 val move = try {
                     json.decodeFromString<Movement>(frame.readText())
                 } catch (e: Exception) {
                     log(
-                        gameId,
-                        "error decoding client movement: frame - [${frame.frameType}] stack trace - [${e.stackTraceToString()}]"
+                        "error decoding client movement: frame - [${frame.frameType}] stack trace - [${e.stackTraceToString()}]",
+                        LogPriority.Debug
                     )
                     someThingsWentWrong("error decoding client movement")
                     return@webSocket
                 }
                 // user gave up
                 if (move.startIndex == null && move.endIndex == null) {
-                    log(gameId, "user gave up")
+                    log(
+                        "user gave up",
+                        LogPriority.Debug
+                    )
                     game.handleGameEnd(GameEndReason.UserGaveUp(isFirstUser))
                     return@webSocket
                 }
                 if (!game.isMovePossible(move, userId)) {
                     log(
-                        gameId,
-                        "received an illegal move - [$move]"
+                        "received an illegal move - [$move]",
+                        LogPriority.Debug
                     )
                     someThingsWentWrong("received an illegal move")
                     return@webSocket
@@ -133,7 +136,10 @@ fun Route.gameRoutingWS() {
                 // note: checking if the game has ended happens in [GameData.applyMove]
             }
         } catch (e: IOException) {
-            log(gameId, "uncaught exception ${e.stackTraceToString()}")
+            log(
+                "uncaught exception ${e.stackTraceToString()}",
+                LogPriority.Debug
+            )
         }
     }
 }

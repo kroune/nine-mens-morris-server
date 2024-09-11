@@ -19,8 +19,10 @@
  */
 package com.example.routing.userInfo.get
 
+import com.example.LogPriority
 import com.example.data.usersRepository
 import com.example.json
+import com.example.log
 import com.example.responses.get.*
 import com.example.responses.requireValidJwtToken
 import com.example.responses.requireValidLogin
@@ -51,6 +53,7 @@ fun Route.userInfoRoutingGET() {
 
         val id = call.parameters["id"]!!.toLong()
         val text = usersRepository.getLoginById(id) ?: run {
+            log("id was marked as valid, but getting login from db failed", LogPriority.Errors)
             internalServerError()
             return@get
         }
@@ -77,6 +80,7 @@ fun Route.userInfoRoutingGET() {
 
         val id = call.parameters["id"]!!.toLong()
         val text = (usersRepository.getCreationDateById(id) ?: run {
+            log("id was marked as valid, but getting creation date from db failed", LogPriority.Errors)
             internalServerError()
             return@get
         }).let {
@@ -105,6 +109,7 @@ fun Route.userInfoRoutingGET() {
 
         val id = call.parameters["id"]!!.toLong()
         val text = usersRepository.getRatingById(id) ?: run {
+            log("id was marked as valid, but getting rating from db failed", LogPriority.Errors)
             internalServerError()
             return@get
         }
@@ -129,6 +134,7 @@ fun Route.userInfoRoutingGET() {
 
         val login = call.parameters["login"]!!.toString()
         val id: Long = usersRepository.getIdByLogin(login) ?: run {
+            log("login was marked as valid, but getting id from db failed", LogPriority.Errors)
             internalServerError()
             return@get
         }
@@ -152,7 +158,11 @@ fun Route.userInfoRoutingGET() {
         }
 
         val id = call.parameters["id"]!!.toLong()
-        val defaultPicture = this.javaClass.getResource("/default_profile_image.png")!!.readBytes()
+        val defaultPicture = this.javaClass.getResource("/default_profile_image.png")?.readBytes() ?: run {
+            log("default profile picture is missing", LogPriority.Errors)
+            internalServerError()
+            return@get
+        }
         val picture = usersRepository.getPictureById(id) ?: defaultPicture
         val jsonText = json.encodeToString<ByteArray>(picture)
         call.respondText(jsonText)
@@ -175,6 +185,7 @@ fun Route.userInfoRoutingGET() {
 
         val jwtToken = call.parameters["jwtToken"]!!
         val id: Long = usersRepository.getIdByJwtToken(jwtToken) ?: run {
+            log("jwt token was marked as valid, but getting id from db failed", LogPriority.Errors)
             internalServerError()
             return@get
         }

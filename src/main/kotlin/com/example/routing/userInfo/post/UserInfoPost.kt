@@ -19,19 +19,23 @@
  */
 package com.example.routing.userInfo.post
 
+import com.example.LogPriority
 import com.example.currentConfig
 import com.example.data.usersRepository
 import com.example.encryption.JwtTokenImpl
-import com.example.responses.get.imageIsNotValid
-import com.example.responses.get.imageIsTooLarge
-import com.example.responses.get.internalServerError
+import com.example.log
+import com.example.responses.get.*
 import com.example.responses.requireValidJwtToken
+import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.imageio.ImageIO
+
 
 fun Route.userInfoRoutingPOST() {
     /**
@@ -56,28 +60,38 @@ fun Route.userInfoRoutingPOST() {
 
         val jwtToken = call.parameters["jwtToken"]!!
         val jwtTokenObject = JwtTokenImpl(jwtToken)
+        log("getting from jwt token object ${jwtTokenObject.token}", LogPriority.Debug)
         val login = jwtTokenObject.getLogin().getOrElse {
             internalServerError()
             return@post
         }
+        log("receiving picture byte array", LogPriority.Debug)
         val byteArray = try {
             call.receive<ByteArray>()
-        } catch (e: ContentTransformationException) {
+        } catch (_: ContentTransformationException) {
+            // actually anything can be converted to byte array
             imageIsNotValid()
             return@post
         }
+        log("starting image decoding", LogPriority.Debug)
         val decodedVariant = try {
+            val outputStream = ByteArrayOutputStream()
+
             val bytes = ByteArrayInputStream(byteArray)
-            ImageIO.read(bytes)!!
+            val buffer = ImageIO.read(bytes)!!
+            val maxSize = currentConfig.fileConfig.profilePictureMaxSize
+            if (buffer.height > maxSize || buffer.width > maxSize) {
+                imageIsTooLarge()
+                return@post
+            }
+            ImageIO.write(buffer, "png", outputStream)
+            outputStream.close()
+            outputStream.toByteArray()
         } catch (_: IOException) {
             imageIsNotValid()
             return@post
         }
-        val maxSize = currentConfig.fileConfig.profilePictureMaxSize
-        if (decodedVariant.height > maxSize || decodedVariant.width > maxSize) {
-            imageIsTooLarge()
-            return@post
-        }
-        usersRepository.updatePictureByLogin(login, byteArray)
+        usersRepository.updatePictureByLogin(login, decodedVariant)
+        call.respond(HttpStatusCode.OK)
     }
 }

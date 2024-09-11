@@ -20,25 +20,8 @@
 package com.example
 
 import kotlinx.serialization.Serializable
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-
-val gameLogsPath = File(currentConfig.fileConfig.gameLogsPath)
-
-fun log(gameId: Long, text: String) {
-    gameLogsPath.mkdirs()
-    run {
-        val game = File(gameLogsPath, gameId.toString())
-        if (!game.exists()) {
-            game.createNewFile()
-        }
-        val sdf = SimpleDateFormat("hh:mm:ss dd/M/yyyy ")
-        val currentDate = sdf.format(Date())
-        println("$currentDate $text")
-        game.appendText("$currentDate $text\n")
-    }
-}
 
 fun log(text: String, logLevel: LogPriority = LogPriority.Info) {
     val shouldPrint = logLevel >= currentLogLevel

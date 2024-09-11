@@ -21,6 +21,7 @@ package com.example
 
 import com.example.data.botsRepository
 import com.example.data.gamesRepository
+import com.example.data.queueRepository
 import com.example.data.usersRepository
 import com.example.routing.auth.accountRouting
 import com.example.routing.game.gameRouting
@@ -34,11 +35,16 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
 import kotlin.time.toJavaDuration
 
 fun main() {
+    log("starting server", LogPriority.Info)
+    log("printing server config", LogPriority.Info)
+    log(json.encodeToString<Config>(currentConfig), LogPriority.Info)
+    currentConfig
     val serverConfig = currentConfig.serverConfig
     embeddedServer(
         Netty,
@@ -64,9 +70,18 @@ fun Application.module() {
         user = "postgres",
         password = "1234"
     )
+    log("initializing users repository", LogPriority.Debug)
     usersRepository
+    log("initializing games repository", LogPriority.Debug)
     gamesRepository
+    log("initializing bots repository", LogPriority.Debug)
     botsRepository
+    log("initializing queue repository", LogPriority.Debug)
+    queueRepository
+    log("applying configs", LogPriority.Debug)
+}
+
+fun Application.applyPlugins() {
     install(WebSockets) {
         val webSocketConfig = currentConfig.webSocketConfig
         pingPeriod = webSocketConfig.pingPeriod.toJavaDuration()
@@ -85,7 +100,10 @@ fun Application.module() {
             rateLimiter(limit = rateLimitConfig.rateLimit, refillPeriod = rateLimitConfig.refillSpeed)
         }
     }
+}
+fun Application.routing() {
     routing {
+        log("initializing routing", LogPriority.Debug)
         miscRouting()
         route("/api/v1/user/") {
             userInfoRouting()

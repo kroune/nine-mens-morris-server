@@ -69,7 +69,6 @@ object SearchingForGame {
             delay(currentDelay)
             // check if we are still searching
             if (gamesRepository.getGameIdByUserId(userId) == null) {
-                println("no enemy was found for the user $userId, pairing with bot")
                 val botId = BotProvider.getBotFromBucket(queueToAddUser)
                 val gameData = GameData(
                     firstPlayerId = userId,

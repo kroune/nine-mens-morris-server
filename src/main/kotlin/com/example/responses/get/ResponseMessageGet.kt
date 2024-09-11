@@ -19,7 +19,9 @@
  */
 package com.example.responses.get
 
+import com.example.LogPriority
 import com.example.currentConfig
+import com.example.log
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -27,34 +29,42 @@ import io.ktor.util.pipeline.*
 
 suspend fun PipelineContext<Unit, ApplicationCall>.noJwtToken() {
     call.respond(HttpStatusCode.BadRequest, "no [jwtToken] parameter found")
+    log("no [jwtToken] parameter found", LogPriority.Debug)
 }
 
 suspend inline fun PipelineContext<Unit, ApplicationCall>.jwtTokenIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "[jwtToken] parameter is not valid")
+    log("[jwtToken] parameter is not valid", LogPriority.Debug)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.noLogin() {
     call.respond(HttpStatusCode.BadRequest, "no [login] parameter found")
+    log("no [login] parameter found", LogPriority.Debug)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.noValidLogin() {
     call.respond(HttpStatusCode.BadRequest, "no [login] parameter found")
+    log("no [login] parameter found", LogPriority.Debug)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.noPassword() {
     call.respond(HttpStatusCode.BadRequest, "no [password] parameter found")
+    log("no [password] parameter found", LogPriority.Debug)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.noUserId() {
     call.respond(HttpStatusCode.BadRequest, "no [id] parameter found")
+    log("no [id] parameter found", LogPriority.Debug)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.userIdIsNotLong() {
     call.respond(HttpStatusCode.Forbidden, "[id] parameter is not a long")
+    log("[id] parameter is not a long", LogPriority.Debug)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.userIdIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "[id] parameter is not valid")
+    log("[id] parameter is not valid", LogPriority.Debug)
 }
 
 suspend inline fun PipelineContext<Unit, ApplicationCall>.imageIsTooLarge() {
@@ -62,12 +72,15 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.imageIsTooLarge() {
         HttpStatusCode.Forbidden,
         "provided image (byte array) is too large, it can be ${currentConfig.fileConfig.profilePictureMaxSize}x${currentConfig.fileConfig.profilePictureMaxSize} at max"
     )
+    log("provided image (byte array) is too large, it can be ${currentConfig.fileConfig.profilePictureMaxSize}x${currentConfig.fileConfig.profilePictureMaxSize} at max", LogPriority.Debug)
 }
 
 suspend inline fun PipelineContext<Unit, ApplicationCall>.imageIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "provided image (byte array) is not valid")
+    log("provided image (byte array) is not valid", LogPriority.Debug)
 }
 
 suspend inline fun PipelineContext<Unit, ApplicationCall>.internalServerError() {
     call.respond(HttpStatusCode.InternalServerError, "Internal server error")
+    log("Internal server error", LogPriority.Debug)
 }

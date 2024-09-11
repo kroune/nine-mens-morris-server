@@ -32,6 +32,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-rate-limit:$ktor_version")
     implementation("io.ktor:ktor-client-okhttp:$ktor_version")
+    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
 
     // other libs
     implementation("ch.qos.logback:logback-classic:$logback_version")
@@ -51,9 +52,15 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-money:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-spring-boot-starter:$exposedVersion")
-    implementation("org.postgresql:postgresql:42.5.1")
+    implementation("org.postgresql:postgresql:42.7.2")
 
     // my own dependencies
     implementation("com.github.kroune:9-men-s-morris-shared:7c7979d18d")
     implementation("com.github.kroune:9-men-s-morris-lib:v1.0.0")
+
+    // testing
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testImplementation("org.testcontainers:postgresql:1.20.1")
+    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
 }

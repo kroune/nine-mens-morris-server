@@ -52,7 +52,7 @@ class JwtTokenImpl(val token: String) {
             token.claims["login"]!!.asString()
         }.onFailure {
             log("error decoding login", LogPriority.Info)
-            it.printStackTrace()
+            log(it.stackTraceToString(), LogPriority.Debug)
         }
     }
 
@@ -69,7 +69,7 @@ class JwtTokenImpl(val token: String) {
             token.claims["password"]!!.asString()
         }.onFailure {
             log("error decoding login", LogPriority.Info)
-            it.printStackTrace()
+            log(it.stackTraceToString(), LogPriority.Debug)
         }
     }
 

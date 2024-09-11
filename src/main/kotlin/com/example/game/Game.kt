@@ -195,7 +195,6 @@ class Game(
         val firstPlayerMoves = position.pieceToMove == firstPlayerMovesFirst
         val botExistsAndCanMakeMove = (firstPlayerMoves && isFirstPlayerBot) || (!firstPlayerMoves && isSecondPlayerBot)
         if (botExistsAndCanMakeMove) {
-            println("bot making a move...")
             CoroutineScope(Dispatchers.Default).launch {
                 val newMove = position.findBestMove(Random.nextInt(2, 4).toUByte()) ?: error("no move found")
                 // this shouldn't cause stackoverflow, since you can move at max 3 times in a row
