@@ -19,14 +19,14 @@
  */
 package com.example.routing.userInfo.get
 
-import com.example.LogPriority
-import com.example.data.usersRepository
-import com.example.json
-import com.example.log
-import com.example.responses.get.*
-import com.example.responses.requireValidJwtToken
-import com.example.responses.requireValidLogin
-import com.example.responses.requireValidUserId
+import com.example.features.LogPriority
+import com.example.data.local.usersRepository
+import com.example.common.json
+import com.example.features.log
+import com.example.routing.responses.get.*
+import com.example.routing.responses.requireValidJwtToken
+import com.example.routing.responses.requireValidLogin
+import com.example.routing.responses.requireValidUserId
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -47,10 +47,12 @@ fun Route.userInfoRoutingGET() {
      * [String] - login
      */
     get("get-login-by-id") {
+        requireValidJwtToken {
+            return@get
+        }
         requireValidUserId {
             return@get
         }
-
         val id = call.parameters["id"]!!.toLong()
         val text = usersRepository.getLoginById(id) ?: run {
             log("id was marked as valid, but getting login from db failed", LogPriority.Errors)
@@ -74,6 +76,9 @@ fun Route.userInfoRoutingGET() {
      * [Int] - rating
      */
     get("get-creation-date-by-id") {
+        requireValidJwtToken {
+            return@get
+        }
         requireValidUserId {
             return@get
         }
@@ -103,6 +108,9 @@ fun Route.userInfoRoutingGET() {
      * [Int] - rating
      */
     get("get-rating-by-id") {
+        requireValidJwtToken {
+            return@get
+        }
         requireValidUserId {
             return@get
         }
@@ -128,6 +136,9 @@ fun Route.userInfoRoutingGET() {
      * [Long] - profile id
      */
     get("get-id-by-login") {
+        requireValidJwtToken {
+            return@get
+        }
         requireValidLogin {
             return@get
         }
@@ -153,6 +164,9 @@ fun Route.userInfoRoutingGET() {
      * [ByteArray] - profile picture
      */
     get("get-picture-by-id") {
+        requireValidJwtToken {
+            return@get
+        }
         requireValidUserId {
             return@get
         }
@@ -190,6 +204,15 @@ fun Route.userInfoRoutingGET() {
             return@get
         }
         val jsonText = json.encodeToString<Long>(id)
+        call.respondText(jsonText)
+    }
+    get("leaderboard") {
+        requireValidJwtToken {
+            return@get
+        }
+
+        val leaderboard = usersRepository.getLeaderboard(10)
+        val jsonText = json.encodeToString<List<Long>>(leaderboard)
         call.respondText(jsonText)
     }
 }

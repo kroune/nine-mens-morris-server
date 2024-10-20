@@ -19,17 +19,17 @@
  */
 package com.example.routing.auth.get
 
-import com.example.data.users.UserData
-import com.example.data.usersRepository
-import com.example.encryption.JwtTokenImpl
-import com.example.json
-import com.example.responses.get.jwtTokenIsNotValid
-import com.example.responses.get.noJwtToken
-import com.example.responses.get.noLogin
-import com.example.responses.get.noPassword
-import com.example.responses.requireLogin
-import com.example.responses.requirePassword
-import com.example.responses.requireValidJwtToken
+import com.example.data.local.users.UserData
+import com.example.data.local.usersRepository
+import com.example.features.encryption.JwtTokenImpl
+import com.example.common.json
+import com.example.routing.responses.get.jwtTokenIsNotValid
+import com.example.routing.responses.get.noJwtToken
+import com.example.routing.responses.get.noLogin
+import com.example.routing.responses.get.noPassword
+import com.example.routing.responses.requireLogin
+import com.example.routing.responses.requirePassword
+import com.example.routing.responses.requireValidJwtToken
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*

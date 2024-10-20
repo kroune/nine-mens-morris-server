@@ -2,8 +2,8 @@ package com.example.userInfo.post
 
 import com.example.TestDatabase
 import com.example.applyPlugins
-import com.example.data.usersRepository
-import com.example.encryption.JwtTokenImpl
+import com.example.data.local.usersRepository
+import com.example.features.encryption.JwtTokenImpl
 import com.example.routing.userInfo.post.userInfoRoutingPOST
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post

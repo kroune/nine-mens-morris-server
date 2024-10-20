@@ -11,11 +11,12 @@ encryptionToken: "AIkjDRWCktbcdFJoFzmeoYyfcxtYoMvNcfDmyLpPApqkNdZgzAyMxFMzKsxFKv
 fileConfig:
   profilePictureMaxSize: 200
   gameLogsPath: "logs/game"
-currentLogPriority: !<com.example.LogPriority.Debug> {}
+currentLogPriority: !<com.example.features.LogPriority.Debug> {}
 gameConfig:
   timeForMove: 300000000
+  ratingDifference: 200
   bucketSize: 100
   delayBeforeRecheckingBucket: 3000
   minTimeBeforePairingWithBot: 20000
   maxTimeBeforePairingWithBot: 30000
-isInKuber: true
+isInKuber: false

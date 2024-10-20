@@ -19,10 +19,15 @@
  */
 package com.example
 
-import com.example.data.botsRepository
-import com.example.data.gamesRepository
-import com.example.data.queueRepository
-import com.example.data.usersRepository
+import com.example.common.json
+import com.example.data.local.botsRepository
+import com.example.data.local.gamesRepository
+import com.example.data.local.queueRepository
+import com.example.data.local.usersRepository
+import com.example.features.Config
+import com.example.features.LogPriority
+import com.example.features.currentConfig
+import com.example.features.log
 import com.example.routing.auth.accountRouting
 import com.example.routing.game.gameRouting
 import com.example.routing.misc.miscRouting
@@ -55,7 +60,9 @@ fun main() {
             responseWriteTimeoutSeconds = 15
         },
         module = {
+            applyPlugins()
             module()
+            routing()
         }
     ).start(wait = true)
 }

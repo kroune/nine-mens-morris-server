@@ -2,7 +2,7 @@ package com.example.userInfo.get
 
 import com.example.TestDatabase
 import com.example.applyPlugins
-import com.example.data.usersRepository
+import com.example.data.local.usersRepository
 import com.example.routing.userInfo.get.userInfoRoutingGET
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter

@@ -1,7 +1,7 @@
 package com.example
 
-import com.example.data.users.UserData
-import com.example.data.usersRepository
+import com.example.data.local.users.UserData
+import com.example.data.local.usersRepository
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Database
 import org.testcontainers.containers.PostgreSQLContainer

@@ -19,9 +19,9 @@
  */
 package com.example.routing.game.get
 
-import com.example.data.gamesRepository
-import com.example.data.usersRepository
-import com.example.responses.requireValidJwtToken
+import com.example.data.local.gamesRepository
+import com.example.data.local.usersRepository
+import com.example.routing.responses.requireValidJwtToken
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*

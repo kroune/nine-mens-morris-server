@@ -19,13 +19,13 @@
  */
 package com.example.routing.userInfo.post
 
-import com.example.LogPriority
-import com.example.currentConfig
-import com.example.data.usersRepository
-import com.example.encryption.JwtTokenImpl
-import com.example.log
-import com.example.responses.get.*
-import com.example.responses.requireValidJwtToken
+import com.example.features.LogPriority
+import com.example.features.currentConfig
+import com.example.data.local.usersRepository
+import com.example.features.encryption.JwtTokenImpl
+import com.example.features.log
+import com.example.routing.responses.get.*
+import com.example.routing.responses.requireValidJwtToken
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.request.*

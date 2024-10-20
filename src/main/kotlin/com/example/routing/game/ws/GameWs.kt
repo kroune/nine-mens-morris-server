@@ -19,17 +19,17 @@
  */
 package com.example.routing.game.ws
 
-import com.example.LogPriority
-import com.example.data.gamesRepository
-import com.example.data.usersRepository
-import com.example.game.GameDataFactory
-import com.example.game.SearchingForGame
-import com.example.json
-import com.example.log
-import com.example.responses.requireGameId
-import com.example.responses.requireValidJwtToken
-import com.example.responses.ws.jwtTokenIsNotValidForThisGame
-import com.example.responses.ws.someThingsWentWrong
+import com.example.features.LogPriority
+import com.example.data.local.gamesRepository
+import com.example.data.local.usersRepository
+import com.example.features.game.GameDataFactory
+import com.example.features.game.SearchingForGame
+import com.example.common.json
+import com.example.features.log
+import com.example.routing.responses.requireGameId
+import com.example.routing.responses.requireValidJwtToken
+import com.example.routing.responses.ws.jwtTokenIsNotValidForThisGame
+import com.example.routing.responses.ws.someThingsWentWrong
 import com.kroune.nineMensMorrisLib.move.Movement
 import com.kroune.nineMensMorrisShared.GameEndReason
 import io.ktor.server.routing.*
