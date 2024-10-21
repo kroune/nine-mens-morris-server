@@ -58,6 +58,12 @@ dependencies {
     implementation("com.github.kroune:9-men-s-morris-shared:7c7979d18d")
     implementation("com.github.kroune:9-men-s-morris-lib:v1.0.0")
 
+//    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$opentelemetry_version");
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.43.0");
+//    implementation("io.opentelemetry.semconv:opentelemetry-semconv:$opentelemetry_semconv_version")
+    implementation("io.opentelemetry:opentelemetry-sdk:1.43.0")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-2.0:2.9.0-alpha")
+
     // testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testImplementation("org.testcontainers:postgresql:1.20.1")

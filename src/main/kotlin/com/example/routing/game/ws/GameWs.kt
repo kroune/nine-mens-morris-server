@@ -19,13 +19,12 @@
  */
 package com.example.routing.game.ws
 
-import com.example.features.LogPriority
 import com.example.data.local.gamesRepository
 import com.example.data.local.usersRepository
 import com.example.features.game.GameDataFactory
 import com.example.features.game.SearchingForGame
 import com.example.common.json
-import com.example.features.log
+import com.example.features.logging.log
 import com.example.routing.responses.requireGameId
 import com.example.routing.responses.requireValidJwtToken
 import com.example.routing.responses.ws.jwtTokenIsNotValidForThisGame
@@ -35,6 +34,7 @@ import com.kroune.nineMensMorrisShared.GameEndReason
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import io.opentelemetry.api.logs.Severity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -56,14 +56,14 @@ fun Route.gameRoutingWS() {
         SearchingForGame.addUser(userId, channel)
         CoroutineScope(Dispatchers.IO).launch {
             this@webSocket.closeReason.join()
-            log("user disconnected from searching for game", LogPriority.Debug)
+            log("user disconnected from searching for game", Severity.DEBUG)
             SearchingForGame.removeUser(userId)
         }
         channel.consumeEach { (isWaitingTime, it) ->
             val jsonText = Json.encodeToString<Pair<Boolean, Long>>(Pair(isWaitingTime, it))
             send(jsonText)
             if (!isWaitingTime) {
-                log("sending game id to the user gameId - $it", LogPriority.Debug)
+                log("sending game id to the user gameId - $it", Severity.DEBUG)
                 channel.close()
                 close(CloseReason(CloseReason.Codes.NORMAL, it.toString()))
             }
@@ -95,12 +95,12 @@ fun Route.gameRoutingWS() {
             }
             val enemyId = game.enemyId(userId)
             send(isGreen.toString())
-            log("sending isGreen info - [$isGreen]", LogPriority.Debug)
+            log("sending isGreen info - [$isGreen]", Severity.DEBUG)
             // we send position to the new connection
             game.sendPosition(userId, opposite = false)
-            log("sending position info", LogPriority.Debug)
+            log("sending position info", Severity.DEBUG)
             send(enemyId.toString())
-            log("sending enemy id info - [$enemyId]", LogPriority.Debug)
+            log("sending enemy id info - [$enemyId]", Severity.DEBUG)
             incoming.consumeEach { frame ->
                 if (frame !is Frame.Text) return@consumeEach
                 val move = try {
@@ -108,7 +108,7 @@ fun Route.gameRoutingWS() {
                 } catch (e: Exception) {
                     log(
                         "error decoding client movement: frame - [${frame.frameType}] stack trace - [${e.stackTraceToString()}]",
-                        LogPriority.Debug
+                        Severity.DEBUG
                     )
                     someThingsWentWrong("error decoding client movement")
                     return@webSocket
@@ -117,7 +117,7 @@ fun Route.gameRoutingWS() {
                 if (move.startIndex == null && move.endIndex == null) {
                     log(
                         "user gave up",
-                        LogPriority.Debug
+                        Severity.DEBUG
                     )
                     game.handleGameEnd(GameEndReason.UserGaveUp(isFirstUser))
                     return@webSocket
@@ -125,7 +125,7 @@ fun Route.gameRoutingWS() {
                 if (!game.isMovePossible(move, userId)) {
                     log(
                         "received an illegal move - [$move]",
-                        LogPriority.Debug
+                        Severity.DEBUG
                     )
                     someThingsWentWrong("received an illegal move")
                     return@webSocket
@@ -138,7 +138,7 @@ fun Route.gameRoutingWS() {
         } catch (e: IOException) {
             log(
                 "uncaught exception ${e.stackTraceToString()}",
-                LogPriority.Debug
+                Severity.DEBUG
             )
         }
     }

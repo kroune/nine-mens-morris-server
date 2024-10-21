@@ -19,10 +19,10 @@
  */
 package com.example.features.game
 
-import com.example.features.LogPriority
 import com.example.data.local.botsRepository
 import com.example.data.local.usersRepository
-import com.example.features.log
+import com.example.features.logging.log
+import io.opentelemetry.api.logs.Severity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -43,7 +43,7 @@ object BotProvider {
             val botRating = usersRepository.getRatingById(id)!!
             val queueToAddBot = (botRating / bucketSize)
             availableBotsBuckets[queueToAddBot].add(id)
-            log("bot got free $id [id]", LogPriority.Debug)
+            log("bot got free $id [id]", Severity.DEBUG)
         }
     }
 

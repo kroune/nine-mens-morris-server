@@ -21,10 +21,11 @@ package com.example.features.encryption
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.example.features.LogPriority
+import com.auth0.jwt.exceptions.JWTDecodeException
 import com.example.features.currentConfig
 import com.example.data.local.usersRepository
-import com.example.features.log
+import com.example.features.logging.log
+import io.opentelemetry.api.logs.Severity
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
 import kotlinx.serialization.Serializable
@@ -51,8 +52,8 @@ class JwtTokenImpl(val token: String) {
             val token = JWT.decode(token)
             token.claims["login"]!!.asString()
         }.onFailure {
-            log("error decoding login", LogPriority.Info)
-            log(it.stackTraceToString(), LogPriority.Debug)
+            log("error decoding login", Severity.WARN)
+            log(it.stackTraceToString(), Severity.WARN)
         }
     }
 
@@ -68,8 +69,8 @@ class JwtTokenImpl(val token: String) {
             val token = JWT.decode(token)
             token.claims["password"]!!.asString()
         }.onFailure {
-            log("error decoding login", LogPriority.Info)
-            log(it.stackTraceToString(), LogPriority.Debug)
+            log("error decoding login", Severity.WARN)
+            log(it.stackTraceToString(), Severity.WARN)
         }
     }
 

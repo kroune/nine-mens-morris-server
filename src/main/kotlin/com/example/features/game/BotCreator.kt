@@ -19,13 +19,13 @@
  */
 package com.example.features.game
 
-import com.example.features.LogPriority
 import com.example.data.remote.randomUserRepository
 import com.example.common.getRandomString
 import com.example.data.local.botsRepository
 import com.example.data.local.users.UserData
 import com.example.data.local.usersRepository
-import com.example.features.log
+import com.example.features.logging.log
+import io.opentelemetry.api.logs.Severity
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -61,7 +61,7 @@ object BotCreator {
         usersRepository.create(data)
         val id = usersRepository.getIdByLogin(login)!!
         botsRepository.add(id)
-        log("created bot with $login $password", LogPriority.Debug)
+        log("created bot with $login $password", Severity.DEBUG)
         return id
     }
 }

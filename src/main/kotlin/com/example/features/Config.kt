@@ -43,9 +43,7 @@ data class Config(
     val webSocketConfig: WebSocketConfig,
     val encryptionToken: String,
     val fileConfig: FileConfig,
-    val currentLogPriority: LogPriority,
     val gameConfig: GameConfig,
-    val isInKuber: Boolean = true
 )
 
 @Serializable
@@ -80,6 +78,5 @@ class RateLimitConfig(
 
 @Serializable
 class FileConfig(
-    val gameLogsPath: String,
     val profilePictureMaxSize: Int
 )

@@ -10,13 +10,10 @@ webSocketConfig:
 encryptionToken: "AIkjDRWCktbcdFJoFzmeoYyfcxtYoMvNcfDmyLpPApqkNdZgzAyMxFMzKsxFKvmQ"
 fileConfig:
   profilePictureMaxSize: 200
-  gameLogsPath: "logs/game"
-currentLogPriority: !<com.example.features.LogPriority.Debug> {}
 gameConfig:
   timeForMove: 300000000
-  ratingDifference: 200
+  maxRatingDifference: 200
   bucketSize: 100
   delayBeforeRecheckingBucket: 3000
   minTimeBeforePairingWithBot: 20000
   maxTimeBeforePairingWithBot: 30000
-isInKuber: false

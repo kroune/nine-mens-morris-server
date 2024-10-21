@@ -3,6 +3,7 @@ package com.example.userInfo.get
 import com.example.TestDatabase
 import com.example.applyPlugins
 import com.example.data.local.usersRepository
+import com.example.features.encryption.JwtTokenImpl
 import com.example.routing.userInfo.get.userInfoRoutingGET
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
@@ -27,6 +28,7 @@ class UserInfoGetTest {
             val id = usersRepository.getIdByLogin(user.login)
             val request = client.get("/get-login-by-id") {
                 this.parameter("id", id)
+                this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
             }
             assert(request.status == HttpStatusCode.OK)
             assert(Json.decodeFromString<String>(request.bodyAsText()) == user.login)
@@ -47,6 +49,7 @@ class UserInfoGetTest {
             val id = usersRepository.getIdByLogin(user.login)!!
             val request = client.get("/get-login-by-id") {
                 this.parameter("id", id + 100L)
+                this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
             }
             assert(request.status == HttpStatusCode.Forbidden)
         }
@@ -64,7 +67,9 @@ class UserInfoGetTest {
             TestDatabase.connect()
             val user = TestDatabase.createDummyUser()
             val id = usersRepository.getIdByLogin(user.login)!!
-            val request = client.get("/get-login-by-id")
+            val request = client.get("/get-login-by-id") {
+                this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+            }
             assert(request.status == HttpStatusCode.BadRequest)
         }
     }
@@ -84,6 +89,7 @@ class UserInfoGetTest {
             val id = usersRepository.getIdByLogin(user.login)
             val request = client.get("/get-creation-date-by-id") {
                 this.parameter("id", id)
+                this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
             }
             assert(request.status == HttpStatusCode.OK)
             assert(Json.decodeFromString<Triple<Int, Int, Int>>(request.bodyAsText()) == user.date.let {
@@ -106,6 +112,7 @@ class UserInfoGetTest {
             val id = usersRepository.getIdByLogin(user.login)!!
             val request = client.get("/get-creation-date-by-id") {
                 this.parameter("id", id + 100L)
+                this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
             }
             assert(request.status == HttpStatusCode.Forbidden)
         }

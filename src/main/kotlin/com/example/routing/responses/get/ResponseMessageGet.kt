@@ -19,52 +19,62 @@
  */
 package com.example.routing.responses.get
 
-import com.example.features.LogPriority
 import com.example.features.currentConfig
-import com.example.features.log
+import com.example.features.logging.log
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
+import io.opentelemetry.api.logs.Severity
 
 suspend fun PipelineContext<Unit, ApplicationCall>.noJwtToken() {
     call.respond(HttpStatusCode.BadRequest, "no [jwtToken] parameter found")
-    log("no [jwtToken] parameter found", LogPriority.Debug)
+    log("no [jwtToken] parameter found", Severity.WARN)
 }
 
 suspend inline fun PipelineContext<Unit, ApplicationCall>.jwtTokenIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "[jwtToken] parameter is not valid")
-    log("[jwtToken] parameter is not valid", LogPriority.Debug)
+    log("[jwtToken] parameter is not valid", Severity.WARN)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.noLogin() {
     call.respond(HttpStatusCode.BadRequest, "no [login] parameter found")
-    log("no [login] parameter found", LogPriority.Debug)
+    log("no [login] parameter found", Severity.WARN)
+}
+
+suspend fun PipelineContext<Unit, ApplicationCall>.invalidLogin() {
+    call.respond(HttpStatusCode.BadRequest, "invalid [login] parameter found")
+    log("invalid [login] parameter found", Severity.WARN)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.noValidLogin() {
     call.respond(HttpStatusCode.BadRequest, "no [login] parameter found")
-    log("no [login] parameter found", LogPriority.Debug)
+    log("no [login] parameter found", Severity.WARN)
+}
+
+suspend fun PipelineContext<Unit, ApplicationCall>.invalidPassword() {
+    call.respond(HttpStatusCode.BadRequest, "invalid [password] parameter found")
+    log("invalid [password] parameter found", Severity.WARN)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.noPassword() {
     call.respond(HttpStatusCode.BadRequest, "no [password] parameter found")
-    log("no [password] parameter found", LogPriority.Debug)
+    log("no [password] parameter found", Severity.WARN)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.noUserId() {
     call.respond(HttpStatusCode.BadRequest, "no [id] parameter found")
-    log("no [id] parameter found", LogPriority.Debug)
+    log("no [id] parameter found", Severity.WARN)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.userIdIsNotLong() {
     call.respond(HttpStatusCode.Forbidden, "[id] parameter is not a long")
-    log("[id] parameter is not a long", LogPriority.Debug)
+    log("[id] parameter is not a long", Severity.WARN)
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.userIdIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "[id] parameter is not valid")
-    log("[id] parameter is not valid", LogPriority.Debug)
+    log("[id] parameter is not valid", Severity.WARN)
 }
 
 suspend inline fun PipelineContext<Unit, ApplicationCall>.imageIsTooLarge() {
@@ -72,15 +82,15 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.imageIsTooLarge() {
         HttpStatusCode.Forbidden,
         "provided image (byte array) is too large, it can be ${currentConfig.fileConfig.profilePictureMaxSize}x${currentConfig.fileConfig.profilePictureMaxSize} at max"
     )
-    log("provided image (byte array) is too large, it can be ${currentConfig.fileConfig.profilePictureMaxSize}x${currentConfig.fileConfig.profilePictureMaxSize} at max", LogPriority.Debug)
+    log("provided image (byte array) is too large, it can be ${currentConfig.fileConfig.profilePictureMaxSize}x${currentConfig.fileConfig.profilePictureMaxSize} at max", Severity.WARN)
 }
 
 suspend inline fun PipelineContext<Unit, ApplicationCall>.imageIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "provided image (byte array) is not valid")
-    log("provided image (byte array) is not valid", LogPriority.Debug)
+    log("provided image (byte array) is not valid", Severity.WARN)
 }
 
 suspend inline fun PipelineContext<Unit, ApplicationCall>.internalServerError() {
     call.respond(HttpStatusCode.InternalServerError, "Internal server error")
-    log("Internal server error", LogPriority.Debug)
+    log("Internal server error", Severity.ERROR)
 }

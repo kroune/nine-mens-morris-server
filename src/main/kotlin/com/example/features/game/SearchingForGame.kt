@@ -23,9 +23,9 @@ import com.example.data.local.games.GameData
 import com.example.data.local.gamesRepository
 import com.example.data.local.queueRepository
 import com.example.data.local.usersRepository
-import com.example.features.LogPriority
 import com.example.features.currentConfig
-import com.example.features.log
+import com.example.features.logging.log
+import io.opentelemetry.api.logs.Severity
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlin.random.Random
@@ -62,7 +62,7 @@ object SearchingForGame {
                 channel.send(Pair(false, gameId))
                 return@launch
             }
-            log("Added user to the queue $userId", LogPriority.Debug)
+            log("Added user to the queue $userId", Severity.DEBUG)
             val queueToAddUser = (rating / bucketSize)
             val bucketsToSpreadBetween = currentConfig.gameConfig.maxRatingDifference / bucketSize
             val bucketsRange = (queueToAddUser - bucketsToSpreadBetween / 2)..(queueToAddUser + bucketsToSpreadBetween / 2)
@@ -88,15 +88,17 @@ object SearchingForGame {
         usersSearchingForGameJobsMap[userId] = job
     }
 
+    private val searchingForGameScope = CoroutineScope(Dispatchers.IO)
+
     init {
         for (bucketId in 0..currentConfig.gameConfig.maxBucketNumber) {
-            CoroutineScope(Dispatchers.IO).launch {
+            searchingForGameScope.launch {
                 while (true) {
                     val availablePlayers = ((bucketId - 5)..(bucketId + 5)).flatMap {
                         queueRepository.getUsers(it)
                     }.shuffled()
                     if (availablePlayers.isNotEmpty()) {
-                        log("bucket.size - ${availablePlayers.size}", LogPriority.Debug)
+                        log("bucket.size - ${availablePlayers.size}", Severity.DEBUG)
                     }
                     if (availablePlayers.size == 1) {
                         // TODO: add average game search time updater

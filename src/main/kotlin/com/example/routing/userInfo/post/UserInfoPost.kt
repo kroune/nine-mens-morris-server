@@ -19,11 +19,10 @@
  */
 package com.example.routing.userInfo.post
 
-import com.example.features.LogPriority
 import com.example.features.currentConfig
 import com.example.data.local.usersRepository
 import com.example.features.encryption.JwtTokenImpl
-import com.example.features.log
+import com.example.features.logging.log
 import com.example.routing.responses.get.*
 import com.example.routing.responses.requireValidJwtToken
 import io.ktor.http.HttpStatusCode
@@ -31,6 +30,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
+import io.opentelemetry.api.logs.Severity
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -60,12 +60,12 @@ fun Route.userInfoRoutingPOST() {
 
         val jwtToken = call.parameters["jwtToken"]!!
         val jwtTokenObject = JwtTokenImpl(jwtToken)
-        log("getting from jwt token object ${jwtTokenObject.token}", LogPriority.Debug)
+        log("getting from jwt token object ${jwtTokenObject.token}", Severity.DEBUG)
         val login = jwtTokenObject.getLogin().getOrElse {
             internalServerError()
             return@post
         }
-        log("receiving picture byte array", LogPriority.Debug)
+        log("receiving picture byte array", Severity.DEBUG)
         val byteArray = try {
             call.receive<ByteArray>()
         } catch (_: ContentTransformationException) {
@@ -73,7 +73,7 @@ fun Route.userInfoRoutingPOST() {
             imageIsNotValid()
             return@post
         }
-        log("starting image decoding", LogPriority.Debug)
+        log("starting image decoding", Severity.DEBUG)
         val decodedVariant = try {
             val outputStream = ByteArrayOutputStream()
 

@@ -19,10 +19,9 @@
  */
 package com.example.routing.userInfo.get
 
-import com.example.features.LogPriority
 import com.example.data.local.usersRepository
 import com.example.common.json
-import com.example.features.log
+import com.example.features.logging.log
 import com.example.routing.responses.get.*
 import com.example.routing.responses.requireValidJwtToken
 import com.example.routing.responses.requireValidLogin
@@ -30,6 +29,7 @@ import com.example.routing.responses.requireValidUserId
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.opentelemetry.api.logs.Severity
 import kotlinx.serialization.encodeToString
 
 fun Route.userInfoRoutingGET() {
@@ -55,7 +55,7 @@ fun Route.userInfoRoutingGET() {
         }
         val id = call.parameters["id"]!!.toLong()
         val text = usersRepository.getLoginById(id) ?: run {
-            log("id was marked as valid, but getting login from db failed", LogPriority.Errors)
+            log("id was marked as valid, but getting login from db failed", Severity.FATAL)
             internalServerError()
             return@get
         }
@@ -85,7 +85,7 @@ fun Route.userInfoRoutingGET() {
 
         val id = call.parameters["id"]!!.toLong()
         val text = (usersRepository.getCreationDateById(id) ?: run {
-            log("id was marked as valid, but getting creation date from db failed", LogPriority.Errors)
+            log("id was marked as valid, but getting creation date from db failed", Severity.FATAL)
             internalServerError()
             return@get
         }).let {
@@ -117,7 +117,7 @@ fun Route.userInfoRoutingGET() {
 
         val id = call.parameters["id"]!!.toLong()
         val text = usersRepository.getRatingById(id) ?: run {
-            log("id was marked as valid, but getting rating from db failed", LogPriority.Errors)
+            log("id was marked as valid, but getting rating from db failed", Severity.FATAL)
             internalServerError()
             return@get
         }
@@ -145,7 +145,7 @@ fun Route.userInfoRoutingGET() {
 
         val login = call.parameters["login"]!!.toString()
         val id: Long = usersRepository.getIdByLogin(login) ?: run {
-            log("login was marked as valid, but getting id from db failed", LogPriority.Errors)
+            log("login was marked as valid, but getting id from db failed", Severity.FATAL)
             internalServerError()
             return@get
         }
@@ -173,7 +173,7 @@ fun Route.userInfoRoutingGET() {
 
         val id = call.parameters["id"]!!.toLong()
         val defaultPicture = this.javaClass.getResource("/default_profile_image.png")?.readBytes() ?: run {
-            log("default profile picture is missing", LogPriority.Errors)
+            log("default profile picture is missing", Severity.FATAL)
             internalServerError()
             return@get
         }
@@ -199,7 +199,7 @@ fun Route.userInfoRoutingGET() {
 
         val jwtToken = call.parameters["jwtToken"]!!
         val id: Long = usersRepository.getIdByJwtToken(jwtToken) ?: run {
-            log("jwt token was marked as valid, but getting id from db failed", LogPriority.Errors)
+            log("jwt token was marked as valid, but getting id from db failed", Severity.FATAL)
             internalServerError()
             return@get
         }

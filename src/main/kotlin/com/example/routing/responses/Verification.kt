@@ -19,16 +19,16 @@
  */
 package com.example.routing.responses
 
-import com.example.features.LogPriority
 import com.example.data.local.gamesRepository
 import com.example.data.local.usersRepository
 import com.example.features.encryption.JwtTokenImpl
-import com.example.features.log
+import com.example.features.logging.log
 import com.example.routing.responses.get.*
 import com.example.routing.responses.ws.*
 import io.ktor.server.application.*
 import io.ktor.server.websocket.*
 import io.ktor.util.pipeline.*
+import io.opentelemetry.api.logs.Severity
 
 /**
  * possible responses:
@@ -42,13 +42,15 @@ import io.ktor.util.pipeline.*
 suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidJwtToken(lambda: () -> Unit) {
     val jwtToken = call.parameters["jwtToken"]
     if (jwtToken == null) {
-        log("jwt token is null")
+        log("jwt token is null", Severity.WARN)
         noJwtToken()
         lambda()
         return
     }
+    // no need to check for sql injection, cause Exposed handles it for us
+    // https://stackoverflow.com/questions/50180516/kotlin-exposed-how-to-create-prepared-statement-or-avoid-sql-injection
     if (!JwtTokenImpl(jwtToken).verify()) {
-        log("jwt token is not valid")
+        log("jwt token is not valid", Severity.WARN)
         jwtTokenIsNotValid()
         lambda()
         return
@@ -64,6 +66,11 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.requireLogin(lambda: (
     val login = call.parameters["login"]
     if (login == null) {
         noLogin()
+        lambda()
+        return
+    }
+    if (login.length !in 6..30 && login.any { !it.isLetterOrDigit() } || login.any { it.isWhitespace() }) {
+        invalidLogin()
         lambda()
         return
     }
@@ -101,6 +108,11 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.requirePassword(lambda
     val password = call.parameters["password"]
     if (password == null) {
         noPassword()
+        lambda()
+        return
+    }
+    if (password.length !in 6..30 && password.any { !it.isLetterOrDigit() } || password.any { it.isWhitespace() }) {
+        invalidPassword()
         lambda()
         return
     }
@@ -173,20 +185,20 @@ suspend inline fun DefaultWebSocketServerSession.requireValidJwtToken(lambda: ()
 suspend inline fun DefaultWebSocketServerSession.requireGameId(lambda: () -> Unit) {
     val gameId = call.parameters["gameId"]
     if (gameId == null) {
-        log("no game id parameter found $gameId", LogPriority.Debug)
+        log("no game id parameter found $gameId", Severity.WARN)
         noGameId()
         lambda()
         return
     }
     if (gameId.toLongOrNull() == null) {
-        log("game id parameter is not a long $gameId", LogPriority.Debug)
+        log("game id parameter is not a long $gameId", Severity.WARN)
         gameIdIsNotLong()
         lambda()
         return
     }
     val gameExists = gamesRepository.exists(gameId.toLong())
     if (!gameExists) {
-        log("game id parameter is not valid $gameId", LogPriority.Debug)
+        log("game id parameter is not valid $gameId", Severity.WARN)
         gameIdIsNotValid()
         lambda()
         return
