@@ -207,10 +207,6 @@ fun Route.userInfoRoutingGET() {
         call.respondText(jsonText)
     }
     get("leaderboard") {
-        requireValidJwtToken {
-            return@get
-        }
-
         val leaderboard = usersRepository.getLeaderboard(10)
         val jsonText = json.encodeToString<List<Long>>(leaderboard)
         call.respondText(jsonText)
