@@ -19,17 +19,22 @@
  */
 package com.example.data.local.queue.dao
 
-import com.example.features.currentConfig
 import com.example.data.local.queue.QueueTable
-import com.example.data.local.usersRepository
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import kotlin.math.min
+import org.jetbrains.exposed.sql.transactions.transaction
 
 class QueueRepositoryImpl : QueueRepositoryI {
+    init {
+        transaction {
+            SchemaUtils.create(QueueTable)
+        }
+    }
+
     override suspend fun addUser(userId: Long, bucketRange: IntRange) {
         newSuspendedTransaction {
             bucketRange.forEach { bucket ->
