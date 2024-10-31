@@ -108,14 +108,16 @@ fun Route.userInfoRoutingGET() {
      * [Int] - rating
      */
     get("get-rating-by-id") {
-        requireValidJwtToken {
-            return@get
-        }
         requireValidUserId {
             return@get
         }
-
         val id = call.parameters["id"]!!.toLong()
+        if (!usersRepository.getLeaderboard(100).contains(id)) {
+            requireValidJwtToken {
+                return@get
+            }
+        }
+
         val text = usersRepository.getRatingById(id) ?: run {
             log("id was marked as valid, but getting rating from db failed", Severity.FATAL)
             internalServerError()
