@@ -47,13 +47,17 @@ fun Route.userInfoRoutingGET() {
      * [String] - login
      */
     get("get-login-by-id") {
-        requireValidJwtToken {
-            return@get
-        }
         requireValidUserId {
             return@get
         }
         val id = call.parameters["id"]!!.toLong()
+        if (usersRepository.getLeaderboard(100).contains(id)) {
+            log("skipping jwt token requirement, because $id is in the leaderboard", Severity.TRACE)
+        } else {
+            requireValidJwtToken {
+                return@get
+            }
+        }
         val text = usersRepository.getLoginById(id) ?: run {
             log("id was marked as valid, but getting login from db failed", Severity.FATAL)
             internalServerError()
@@ -76,14 +80,18 @@ fun Route.userInfoRoutingGET() {
      * [Int] - rating
      */
     get("get-creation-date-by-id") {
-        requireValidJwtToken {
-            return@get
-        }
         requireValidUserId {
             return@get
         }
-
         val id = call.parameters["id"]!!.toLong()
+        if (usersRepository.getLeaderboard(100).contains(id)) {
+            log("skipping jwt token requirement, because $id is in the leaderboard", Severity.TRACE)
+        } else {
+            requireValidJwtToken {
+                return@get
+            }
+        }
+
         val text = (usersRepository.getCreationDateById(id) ?: run {
             log("id was marked as valid, but getting creation date from db failed", Severity.FATAL)
             internalServerError()
@@ -112,7 +120,9 @@ fun Route.userInfoRoutingGET() {
             return@get
         }
         val id = call.parameters["id"]!!.toLong()
-        if (!usersRepository.getLeaderboard(100).contains(id)) {
+        if (usersRepository.getLeaderboard(100).contains(id)) {
+            log("skipping jwt token requirement, because $id is in the leaderboard", Severity.TRACE)
+        } else {
             requireValidJwtToken {
                 return@get
             }
@@ -166,14 +176,18 @@ fun Route.userInfoRoutingGET() {
      * [ByteArray] - profile picture
      */
     get("get-picture-by-id") {
-        requireValidJwtToken {
-            return@get
-        }
         requireValidUserId {
             return@get
         }
-
         val id = call.parameters["id"]!!.toLong()
+        if (usersRepository.getLeaderboard(100).contains(id)) {
+            log("skipping jwt token requirement, because $id is in the leaderboard", Severity.TRACE)
+        } else {
+            requireValidJwtToken {
+                return@get
+            }
+        }
+
         val defaultPicture = this.javaClass.getResource("/default_profile_image.png")?.readBytes() ?: run {
             log("default profile picture is missing", Severity.FATAL)
             internalServerError()
