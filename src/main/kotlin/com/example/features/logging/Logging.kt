@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
 
+val identifier = UUID.randomUUID().toString()
 val openTelemetryLogger: SdkLoggerProvider = SdkLoggerProvider.builder()
     .addLogRecordProcessor(
         BatchLogRecordProcessor.builder(
@@ -44,16 +45,15 @@ val openTelemetryLogger: SdkLoggerProvider = SdkLoggerProvider.builder()
     .setResource(
         Resource.builder()
             .put(ServiceAttributes.SERVICE_NAME, "nine-mens-morris-server")
+            .put(ServiceAttributes.SERVICE_VERSION, identifier)
             .build()
     )
     .build()
 val loggerInstance: Logger = openTelemetryLogger.loggerBuilder("nine-mens-morris-server").build()
-val identifier = UUID.randomUUID().toString()
 
 fun log(text: String, severity: Severity) {
     loggerInstance.logRecordBuilder()
         .setBody(text)
-        .setAttribute(AttributeKey.stringKey("identifier"), identifier)
         .setTimestamp(Instant.now())
         .setSeverity(severity)
         .emit()

@@ -1,12 +1,7 @@
-val ktor_version: String by project
-val kotlin_version: String by project
-val logback_version: String by project
-val exposedVersion: String by project
-
 plugins {
-    kotlin("jvm") version "2.0.20"
-    id("io.ktor.plugin") version "2.3.10"
-    kotlin("plugin.serialization") version "2.0.20"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ktor)
+    alias(libs.plugins.kotlin.serialization)
     application
 }
 
@@ -22,45 +17,44 @@ application {
 
 dependencies {
     // ktor
-    implementation("io.ktor:ktor-server-cors:$ktor_version")
-    implementation("io.ktor:ktor-server-core-jvm")
-    implementation("io.ktor:ktor-server-content-negotiation-jvm")
-    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
-    implementation("io.ktor:ktor-server-netty-jvm")
-    implementation("io.ktor:ktor-server-websockets")
-    implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
-    implementation("ch.qos.logback:logback-classic:$logback_version")
-    implementation("io.ktor:ktor-server-rate-limit:$ktor_version")
-    implementation("io.ktor:ktor-client-okhttp:$ktor_version")
-    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
+    implementation(libs.ktor.server.ohhttp)
+    implementation(libs.ktor.server.core.jvm)
+    implementation(libs.ktor.server.content.negotiation.jvm)
+    implementation(libs.ktor.serialization.kotlinx.json.jvm)
+    implementation(libs.ktor.server.netty.jvm)
+    implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.server.auth.jwt)
+    implementation(libs.ktor.server.rate.limit)
+    implementation(libs.ktor.client.okhttp)
 
     // other libs
-    implementation("ch.qos.logback:logback-classic:$logback_version")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    implementation("at.favre.lib:bcrypt:0.10.2")
+    implementation(libs.logback.classic)
+    testImplementation(libs.kotlin.test.junit)
+    implementation(libs.bcrypt)
 
     // serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json")
-    implementation("com.charleskorn.kaml:kaml:0.60.0")
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kaml)
 
     // db
-    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
-    implementation("org.postgresql:postgresql:42.7.2")
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.kotlin.datetime)
+    implementation(libs.exposed.json)
+    implementation(libs.postgresql)
 
     // my own dependencies
-    implementation("com.github.kroune:9-men-s-morris-shared:7c7979d18d")
-    implementation("com.github.kroune:9-men-s-morris-lib:v1.0.0")
+    implementation(libs.nine.men.s.morris.shared)
+    implementation(libs.nine.men.s.morris.lib)
 
-    implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.43.0");
-    implementation("io.opentelemetry:opentelemetry-sdk:1.43.0")
-    implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-2.0:2.9.0-alpha")
+    // otlp
+    implementation(libs.opentelemetry.sdk)
+    implementation(libs.opentelemetry.exporter.otlp)
+    implementation(libs.opentelemetry.ktor)
 
     // testing
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
-    testImplementation("org.testcontainers:postgresql:1.20.1")
-    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
-    testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.test.container.postgresql)
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.ktor.server.test)
 }

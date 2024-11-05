@@ -25,6 +25,7 @@ import com.example.data.local.gamesRepository
 import com.example.data.local.queueRepository
 import com.example.data.local.usersRepository
 import com.example.features.*
+import com.example.features.logging.identifier
 import com.example.features.logging.openTelemetryEndpoint
 import com.example.features.logging.log
 import com.example.features.logging.openTelemetryLogger
@@ -45,6 +46,7 @@ import io.ktor.server.websocket.*
 import io.opentelemetry.api.logs.Severity
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.trace.StatusCode
+import io.opentelemetry.context.Context
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
 import io.opentelemetry.instrumentation.ktor.v2_0.server.KtorServerTracing
 import io.opentelemetry.sdk.OpenTelemetrySdk
@@ -66,16 +68,16 @@ fun main() {
     val serverConfig = currentConfig.serverConfig
     embeddedServer(
         Netty,
-        port = serverConfig.port,
         host = serverConfig.host,
+        port = serverConfig.port,
         configure = {
             requestReadTimeoutSeconds = 15
             responseWriteTimeoutSeconds = 15
         },
         module = {
             applyPlugins()
-            module()
             routing()
+            module()
         }
     ).start(wait = true)
 }
@@ -123,6 +125,7 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
                 .setResource(
                     Resource.builder()
                         .put(ServiceAttributes.SERVICE_NAME, "nine-mens-morris-server")
+                        .put(ServiceAttributes.SERVICE_VERSION, identifier)
                         .build()
                 )
                 .build()
