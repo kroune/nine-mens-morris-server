@@ -19,6 +19,7 @@
  */
 package com.example.features.logging
 
+import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.api.logs.Logger
 import io.opentelemetry.api.logs.Severity
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter
@@ -47,10 +48,12 @@ val openTelemetryLogger: SdkLoggerProvider = SdkLoggerProvider.builder()
     )
     .build()
 val loggerInstance: Logger = openTelemetryLogger.loggerBuilder("nine-mens-morris-server").build()
+val identifier = UUID.randomUUID().toString()
 
 fun log(text: String, severity: Severity) {
     loggerInstance.logRecordBuilder()
         .setBody(text)
+        .setAttribute(AttributeKey.stringKey("identifier"), identifier)
         .setTimestamp(Instant.now())
         .setSeverity(severity)
         .emit()

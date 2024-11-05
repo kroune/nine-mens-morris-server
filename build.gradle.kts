@@ -4,9 +4,9 @@ val logback_version: String by project
 val exposedVersion: String by project
 
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.0.20"
     id("io.ktor.plugin") version "2.3.10"
-    kotlin("plugin.serialization") version "2.0.0"
+    kotlin("plugin.serialization") version "2.0.20"
     application
 }
 
@@ -45,22 +45,16 @@ dependencies {
 
     // db
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-money:$exposedVersion")
-    implementation("org.jetbrains.exposed:exposed-spring-boot-starter:$exposedVersion")
     implementation("org.postgresql:postgresql:42.7.2")
 
     // my own dependencies
     implementation("com.github.kroune:9-men-s-morris-shared:7c7979d18d")
     implementation("com.github.kroune:9-men-s-morris-lib:v1.0.0")
 
-//    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:$opentelemetry_version");
     implementation("io.opentelemetry:opentelemetry-exporter-otlp:1.43.0");
-//    implementation("io.opentelemetry.semconv:opentelemetry-semconv:$opentelemetry_semconv_version")
     implementation("io.opentelemetry:opentelemetry-sdk:1.43.0")
     implementation("io.opentelemetry.instrumentation:opentelemetry-ktor-2.0:2.9.0-alpha")
 
