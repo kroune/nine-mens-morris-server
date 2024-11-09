@@ -24,10 +24,11 @@ import com.example.data.local.botsRepository
 import com.example.data.local.gamesRepository
 import com.example.data.local.queueRepository
 import com.example.data.local.usersRepository
-import com.example.features.*
+import com.example.features.Config
+import com.example.features.currentConfig
 import com.example.features.logging.identifier
-import com.example.features.logging.openTelemetryEndpoint
 import com.example.features.logging.log
+import com.example.features.logging.openTelemetryEndpoint
 import com.example.features.logging.openTelemetryLogger
 import com.example.routing.auth.accountRouting
 import com.example.routing.game.gameRouting
@@ -46,10 +47,10 @@ import io.ktor.server.websocket.*
 import io.opentelemetry.api.logs.Severity
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.trace.StatusCode
-import io.opentelemetry.context.Context
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
 import io.opentelemetry.instrumentation.ktor.v2_0.server.KtorServerTracing
 import io.opentelemetry.sdk.OpenTelemetrySdk
+import io.opentelemetry.sdk.common.export.RetryPolicy
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
@@ -58,6 +59,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
 import java.time.Instant
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 fun main() {
@@ -118,8 +120,10 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
                         OtlpGrpcSpanExporter.builder()
                             .setEndpoint(openTelemetryEndpoint)
                             .setCompression("gzip")
+                            .setRetryPolicy(RetryPolicy.getDefault())
                             .build()
                     )
+                        .setExporterTimeout(3.seconds.toJavaDuration())
                         .build()
                 )
                 .setResource(

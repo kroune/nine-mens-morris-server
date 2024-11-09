@@ -19,8 +19,8 @@
  */
 package com.example.routing.userInfo.get
 
-import com.example.data.local.usersRepository
 import com.example.common.json
+import com.example.data.local.usersRepository
 import com.example.features.logging.log
 import com.example.routing.responses.get.*
 import com.example.routing.responses.requireValidJwtToken
@@ -32,6 +32,9 @@ import io.ktor.server.routing.*
 import io.opentelemetry.api.logs.Severity
 import kotlinx.serialization.encodeToString
 
+/**
+ * Tests - [UserInfoGetTest]
+ */
 fun Route.userInfoRoutingGET() {
     /**
      * possible responses:
@@ -51,12 +54,8 @@ fun Route.userInfoRoutingGET() {
             return@get
         }
         val id = call.parameters["id"]!!.toLong()
-        if (usersRepository.getLeaderboard(100).contains(id)) {
-            log("skipping jwt token requirement, because $id is in the leaderboard", Severity.TRACE)
-        } else {
-            requireValidJwtToken {
-                return@get
-            }
+        requireValidJwtToken {
+            return@get
         }
         val text = usersRepository.getLoginById(id) ?: run {
             log("id was marked as valid, but getting login from db failed", Severity.FATAL)
@@ -84,12 +83,9 @@ fun Route.userInfoRoutingGET() {
             return@get
         }
         val id = call.parameters["id"]!!.toLong()
-        if (usersRepository.getLeaderboard(100).contains(id)) {
-            log("skipping jwt token requirement, because $id is in the leaderboard", Severity.TRACE)
-        } else {
-            requireValidJwtToken {
-                return@get
-            }
+
+        requireValidJwtToken {
+            return@get
         }
 
         val text = (usersRepository.getCreationDateById(id) ?: run {
@@ -120,12 +116,9 @@ fun Route.userInfoRoutingGET() {
             return@get
         }
         val id = call.parameters["id"]!!.toLong()
-        if (usersRepository.getLeaderboard(100).contains(id)) {
-            log("skipping jwt token requirement, because $id is in the leaderboard", Severity.TRACE)
-        } else {
-            requireValidJwtToken {
-                return@get
-            }
+
+        requireValidJwtToken {
+            return@get
         }
 
         val text = usersRepository.getRatingById(id) ?: run {
@@ -180,12 +173,9 @@ fun Route.userInfoRoutingGET() {
             return@get
         }
         val id = call.parameters["id"]!!.toLong()
-        if (usersRepository.getLeaderboard(100).contains(id)) {
-            log("skipping jwt token requirement, because $id is in the leaderboard", Severity.TRACE)
-        } else {
-            requireValidJwtToken {
-                return@get
-            }
+
+        requireValidJwtToken {
+            return@get
         }
 
         val defaultPicture = this.javaClass.getResource("/default_profile_image.png")?.readBytes() ?: run {
