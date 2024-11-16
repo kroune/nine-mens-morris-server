@@ -35,6 +35,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import java.util.*
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
 
 object GameDataFactory {
     private val gamesCache = Collections.synchronizedMap(hashMapOf<Long, Game>())
@@ -99,12 +100,12 @@ class Game(
                 }
             }
             CoroutineScope(Dispatchers.Default).launch {
-                firstPlayer?.flush()
+                delay(5.seconds)
                 log("sessions closed for firstPlayer", Severity.DEBUG)
                 firstPlayer?.close()
             }
             CoroutineScope(Dispatchers.Default).launch {
-                secondPlayer?.flush()
+                delay(5.seconds)
                 log("sessions closed for secondPlayer", Severity.DEBUG)
                 secondPlayer?.close()
             }
