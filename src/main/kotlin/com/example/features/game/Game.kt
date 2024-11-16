@@ -19,23 +19,21 @@
  */
 package com.example.features.game
 
-import com.example.features.currentConfig
+import com.example.common.json
 import com.example.data.local.gamesRepository
 import com.example.data.local.usersRepository
-import com.example.common.json
+import com.example.features.currentConfig
+import com.example.features.logging.log
 import com.kroune.nineMensMorrisLib.GameState
 import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.move.Movement
 import com.kroune.nineMensMorrisShared.GameEndReason
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import io.opentelemetry.api.logs.Severity
+import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
-import java.util.Collections
+import java.util.*
 import kotlin.random.Random
 
 object GameDataFactory {
@@ -81,6 +79,7 @@ class Game(
     ) {
         val isFirstUserLost = reason.isFirstUser
         CoroutineScope(Dispatchers.Default).launch {
+            log("Game ended due to ${reason.javaClass.simpleName}, isFirstUserLost = ${reason.isFirstUser}", severity = Severity.INFO)
             val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
             val secondPlayerId = gamesRepository.getSecondUserIdByGameId(gameId)!!
             gamesRepository.delete(gameId)
@@ -107,6 +106,7 @@ class Game(
 
     suspend fun sendMove(userId: Long, movement: Movement, opposite: Boolean) {
         val move = json.encodeToString<Movement>(movement)
+        // TODO: make it wait for end of sending position
         sendDataTo(
             userId = userId, opposite = opposite, data = move
         )
