@@ -98,8 +98,16 @@ class Game(
                     BotProvider.addBotToTheFreeBotsQueue(userId)
                 }
             }
-            firstPlayer?.close()
-            secondPlayer?.close()
+            CoroutineScope(Dispatchers.Default).launch {
+                firstPlayer?.flush()
+                log("sessions closed for firstPlayer", Severity.DEBUG)
+                firstPlayer?.close()
+            }
+            CoroutineScope(Dispatchers.Default).launch {
+                secondPlayer?.flush()
+                log("sessions closed for secondPlayer", Severity.DEBUG)
+                secondPlayer?.close()
+            }
         }
     }
 
@@ -127,8 +135,10 @@ class Game(
             firstUserId -> {
                 val sendToFirstUser = !opposite
                 if (sendToFirstUser) {
+                    log("sent \"$data\" to firstPlayer", Severity.DEBUG)
                     firstPlayer?.send(data)
                 } else {
+                    log("sent \"$data\" to secondPlayer", Severity.DEBUG)
                     secondPlayer?.send(data)
                 }
             }
@@ -137,8 +147,10 @@ class Game(
                 val sendToSecondUser = !opposite
                 if (sendToSecondUser) {
                     secondPlayer?.send(data)
+                    log("sent \"$data\" to secondPlayer", Severity.DEBUG)
                 } else {
                     firstPlayer?.send(data)
+                    log("sent \"$data\" to firstPlayer", Severity.DEBUG)
                 }
             }
 
