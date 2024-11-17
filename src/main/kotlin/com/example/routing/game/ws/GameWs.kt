@@ -19,11 +19,11 @@
  */
 package com.example.routing.game.ws
 
+import com.example.common.json
 import com.example.data.local.gamesRepository
 import com.example.data.local.usersRepository
 import com.example.features.game.GameDataFactory
 import com.example.features.game.SearchingForGame
-import com.example.common.json
 import com.example.features.logging.log
 import com.example.routing.responses.requireGameId
 import com.example.routing.responses.requireValidJwtToken
@@ -35,11 +35,9 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import io.opentelemetry.api.logs.Severity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.IOException
@@ -54,19 +52,20 @@ fun Route.gameRoutingWS() {
         val userId = usersRepository.getIdByJwtToken(jwtToken)!!
         val channel = Channel<Pair<Boolean, Long>>()
         SearchingForGame.addUser(userId, channel)
-        CoroutineScope(Dispatchers.IO).launch {
-            this@webSocket.closeReason.join()
+        try {
+            while (true) {
+                val (isWaitingTime, it) = channel.receive()
+                val jsonText = Json.encodeToString<Pair<Boolean, Long>>(Pair(isWaitingTime, it))
+                send(jsonText)
+                if (!isWaitingTime) {
+                    log("sending game id to the user gameId - $it", Severity.DEBUG)
+                    channel.close()
+                    close(CloseReason(CloseReason.Codes.NORMAL, it.toString()))
+                }
+            }
+        } catch (e: ClosedSendChannelException) {
             log("user disconnected from searching for game", Severity.DEBUG)
             SearchingForGame.removeUser(userId)
-        }
-        channel.consumeEach { (isWaitingTime, it) ->
-            val jsonText = Json.encodeToString<Pair<Boolean, Long>>(Pair(isWaitingTime, it))
-            send(jsonText)
-            if (!isWaitingTime) {
-                log("sending game id to the user gameId - $it", Severity.DEBUG)
-                channel.close()
-                close(CloseReason(CloseReason.Codes.NORMAL, it.toString()))
-            }
         }
     }
     webSocket("/game") {
@@ -101,8 +100,9 @@ fun Route.gameRoutingWS() {
             log("sending position info", Severity.DEBUG)
             send(enemyId.toString())
             log("sending enemy id info - [$enemyId]", Severity.DEBUG)
-            incoming.consumeEach { frame ->
-                if (frame !is Frame.Text) return@consumeEach
+            while (true) {
+                val frame = this.incoming.receive()
+                if (frame !is Frame.Text) continue
                 val move = try {
                     json.decodeFromString<Movement>(frame.readText())
                 } catch (e: Exception) {
@@ -135,6 +135,10 @@ fun Route.gameRoutingWS() {
                 game.applyMove(move, isFirstUser)
                 // note: checking if the game has ended happens in [GameData.applyMove]
             }
+        } catch (_: ClosedReceiveChannelException) {
+            // this exception is thrown if websocket session was closed, and we tried to receive smth
+            log("channel was closed gameId = $gameId, accountId = $userId", Severity.INFO)
+            return@webSocket
         } catch (e: IOException) {
             log(
                 "uncaught exception ${e.stackTraceToString()}",
