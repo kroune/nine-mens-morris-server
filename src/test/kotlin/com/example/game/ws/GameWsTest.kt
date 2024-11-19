@@ -25,7 +25,7 @@ class GameWsTest {
                 val client2 = createClient {
                     install(WebSockets) {
                         contentConverter = KotlinxWebsocketSerializationConverter(Json)
-                        pingInterval = 3000L
+                        pingInterval = 3.seconds
                     }
                 }
                 application {

@@ -131,7 +131,7 @@ object SearchingForGame {
                     }
                     val gameId = gamesRepository.getGameIdByUserId(firstUser)!!
                     listOf(firstUser, secondUser).forEach { userId ->
-                        userIdToSession[userId]?.send(Pair(false, gameId))
+                        userIdToSession[userId]?.trySend(Pair(false, gameId))
                         usersSearchingForGameJobsMap[userId]?.cancel()
                     }
                 }

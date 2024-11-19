@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.dokka)
     application
 }
 
@@ -15,6 +16,9 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
+tasks.dokkaHtml {
+    suppressObviousFunctions = true
+}
 dependencies {
     // ktor
     implementation(libs.ktor.server.ohhttp)

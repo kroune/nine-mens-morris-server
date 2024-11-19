@@ -1,18 +1,19 @@
 [versions]
 kotlin = "2.0.20"
-ktor = "2.3.12"
+ktor = "3.0.0"
 logback_version = "1.4.14"
 kotlin_serialization = "1.7.3"
 bcrypt = "0.10.2"
-kaml = "0.60.0"
-exposed_version = "0.53.0"
-postgresql = "42.7.2"
+kaml = "0.65.0"
+exposed_version = "0.56.0"
+postgresql = "42.7.4"
 nine_mens_morris_shared = "7c7979d18d"
 lib = "v1.0.0"
-otlp = "1.43.0"
-otlp_ktor = "2.9.0-alpha"
+otlp = "1.44.1"
+otlp_ktor = "2.10.0-alpha"
 junit = "5.10.2"
-test_container = "1.20.1"
+test_container = "1.20.3"
+dokka = "1.9.20"
 
 [libraries]
 ktor-server-ohhttp = { group = "io.ktor", name = "ktor-server-cors", version.ref = "ktor" }
@@ -39,12 +40,13 @@ nine-men-s-morris-shared = { group = "com.github.kroune", name = "9-men-s-morris
 nine-men-s-morris-lib = { group = "com.github.kroune", name = "9-men-s-morris-lib", version.ref = "lib" }
 opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp", version.ref = "otlp" }
 opentelemetry-sdk = { group = "io.opentelemetry", name = "opentelemetry-sdk", version.ref = "otlp" }
-opentelemetry-ktor = { group = "io.opentelemetry.instrumentation", name = "opentelemetry-ktor-2.0", version.ref = "otlp_ktor" }
+opentelemetry-ktor = { group = "io.opentelemetry.instrumentation", name = "opentelemetry-ktor-3.0", version.ref = "otlp_ktor" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 test-container-postgresql = { group = "org.testcontainers", name = "postgresql", version.ref = "test_container" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

@@ -25,9 +25,8 @@ import com.example.features.encryption.JwtTokenImpl
 import com.example.features.logging.log
 import com.example.routing.responses.get.*
 import com.example.routing.responses.ws.*
-import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import io.ktor.util.pipeline.*
 import io.opentelemetry.api.logs.Severity
 
 /**
@@ -39,7 +38,7 @@ import io.opentelemetry.api.logs.Severity
  *
  * [Nothing]
  */
-suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidJwtToken(lambda: () -> Unit) {
+suspend inline fun RoutingContext.requireValidJwtToken(lambda: () -> Unit) {
     val jwtToken = call.parameters["jwtToken"]
     if (jwtToken == null) {
         log("jwt token is null", Severity.WARN)
@@ -62,7 +61,7 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidJwtToken(l
  *
  * [noLogin]
  */
-suspend inline fun PipelineContext<Unit, ApplicationCall>.requireLogin(lambda: () -> Unit) {
+suspend inline fun RoutingContext.requireLogin(lambda: () -> Unit) {
     val login = call.parameters["login"]
     if (login == null) {
         noLogin()
@@ -83,7 +82,7 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.requireLogin(lambda: (
  *
  * [noValidLogin]
  */
-suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidLogin(lambda: () -> Unit) {
+suspend inline fun RoutingContext.requireValidLogin(lambda: () -> Unit) {
     val login = call.parameters["login"]
     if (login == null) {
         noLogin()
@@ -104,7 +103,7 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidLogin(lamb
  *
  * [Nothing]
  */
-suspend inline fun PipelineContext<Unit, ApplicationCall>.requirePassword(lambda: () -> Unit) {
+suspend inline fun RoutingContext.requirePassword(lambda: () -> Unit) {
     val password = call.parameters["password"]
     if (password == null) {
         noPassword()
@@ -129,7 +128,7 @@ suspend inline fun PipelineContext<Unit, ApplicationCall>.requirePassword(lambda
  *
  * [Nothing]
  */
-suspend inline fun PipelineContext<Unit, ApplicationCall>.requireValidUserId(lambda: () -> Unit) {
+suspend inline fun RoutingContext.requireValidUserId(lambda: () -> Unit) {
     val id = call.parameters["id"]
     if (id == null) {
         noUserId()

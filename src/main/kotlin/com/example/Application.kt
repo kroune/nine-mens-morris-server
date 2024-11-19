@@ -48,7 +48,7 @@ import io.opentelemetry.api.logs.Severity
 import io.opentelemetry.api.trace.SpanKind
 import io.opentelemetry.api.trace.StatusCode
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
-import io.opentelemetry.instrumentation.ktor.v2_0.server.KtorServerTracing
+import io.opentelemetry.instrumentation.ktor.v3_0.server.KtorServerTracing
 import io.opentelemetry.sdk.OpenTelemetrySdk
 import io.opentelemetry.sdk.common.export.RetryPolicy
 import io.opentelemetry.sdk.resources.Resource
@@ -70,9 +70,11 @@ fun main() {
     val serverConfig = currentConfig.serverConfig
     embeddedServer(
         Netty,
-        host = serverConfig.host,
-        port = serverConfig.port,
         configure = {
+            connector {
+                host = serverConfig.host
+                port = serverConfig.port
+            }
             requestReadTimeoutSeconds = 15
             responseWriteTimeoutSeconds = 15
         },
@@ -109,8 +111,8 @@ fun Application.module() {
 fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
     install(WebSockets) {
         val webSocketConfig = currentConfig.webSocketConfig
-        pingPeriod = webSocketConfig.pingPeriod.toJavaDuration()
-        timeout = webSocketConfig.timeout.toJavaDuration()
+        pingPeriod = webSocketConfig.pingPeriod
+        timeout = webSocketConfig.timeout
     }
     val openTelemetry = OpenTelemetrySdk.builder()
         .setTracerProvider(
