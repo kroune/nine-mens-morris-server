@@ -61,6 +61,7 @@ fun Route.gameRoutingWS() {
                     log("sending game id to the user gameId - $it", Severity.DEBUG)
                     channel.close()
                     close(CloseReason(CloseReason.Codes.NORMAL, it.toString()))
+                    break
                 }
             }
         } catch (e: ClosedSendChannelException) {

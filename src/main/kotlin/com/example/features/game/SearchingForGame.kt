@@ -65,7 +65,8 @@ object SearchingForGame {
             log("Added user to the queue $userId", Severity.DEBUG)
             val queueToAddUser = (rating / bucketSize)
             val bucketsToSpreadBetween = currentConfig.gameConfig.maxRatingDifference / bucketSize
-            val bucketsRange = (queueToAddUser - bucketsToSpreadBetween / 2)..(queueToAddUser + bucketsToSpreadBetween / 2)
+            val bucketsRange =
+                (queueToAddUser - bucketsToSpreadBetween / 2)..(queueToAddUser + bucketsToSpreadBetween / 2)
             queueRepository.addUser(
                 userId,
                 bucketsRange
@@ -80,7 +81,10 @@ object SearchingForGame {
                     secondPlayerId = botId,
                     botId = botId
                 )
-                gamesRepository.create(gameData)
+                if (!gamesRepository.create(gameData)) {
+                    // race condition, such game exists
+                    return@launch
+                }
                 val gameId = gamesRepository.getGameIdByUserId(userId)!!
                 channel.send(Pair(false, gameId))
             }
@@ -94,12 +98,12 @@ object SearchingForGame {
         for (bucketId in 0..currentConfig.gameConfig.maxBucketNumber) {
             searchingForGameScope.launch {
                 while (true) {
-                    val availablePlayers = ((bucketId - 5)..(bucketId + 5)).flatMap {
-                        queueRepository.getUsers(it)
-                    }.shuffled()
-                    if (availablePlayers.isNotEmpty()) {
-                        log("bucket.size - ${availablePlayers.size}", Severity.DEBUG)
+                    val availablePlayers = queueRepository.getUsers(bucketId).shuffled()
+                    if (availablePlayers.isEmpty()) {
+                        delay(delayBeforeRecheckingBucket)
+                        continue
                     }
+                    log("bucket.size - ${availablePlayers.size}", Severity.DEBUG)
                     if (availablePlayers.size == 1) {
                         // TODO: add average game search time updater
                         val expectedWaitingTime = 15L
@@ -116,7 +120,10 @@ object SearchingForGame {
                         secondPlayerId = secondUser,
                         botId = null
                     )
-                    gamesRepository.create(gameData)
+                    if (!gamesRepository.create(gameData)) {
+                        // race condition
+                        continue
+                    }
                     val gameId = gamesRepository.getGameIdByUserId(firstUser)!!
                     listOf(firstUser, secondUser).forEach { userId ->
                         userIdToSession[userId]?.send(Pair(false, gameId))

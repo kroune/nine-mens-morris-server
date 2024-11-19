@@ -19,14 +19,17 @@
  */
 package com.example.routing.responses.ws
 
+import com.example.features.logging.log
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import io.opentelemetry.api.logs.Severity
 
 /**
  * closes web socket connection
  */
 suspend inline fun DefaultWebSocketServerSession.someThingsWentWrong(message: String) {
     close(CloseReason(406_0, "Something went wrong $message"))
+    log("Something went wrong $message", Severity.INFO)
 }
 
 /**
@@ -34,6 +37,7 @@ suspend inline fun DefaultWebSocketServerSession.someThingsWentWrong(message: St
  */
 suspend inline fun DefaultWebSocketServerSession.jwtTokenIsNotValidForThisGame() {
     close(CloseReason(400_0, "this [jwtToken] isn't valid for this game"))
+    log("Create new scratch file from selection", Severity.INFO)
 }
 
 /**
@@ -41,6 +45,7 @@ suspend inline fun DefaultWebSocketServerSession.jwtTokenIsNotValidForThisGame()
  */
 suspend inline fun DefaultWebSocketServerSession.noGameId() {
     close(CloseReason(400_0, "no [gameId] parameter found"))
+    log("no [gameId] parameter found", Severity.INFO)
 }
 
 /**
@@ -48,6 +53,7 @@ suspend inline fun DefaultWebSocketServerSession.noGameId() {
  */
 suspend inline fun DefaultWebSocketServerSession.gameIdIsNotValid() {
     close(CloseReason(400_0, "[gameId] parameter is not valid"))
+    log("[gameId] parameter is not valid", Severity.INFO)
 }
 
 /**
@@ -55,6 +61,7 @@ suspend inline fun DefaultWebSocketServerSession.gameIdIsNotValid() {
  */
 suspend inline fun DefaultWebSocketServerSession.gameIdIsNotLong() {
     close(CloseReason(400_0, "[gameId] parameter is not a valid representation of a number"))
+    log("[gameId] parameter is not a valid representation of a number", Severity.INFO)
 }
 
 /**
@@ -62,6 +69,7 @@ suspend inline fun DefaultWebSocketServerSession.gameIdIsNotLong() {
  */
 suspend inline fun DefaultWebSocketServerSession.noJwtToken() {
     close(CloseReason(400_0, "no [jwtToken] parameter found"))
+    log("no [jwtToken] parameter found", Severity.INFO)
 }
 
 /**
@@ -69,8 +77,10 @@ suspend inline fun DefaultWebSocketServerSession.noJwtToken() {
  */
 suspend inline fun DefaultWebSocketServerSession.jwtTokenIsNotValid() {
     close(CloseReason(403_0, "[jwtToken] parameter is not valid"))
+    log("[jwtToken] parameter is not valid", Severity.INFO)
 }
 
 suspend inline fun DefaultWebSocketServerSession.internalServerError() {
     close(CloseReason(500_0, "Internal server error"))
+    log("Internal server error", Severity.INFO)
 }

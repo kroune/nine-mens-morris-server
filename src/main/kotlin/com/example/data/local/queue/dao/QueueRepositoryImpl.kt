@@ -37,6 +37,8 @@ class QueueRepositoryImpl : QueueRepositoryI {
 
     override suspend fun addUser(userId: Long, bucketRange: IntRange) {
         newSuspendedTransaction {
+            // delete all other matches
+            QueueTable.deleteWhere { QueueTable.userId eq userId }
             bucketRange.forEach { bucket ->
                 QueueTable.insert {
                     it[QueueTable.bucketId] = bucket

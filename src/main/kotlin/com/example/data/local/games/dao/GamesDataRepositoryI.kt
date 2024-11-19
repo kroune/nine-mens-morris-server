@@ -24,7 +24,12 @@ import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.move.Movement
 
 interface GamesDataRepositoryI {
-    suspend fun create(game: GameData)
+    /**
+     * Tries to create game with provided parameters
+     * @param game game information
+     * @return true if game was created, false if not (such game already exists)
+     */
+    suspend fun create(game: GameData): Boolean
     suspend fun getPositionByGameId(gameId: Long): Position?
     suspend fun getGameMoveHistory(gameId: Long): List<Movement>?
     suspend fun applyMove(gameId: Long, move: Movement)

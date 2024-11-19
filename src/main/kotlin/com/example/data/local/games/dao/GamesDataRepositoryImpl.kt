@@ -21,6 +21,7 @@ package com.example.data.local.games.dao
 
 import com.example.data.local.games.GameData
 import com.example.data.local.games.GamesDataTable
+import com.example.data.local.queueRepository
 import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.move.Movement
 import org.jetbrains.exposed.sql.*
@@ -35,8 +36,15 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
         }
     }
 
-    override suspend fun create(game: GameData) {
-        newSuspendedTransaction {
+    override suspend fun create(game: GameData): Boolean {
+        return newSuspendedTransaction {
+            if (getGameIdByUserId(game.firstPlayerId) != null ||
+                getGameIdByUserId(game.secondPlayerId) != null
+            ) {
+                return@newSuspendedTransaction false
+            }
+            queueRepository.deleteUser(game.firstPlayerId)
+            queueRepository.deleteUser(game.secondPlayerId)
             GamesDataTable.insert {
                 it[firstPlayer] = game.firstPlayerId
                 it[secondPlayer] = game.secondPlayerId
@@ -46,6 +54,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
                 it[firstPlayerMovesFirst] = game.firstPlayerMovesFirst
                 it[movesCount] = game.movesCount
             }
+            true
         }
     }
 
@@ -138,7 +147,9 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
                 (GamesDataTable.firstPlayer eq userId) or (GamesDataTable.secondPlayer eq userId)
             }.limit(1).map {
                 it[GamesDataTable.gameId]
-            }.firstOrNull()
+            }.firstOrNull().also {
+                println("game id for $userId = $it")
+            }
         }
     }
 

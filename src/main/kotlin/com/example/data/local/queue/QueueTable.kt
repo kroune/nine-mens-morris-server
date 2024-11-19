@@ -24,5 +24,4 @@ import org.jetbrains.exposed.sql.Table
 object QueueTable: Table("queue") {
     val bucketId = integer("bucketId")
     val userId = long("userId")
-    override val primaryKey = PrimaryKey(bucketId)
 }
