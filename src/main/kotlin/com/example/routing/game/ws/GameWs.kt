@@ -67,6 +67,9 @@ fun Route.gameRoutingWS() {
         } catch (e: ClosedSendChannelException) {
             log("user disconnected from searching for game", Severity.DEBUG)
             SearchingForGame.removeUser(userId)
+        } catch (e: ClosedReceiveChannelException) {
+            log("user disconnected from searching for game", Severity.DEBUG)
+            SearchingForGame.removeUser(userId)
         }
     }
     webSocket("/game") {

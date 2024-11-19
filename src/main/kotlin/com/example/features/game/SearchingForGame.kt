@@ -74,7 +74,9 @@ object SearchingForGame {
             val currentDelay = Random.nextLong(minPairWithBotTime, maxPairWithBotTime)
             delay(currentDelay)
             // check if we are still searching
+            log("delay before pairing with bot was waited $userId", Severity.DEBUG)
             if (gamesRepository.getGameIdByUserId(userId) == null) {
+                log("game wasn't found after delay for $userId", Severity.DEBUG)
                 val botId = BotProvider.getBotFromBucket(bucketsRange.random())
                 val gameData = GameData(
                     firstPlayerId = userId,
@@ -83,6 +85,7 @@ object SearchingForGame {
                 )
                 if (!gamesRepository.create(gameData)) {
                     // race condition, such game exists
+                    log("game was already created for $userId", Severity.DEBUG)
                     return@launch
                 }
                 val gameId = gamesRepository.getGameIdByUserId(userId)!!
