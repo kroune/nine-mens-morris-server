@@ -23,6 +23,8 @@ import com.example.data.local.users.UserData
 import com.example.data.local.users.UsersDataTable
 import com.example.features.encryption.Bcrypter
 import com.example.features.encryption.JwtTokenImpl
+import com.example.features.logging.log
+import io.opentelemetry.api.logs.Severity
 import kotlinx.datetime.LocalDate
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -150,6 +152,7 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
             UsersDataTable.update(
                 { UsersDataTable.id eq id }
             ) {
+                log("updated rating of $id from $oldRating to ${(oldRating + delta).coerceAtLeast(0)}", Severity.INFO)
                 it[rating] = (oldRating + delta).coerceAtLeast(0)
             }
         }

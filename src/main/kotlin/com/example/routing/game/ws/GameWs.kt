@@ -60,6 +60,7 @@ fun Route.gameRoutingWS() {
                 if (!isWaitingTime) {
                     log("sending game id to the user gameId - $it", Severity.DEBUG)
                     channel.close()
+                    flush()
                     close(CloseReason(CloseReason.Codes.NORMAL, it.toString()))
                     break
                 }

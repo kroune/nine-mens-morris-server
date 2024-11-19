@@ -147,9 +147,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
                 (GamesDataTable.firstPlayer eq userId) or (GamesDataTable.secondPlayer eq userId)
             }.limit(1).map {
                 it[GamesDataTable.gameId]
-            }.firstOrNull().also {
-                println("game id for $userId = $it")
-            }
+            }.firstOrNull()
         }
     }
 

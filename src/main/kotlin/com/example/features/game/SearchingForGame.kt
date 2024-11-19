@@ -60,6 +60,7 @@ object SearchingForGame {
             gamesRepository.getGameIdByUserId(userId)?.let { gameId ->
                 // user is already in a game
                 channel.send(Pair(false, gameId))
+                channel.close()
                 return@launch
             }
             log("Added user to the queue $userId", Severity.DEBUG)
@@ -90,6 +91,7 @@ object SearchingForGame {
                 }
                 val gameId = gamesRepository.getGameIdByUserId(userId)!!
                 channel.send(Pair(false, gameId))
+                channel.close()
             }
         }
         usersSearchingForGameJobsMap[userId] = job

@@ -32,6 +32,7 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import io.opentelemetry.api.logs.Severity
 import kotlinx.coroutines.*
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import java.util.*
 import kotlin.random.Random
@@ -83,15 +84,12 @@ class Game(
             log("Game ended due to ${reason.javaClass.simpleName}, isFirstUserLost = ${reason.isFirstUser}", severity = Severity.INFO)
             val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
             val secondPlayerId = gamesRepository.getSecondUserIdByGameId(gameId)!!
-            gamesRepository.delete(gameId)
             val firstUserRating = usersRepository.getRatingById(firstPlayerId)!!
             val secondUserRating = usersRepository.getRatingById(secondPlayerId)!!
             val delta =
                 (10 + (if (isFirstUserLost) secondUserRating - firstUserRating else firstUserRating - secondUserRating) / 100).coerceIn(
                     -50..50
                 )
-            usersRepository.updateRatingById(firstPlayerId, if (isFirstUserLost) -delta else delta)
-            usersRepository.updateRatingById(secondPlayerId, if (isFirstUserLost) delta else -delta)
             listOf(firstPlayerId, secondPlayerId).forEach { userId ->
                 sendMove(userId, Movement(null, null), false)
                 sendDataTo(userId, false, "game ended")
@@ -99,6 +97,9 @@ class Game(
                     BotProvider.addBotToTheFreeBotsQueue(userId)
                 }
             }
+            gamesRepository.delete(gameId)
+            usersRepository.updateRatingById(firstPlayerId, if (isFirstUserLost) -delta else delta)
+            usersRepository.updateRatingById(secondPlayerId, if (isFirstUserLost) delta else -delta)
             CoroutineScope(Dispatchers.Default).launch {
                 delay(5.seconds)
                 log("sessions closed for firstPlayer", Severity.DEBUG)
@@ -124,7 +125,7 @@ class Game(
     /**
      * send data [String] to the needed player
      *
-     * @param jwtToken jwtToken of the player, needed for easier calculation of the player to send
+     * @param userId id of the player
      * @param opposite if data should be sent to the opposite of the current player
      *
      * @throws IllegalStateException if jwt token doesn't much either of player
@@ -180,7 +181,7 @@ class Game(
      * tells if provided move is possible
      *
      * @param move move to check
-     * @param jwtToken jwt token of the player, who tries performed such move
+     * @param userId id of the player
      */
     suspend fun isMovePossible(move: Movement, userId: Long): Boolean {
         val firstUserId = gamesRepository.getFirstUserIdByGameId(gameId)!!
@@ -279,7 +280,7 @@ class Game(
     /**
      * updates user session in order to send data successfully
      *
-     * @param jwtToken jwt token of the player
+     * @param userId id of the player
      * @param session new session of this player
      */
     suspend fun updateSession(userId: Long, session: DefaultWebSocketServerSession) {
