@@ -19,7 +19,24 @@
  */
 package com.example.common
 
+import io.ktor.http.*
+import io.ktor.http.content.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 fun getRandomString(length: Int): String {
     val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
     return (1..length).map { allowedChars.random() }.joinToString("")
+}
+
+suspend inline fun <reified T> RoutingContext.respondSerialized(
+    data: T,
+    contentType: ContentType? = null,
+    status: HttpStatusCode? = null,
+    noinline configure: OutgoingContent.() -> Unit = {}
+) {
+    val text = Json.encodeToString<T>(data)
+    call.respondText(text, contentType, status, configure)
 }

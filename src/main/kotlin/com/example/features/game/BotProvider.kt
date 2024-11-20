@@ -30,7 +30,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 object BotProvider {
-    const val BUCKETS_AMOUNT = 50
+    private const val BUCKETS_AMOUNT = 50
     /**
      * array of buckets, represented by queue of user ids
      */

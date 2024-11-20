@@ -84,7 +84,7 @@ class JwtTokenImpl(val token: String) {
         return usersRepository.exists(login, password)
     }
 
-    override fun equals(other: Any?): Boolean {
+    override fun equals(other: Any?): Nothing {
         error("don't compare jwt tokens")
     }
 }

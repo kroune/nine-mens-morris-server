@@ -19,18 +19,16 @@
  */
 package com.example.routing.userInfo.get
 
-import com.example.common.json
+import com.example.common.respondSerialized
 import com.example.data.local.usersRepository
 import com.example.features.logging.log
 import com.example.routing.responses.get.*
 import com.example.routing.responses.requireValidJwtToken
-import com.example.routing.responses.requireValidLogin
 import com.example.routing.responses.requireValidUserId
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.opentelemetry.api.logs.Severity
-import kotlinx.serialization.encodeToString
 
 /**
  * Tests - [UserInfoGetTest]
@@ -53,17 +51,17 @@ fun Route.userInfoRoutingGET() {
         requireValidUserId {
             return@get
         }
-        val id = call.parameters["id"]!!.toLong()
         requireValidJwtToken {
             return@get
         }
+
+        val id = call.parameters["id"]!!.toLong()
         val text = usersRepository.getLoginById(id) ?: run {
             log("id was marked as valid, but getting login from db failed", Severity.FATAL)
             internalServerError()
             return@get
         }
-        val jsonText = json.encodeToString<String>(text)
-        call.respondText(jsonText)
+        respondSerialized<String>(text)
     }
     /**
      * possible responses:
@@ -82,12 +80,11 @@ fun Route.userInfoRoutingGET() {
         requireValidUserId {
             return@get
         }
-        val id = call.parameters["id"]!!.toLong()
-
         requireValidJwtToken {
             return@get
         }
 
+        val id = call.parameters["id"]!!.toLong()
         val text = (usersRepository.getCreationDateById(id) ?: run {
             log("id was marked as valid, but getting creation date from db failed", Severity.FATAL)
             internalServerError()
@@ -95,8 +92,7 @@ fun Route.userInfoRoutingGET() {
         }).let {
             Triple(it.dayOfMonth, it.monthNumber, it.year)
         }
-        val jsonText = json.encodeToString<Triple<Int, Int, Int>>(text)
-        call.respondText(jsonText)
+        respondSerialized<Triple<Int, Int, Int>>(text)
     }
     /**
      * possible responses:
@@ -115,47 +111,17 @@ fun Route.userInfoRoutingGET() {
         requireValidUserId {
             return@get
         }
-        val id = call.parameters["id"]!!.toLong()
-
         requireValidJwtToken {
             return@get
         }
 
+        val id = call.parameters["id"]!!.toLong()
         val text = usersRepository.getRatingById(id) ?: run {
             log("id was marked as valid, but getting rating from db failed", Severity.FATAL)
             internalServerError()
             return@get
         }
-        val jsonText = json.encodeToString<Int>(text)
-        call.respondText(jsonText)
-    }
-    /**
-     * possible responses:
-     *
-     * [noLogin]
-     *
-     * [noValidLogin]
-     *
-     * [internalServerError]
-     *
-     * [Long] - profile id
-     */
-    get("get-id-by-login") {
-        requireValidJwtToken {
-            return@get
-        }
-        requireValidLogin {
-            return@get
-        }
-
-        val login = call.parameters["login"]!!.toString()
-        val id: Long = usersRepository.getIdByLogin(login) ?: run {
-            log("login was marked as valid, but getting id from db failed", Severity.FATAL)
-            internalServerError()
-            return@get
-        }
-        val jsonText = json.encodeToString<Long>(id)
-        call.respondText(jsonText)
+        respondSerialized<Int>(text)
     }
     /**
      * possible responses:
@@ -184,8 +150,7 @@ fun Route.userInfoRoutingGET() {
             return@get
         }
         val picture = usersRepository.getPictureById(id) ?: defaultPicture
-        val jsonText = json.encodeToString<ByteArray>(picture)
-        call.respondText(jsonText)
+        respondSerialized<ByteArray>(picture)
     }
     /**
      * possible responses:
@@ -209,12 +174,14 @@ fun Route.userInfoRoutingGET() {
             internalServerError()
             return@get
         }
-        val jsonText = json.encodeToString<Long>(id)
-        call.respondText(jsonText)
+        respondSerialized<Long>(id)
     }
     get("leaderboard") {
+        requireValidJwtToken {
+            return@get
+        }
+
         val leaderboard = usersRepository.getLeaderboard(10)
-        val jsonText = json.encodeToString<List<Long>>(leaderboard)
-        call.respondText(jsonText)
+        respondSerialized<List<Long>>(leaderboard)
     }
 }

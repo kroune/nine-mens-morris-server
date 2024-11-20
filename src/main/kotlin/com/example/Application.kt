@@ -35,11 +35,9 @@ import com.example.routing.game.gameRouting
 import com.example.routing.misc.miscRouting
 import com.example.routing.userInfo.userInfoRouting
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
@@ -56,7 +54,6 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import io.opentelemetry.semconv.ServiceAttributes
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
@@ -169,13 +166,6 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
                 attributes.put("end-time", Instant.now().toEpochMilli())
             }
         }
-    }
-    install(ContentNegotiation) {
-        json(
-            Json {
-                prettyPrint = true
-            }
-        )
     }
     if (includeRateLimitPlugin)
         install(RateLimit) {

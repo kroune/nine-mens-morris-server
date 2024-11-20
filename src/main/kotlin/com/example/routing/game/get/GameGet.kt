@@ -19,15 +19,13 @@
  */
 package com.example.routing.game.get
 
+import com.example.common.respondSerialized
 import com.example.data.local.gamesRepository
 import com.example.data.local.usersRepository
 import com.example.routing.responses.requireValidJwtToken
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 fun Route.gameRoutingGET() {
     /**
@@ -47,7 +45,6 @@ fun Route.gameRoutingGET() {
             return@get
         }
         val gameId = gamesRepository.getGameIdByUserId(userId)
-        val jsonText = Json.encodeToString<Long?>(gameId)
-        call.respondText(jsonText)
+        respondSerialized<Long?>(gameId)
     }
 }

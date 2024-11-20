@@ -103,6 +103,11 @@ object SearchingForGame {
         for (bucketId in 0..currentConfig.gameConfig.maxBucketNumber) {
             searchingForGameScope.launch {
                 while (true) {
+                    // if bucket number has changed
+                    if (bucketId !in 0..currentConfig.gameConfig.maxBucketNumber) {
+                        delay(delayBeforeRecheckingBucket)
+                        continue
+                    }
                     val availablePlayers = queueRepository.getUsers(bucketId).shuffled()
                     if (availablePlayers.isEmpty()) {
                         delay(delayBeforeRecheckingBucket)

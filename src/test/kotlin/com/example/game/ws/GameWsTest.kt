@@ -22,6 +22,7 @@ class GameWsTest {
         @Test
         fun `connect with delay`() {
             testApplication {
+                val db = TestDatabase()
                 val client2 = createClient {
                     install(WebSockets) {
                         contentConverter = KotlinxWebsocketSerializationConverter(Json)
@@ -34,9 +35,9 @@ class GameWsTest {
                 routing {
                     gameRoutingWS()
                 }
-                TestDatabase.connect()
-                val user1 = TestDatabase.createDummyUser(UserData("user1", "password1"))
-                val user2 = TestDatabase.createDummyUser(UserData("user2", "password2"))
+                db.connect()
+                val user1 = db.createDummyUser(UserData("user1", "password1"))
+                val user2 = db.createDummyUser(UserData("user2", "password2"))
                 runBlocking {
                     withTimeoutOrNull(100.seconds) {
                         var firstGameId: Long? = null

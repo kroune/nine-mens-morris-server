@@ -34,6 +34,7 @@ dependencies {
     // other libs
     implementation(libs.logback.classic)
     testImplementation(libs.kotlin.test.junit)
+    testImplementation(kotlin("reflect"))
     implementation(libs.bcrypt)
 
     // serialization

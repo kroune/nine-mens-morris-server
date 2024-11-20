@@ -19,16 +19,15 @@
  */
 package com.example.routing.userInfo.post
 
-import com.example.features.currentConfig
 import com.example.data.local.usersRepository
+import com.example.features.currentConfig
 import com.example.features.encryption.JwtTokenImpl
 import com.example.features.logging.log
 import com.example.routing.responses.get.*
 import com.example.routing.responses.requireValidJwtToken
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.*
+import io.ktor.http.*
 import io.ktor.server.request.*
-import io.ktor.server.response.respond
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.opentelemetry.api.logs.Severity
 import java.io.ByteArrayInputStream
@@ -87,9 +86,18 @@ fun Route.userInfoRoutingPOST() {
             ImageIO.write(buffer, "png", outputStream)
             outputStream.close()
             outputStream.toByteArray()
-        } catch (_: IOException) {
-            imageIsNotValid()
-            return@post
+        } catch (e: Exception) {
+            when (e) {
+                is IOException, is IllegalArgumentException, is NullPointerException -> {
+                    imageIsNotValid()
+                    return@post
+                }
+                else -> {
+                    internalServerError()
+                    log("unrecognized exception when decoding image", Severity.FATAL)
+                    return@post
+                }
+            }
         }
         usersRepository.updatePictureByLogin(login, decodedVariant)
         call.respond(HttpStatusCode.OK)
