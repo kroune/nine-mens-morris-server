@@ -28,6 +28,8 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlin.math.max
+import kotlin.math.min
 
 class GamesDataRepositoryImpl : GamesDataRepositoryI {
     init {
@@ -38,13 +40,16 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun create(game: GameData): Boolean {
         return newSuspendedTransaction {
-            if (getGameIdByUserId(game.firstPlayerId) != null ||
-                getGameIdByUserId(game.secondPlayerId) != null
-            ) {
+            /**
+             * firstPlayerId and secondPlayerId are shuffled, we delete them in such order, so that
+             * if one deletion happens, the second one will be also performed there (since all other deletions
+             * will get result equal to 0 ([queueRepository.deleteUser] has lock), so the second deletion won't happen)
+             */
+            val lowerId = min(game.firstPlayerId, game.secondPlayerId)
+            val upperId = max(game.firstPlayerId, game.secondPlayerId)
+            if (queueRepository.deleteUser(upperId) == 0 || queueRepository.deleteUser(lowerId) == 0) {
                 return@newSuspendedTransaction false
             }
-            queueRepository.deleteUser(game.firstPlayerId)
-            queueRepository.deleteUser(game.secondPlayerId)
             GamesDataTable.insert {
                 it[firstPlayer] = game.firstPlayerId
                 it[secondPlayer] = game.secondPlayerId

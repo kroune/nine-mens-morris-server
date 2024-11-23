@@ -22,5 +22,9 @@ package com.example.data.local.queue.dao
 interface QueueRepositoryI {
     suspend fun addUser(userId: Long, bucketRange: IntRange)
     suspend fun getUsers(bucket: Int): List<Long>
-    suspend fun deleteUser(userId: Long)
+
+    /**
+     * @return amount of deleted rows
+     */
+    suspend fun deleteUser(userId: Long): Int
 }

@@ -36,6 +36,7 @@ object BotCreator {
         run {
             repeat(10) {
                 val (loginVariant, pictureVariant) = randomUserRepository.getLoginAndPicture().getOrElse {
+                    log(it.stackTraceToString(), Severity.ERROR)
                     return@repeat
                 }
 

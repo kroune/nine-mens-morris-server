@@ -36,7 +36,7 @@ class QueueRepositoryImpl : QueueRepositoryI {
     }
 
     override suspend fun addUser(userId: Long, bucketRange: IntRange) {
-        newSuspendedTransaction {
+        newSuspendedTransaction(transactionIsolation = 2) {
             // delete all other matches
             QueueTable.deleteWhere { QueueTable.userId eq userId }
             bucketRange.forEach { bucket ->
@@ -58,8 +58,8 @@ class QueueRepositoryImpl : QueueRepositoryI {
         }
     }
 
-    override suspend fun deleteUser(userId: Long) {
-        newSuspendedTransaction {
+    override suspend fun deleteUser(userId: Long): Int {
+        return newSuspendedTransaction(transactionIsolation = 2) {
             QueueTable.deleteWhere {
                 QueueTable.userId eq userId
             }

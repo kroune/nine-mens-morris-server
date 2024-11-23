@@ -52,12 +52,12 @@ val openTelemetryLogger: SdkLoggerProvider = SdkLoggerProvider.builder()
 val loggerInstance: Logger = openTelemetryLogger.loggerBuilder("nine-mens-morris-server").build()
 
 fun log(text: String, severity: Severity) {
+    val sdf = SimpleDateFormat("hh:mm:ss dd/M/yyyy ")
+    val currentDate = sdf.format(Date())
+    println("$currentDate $text")
     loggerInstance.logRecordBuilder()
         .setBody(text)
         .setTimestamp(Instant.now())
         .setSeverity(severity)
         .emit()
-    val sdf = SimpleDateFormat("hh:mm:ss dd/M/yyyy ")
-    val currentDate = sdf.format(Date())
-    println("$currentDate $text")
 }

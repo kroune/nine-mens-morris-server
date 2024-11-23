@@ -11,6 +11,7 @@ dependencyResolutionManagement {
             url = uri("https://jitpack.io")
             name = "JitPack"
         }
+        maven { url = uri("https://packages.confluent.io/maven/") }
         google()
     }
 }
