@@ -152,7 +152,11 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
             UsersDataTable.update(
                 { UsersDataTable.id eq id }
             ) {
-                log("updated rating of $id from $oldRating to ${(oldRating + delta).coerceAtLeast(0)}", Severity.INFO)
+                log(
+                    "updated rating of from $oldRating to ${(oldRating + delta).coerceAtLeast(0)}",
+                    Severity.INFO,
+                    userId = id
+                )
                 it[rating] = (oldRating + delta).coerceAtLeast(0)
             }
         }

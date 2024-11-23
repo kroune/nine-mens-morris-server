@@ -49,7 +49,7 @@ suspend inline fun RoutingContext.requireValidJwtToken(lambda: () -> Unit) {
     // no need to check for sql injection, cause Exposed handles it for us
     // https://stackoverflow.com/questions/50180516/kotlin-exposed-how-to-create-prepared-statement-or-avoid-sql-injection
     if (!JwtTokenImpl(jwtToken).verify()) {
-        log("jwt token is not valid", Severity.WARN)
+        log("jwt token is not valid $jwtToken", Severity.WARN)
         jwtTokenIsNotValid()
         lambda()
         return
@@ -184,7 +184,7 @@ suspend inline fun DefaultWebSocketServerSession.requireValidJwtToken(lambda: ()
 suspend inline fun DefaultWebSocketServerSession.requireGameId(lambda: () -> Unit) {
     val gameId = call.parameters["gameId"]
     if (gameId == null) {
-        log("no game id parameter found $gameId", Severity.WARN)
+        log("no game id parameter found", Severity.WARN)
         noGameId()
         lambda()
         return

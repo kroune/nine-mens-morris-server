@@ -47,7 +47,9 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
              */
             val lowerId = min(game.firstPlayerId, game.secondPlayerId)
             val upperId = max(game.firstPlayerId, game.secondPlayerId)
-            if (queueRepository.deleteUser(upperId) == 0 || queueRepository.deleteUser(lowerId) == 0) {
+            if ((game.botId != upperId && queueRepository.deleteUser(upperId) == 0) ||
+                (game.botId != lowerId && queueRepository.deleteUser(lowerId) == 0)
+            ) {
                 return@newSuspendedTransaction false
             }
             GamesDataTable.insert {

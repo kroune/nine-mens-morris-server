@@ -49,14 +49,45 @@ val openTelemetryLogger: SdkLoggerProvider = SdkLoggerProvider.builder()
             .build()
     )
     .build()
-val loggerInstance: Logger = openTelemetryLogger.loggerBuilder("nine-mens-morris-server").build()
 
-fun log(text: String, severity: Severity) {
+val loggerInstance: Logger = openTelemetryLogger
+    .loggerBuilder("nine-mens-morris-server")
+    .build()
+
+fun log(
+    text: String,
+    severity: Severity,
+    userId: Long? = null,
+    throwable: Throwable? = null,
+    bucket: Int? = null,
+    gameId: Long? = null,
+) {
     val sdf = SimpleDateFormat("hh:mm:ss dd/M/yyyy ")
     val currentDate = sdf.format(Date())
     println("$currentDate $text")
     loggerInstance.logRecordBuilder()
         .setBody(text)
+        .apply {
+            if (userId != null) {
+                this.setAttribute(AttributeKey.longKey("userId"), userId)
+            }
+        }
+        .apply {
+            if (throwable != null) {
+                this.setAttribute(AttributeKey.stringKey("exception"), throwable.message ?: "empty message")
+                this.setAttribute(AttributeKey.stringKey("stackTrace"), throwable.stackTraceToString())
+            }
+        }
+        .apply {
+            if (bucket != null) {
+                this.setAttribute(AttributeKey.longKey("bucketId"), bucket.toLong())
+            }
+        }
+        .apply {
+            if (gameId != null) {
+                this.setAttribute(AttributeKey.longKey("gameId"), gameId.toLong())
+            }
+        }
         .setTimestamp(Instant.now())
         .setSeverity(severity)
         .emit()

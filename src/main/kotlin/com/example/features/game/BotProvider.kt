@@ -43,7 +43,7 @@ object BotProvider {
             val botRating = usersRepository.getRatingById(id)!!
             val queueToAddBot = (botRating / bucketSize)
             availableBotsBuckets[queueToAddBot].add(id)
-            log("bot got free $id [id]", Severity.DEBUG)
+            log("bot got free", Severity.DEBUG, userId = id)
         }
     }
 
@@ -55,7 +55,7 @@ object BotProvider {
      * @return id of the bot
      */
     suspend fun getBotFromBucket(bucket: Int): Long {
-        log("getting bot from bucket $bucket", Severity.INFO)
+        log("getting bot from bucket", Severity.INFO, bucket = bucket)
         return availableBotsBuckets[bucket].poll() ?: run {
             val id = BotCreator.createBot(bucket * bucketSize..bucket * (bucketSize + 1))
             id

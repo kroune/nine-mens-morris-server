@@ -61,7 +61,7 @@ object GameDataFactory {
  * if a bot exists in game - it is [secondUser]
  */
 class Game(
-    private val gameId: Long,
+    val gameId: Long,
     private var firstPlayer: DefaultWebSocketServerSession? = null,
     private var secondPlayer: DefaultWebSocketServerSession? = null,
 ) {
@@ -81,7 +81,7 @@ class Game(
     ) {
         val isFirstUserLost = reason.isFirstUser
         CoroutineScope(Dispatchers.Default).launch {
-            log("Game ended due to ${reason.javaClass.simpleName}, isFirstUserLost = ${reason.isFirstUser}", severity = Severity.INFO)
+            log("Game ended due to ${reason.javaClass.simpleName}, isFirstUserLost = ${reason.isFirstUser}", severity = Severity.INFO, gameId = gameId)
             val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
             val secondPlayerId = gamesRepository.getSecondUserIdByGameId(gameId)!!
             val firstUserRating = usersRepository.getRatingById(firstPlayerId)!!
@@ -102,12 +102,12 @@ class Game(
             usersRepository.updateRatingById(secondPlayerId, if (isFirstUserLost) delta else -delta)
             CoroutineScope(Dispatchers.Default).launch {
                 delay(5.seconds)
-                log("sessions closed for firstPlayer", Severity.DEBUG)
+                log("sessions closed for firstPlayer", Severity.DEBUG, userId = firstPlayerId)
                 firstPlayer?.close()
             }
             CoroutineScope(Dispatchers.Default).launch {
                 delay(5.seconds)
-                log("sessions closed for secondPlayer", Severity.DEBUG)
+                log("sessions closed for secondPlayer", Severity.DEBUG, userId = secondPlayerId)
                 secondPlayer?.close()
             }
         }
@@ -137,10 +137,10 @@ class Game(
             firstUserId -> {
                 val sendToFirstUser = !opposite
                 if (sendToFirstUser) {
-                    log("sent \"$data\" to firstPlayer", Severity.DEBUG)
+                    log("sent \"$data\"", Severity.DEBUG, userId = firstUserId)
                     firstPlayer?.send(data)
                 } else {
-                    log("sent \"$data\" to secondPlayer", Severity.DEBUG)
+                    log("sent \"$data\"", Severity.DEBUG, userId = secondUserId)
                     secondPlayer?.send(data)
                 }
             }
@@ -149,10 +149,10 @@ class Game(
                 val sendToSecondUser = !opposite
                 if (sendToSecondUser) {
                     secondPlayer?.send(data)
-                    log("sent \"$data\" to secondPlayer", Severity.DEBUG)
+                    log("sent \"$data\"", Severity.DEBUG, userId = secondUserId)
                 } else {
                     firstPlayer?.send(data)
-                    log("sent \"$data\" to firstPlayer", Severity.DEBUG)
+                    log("sent \"$data\"", Severity.DEBUG, userId = firstUserId)
                 }
             }
 

@@ -63,7 +63,7 @@ object SearchingForGame {
                 channel.close()
                 return@launch
             }
-            log("Added user to the queue userId = $userId", Severity.DEBUG)
+            log("Added user to the queue", Severity.DEBUG, userId = userId)
             val queueToAddUser = (rating / bucketSize)
             val bucketsToSpreadBetween = currentConfig.gameConfig.maxRatingDifference / bucketSize
             val bucketsRange =
@@ -75,9 +75,9 @@ object SearchingForGame {
             val currentDelay = Random.nextLong(minPairWithBotTime, maxPairWithBotTime)
             delay(currentDelay)
             // check if we are still searching
-            log("delay before pairing with bot was waited delay = $currentDelay userId = $userId", Severity.DEBUG)
+            log("delay before pairing with bot was waited delay = $currentDelay", Severity.DEBUG, userId = userId)
             if (gamesRepository.getGameIdByUserId(userId) == null) {
-                log("game wasn't found after delay for $userId", Severity.DEBUG)
+                log("game wasn't found after delay", Severity.DEBUG, userId = userId)
                 val botId = BotProvider.getBotFromBucket(bucketsRange.random())
                 val gameData = GameData(
                     firstPlayerId = userId,
@@ -86,7 +86,7 @@ object SearchingForGame {
                 )
                 if (!gamesRepository.create(gameData)) {
                     // race condition, such game exists
-                    log("game was already created for $userId", Severity.DEBUG)
+                    log("game was already created", Severity.DEBUG, userId = userId)
                     return@launch
                 }
                 val gameId = gamesRepository.getGameIdByUserId(userId)!!

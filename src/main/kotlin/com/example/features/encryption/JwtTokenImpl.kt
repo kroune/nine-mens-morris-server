@@ -52,8 +52,7 @@ class JwtTokenImpl(val token: String) {
             val token = JWT.decode(token)
             token.claims["login"]!!.asString()
         }.onFailure {
-            log("error decoding login", Severity.WARN)
-            log(it.stackTraceToString(), Severity.WARN)
+            log("error decoding login", Severity.WARN, throwable = it)
         }
     }
 
@@ -69,8 +68,7 @@ class JwtTokenImpl(val token: String) {
             val token = JWT.decode(token)
             token.claims["password"]!!.asString()
         }.onFailure {
-            log("error decoding login", Severity.WARN)
-            log(it.stackTraceToString(), Severity.WARN)
+            log("error decoding login", Severity.WARN, throwable = it)
         }
     }
 

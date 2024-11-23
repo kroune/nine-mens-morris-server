@@ -58,7 +58,7 @@ fun Route.gameRoutingWS() {
                 val jsonText = Json.encodeToString<Pair<Boolean, Long>>(Pair(isWaitingTime, it))
                 send(jsonText)
                 if (!isWaitingTime) {
-                    log("sending game id to the user gameId - $it", Severity.DEBUG)
+                    log("sending game id to the user", Severity.DEBUG, userId = userId, gameId = it)
                     channel.close()
                     flush()
                     close(CloseReason(CloseReason.Codes.NORMAL, it.toString()))
@@ -66,10 +66,10 @@ fun Route.gameRoutingWS() {
                 }
             }
         } catch (e: ClosedSendChannelException) {
-            log("user disconnected from searching for game", Severity.DEBUG)
+            log("user disconnected from searching for game", Severity.DEBUG, userId = userId)
             SearchingForGame.removeUser(userId)
         } catch (e: ClosedReceiveChannelException) {
-            log("user disconnected from searching for game", Severity.DEBUG)
+            log("user disconnected from searching for game", Severity.DEBUG, userId = userId)
             SearchingForGame.removeUser(userId)
         }
     }
@@ -99,12 +99,12 @@ fun Route.gameRoutingWS() {
             }
             val enemyId = game.enemyId(userId)
             send(isGreen.toString())
-            log("sending isGreen info - [$isGreen]", Severity.DEBUG)
+            log("sending isGreen info - [$isGreen]", Severity.DEBUG, userId = userId, gameId = game.gameId)
             // we send position to the new connection
             game.sendPosition(userId, opposite = false)
-            log("sending position info", Severity.DEBUG)
+            log("sending position info", Severity.DEBUG, userId = userId, gameId = game.gameId)
             send(enemyId.toString())
-            log("sending enemy id info - [$enemyId]", Severity.DEBUG)
+            log("sending enemy id info - [$enemyId]", Severity.DEBUG, userId = userId, gameId = game.gameId)
             while (true) {
                 val frame = this.incoming.receive()
                 if (frame !is Frame.Text) continue
@@ -113,7 +113,9 @@ fun Route.gameRoutingWS() {
                 } catch (e: Exception) {
                     log(
                         "error decoding client movement: frame - [${frame.frameType}] stack trace - [${e.stackTraceToString()}]",
-                        Severity.DEBUG
+                        Severity.DEBUG,
+                        userId = userId,
+                        gameId = game.gameId
                     )
                     someThingsWentWrong("error decoding client movement")
                     return@webSocket
@@ -122,7 +124,9 @@ fun Route.gameRoutingWS() {
                 if (move.startIndex == null && move.endIndex == null) {
                     log(
                         "user gave up",
-                        Severity.DEBUG
+                        Severity.DEBUG,
+                        userId = userId,
+                        gameId = game.gameId
                     )
                     game.handleGameEnd(GameEndReason.UserGaveUp(isFirstUser))
                     return@webSocket
@@ -130,7 +134,9 @@ fun Route.gameRoutingWS() {
                 if (!game.isMovePossible(move, userId)) {
                     log(
                         "received an illegal move - [$move]",
-                        Severity.DEBUG
+                        Severity.DEBUG,
+                        userId = userId,
+                        gameId = game.gameId
                     )
                     someThingsWentWrong("received an illegal move")
                     return@webSocket
@@ -142,12 +148,20 @@ fun Route.gameRoutingWS() {
             }
         } catch (_: ClosedReceiveChannelException) {
             // this exception is thrown if websocket session was closed, and we tried to receive smth
-            log("channel was closed gameId = $gameId, accountId = $userId", Severity.INFO)
+            log(
+                "channel was closed",
+                Severity.INFO,
+                userId = userId,
+                gameId = gameId
+            )
             return@webSocket
         } catch (e: IOException) {
             log(
-                "uncaught exception ${e.stackTraceToString()}",
-                Severity.DEBUG
+                "uncaught exception",
+                Severity.DEBUG,
+                userId = userId,
+                throwable = e,
+                gameId = gameId
             )
         }
     }
