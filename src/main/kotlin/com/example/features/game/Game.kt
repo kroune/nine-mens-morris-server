@@ -32,6 +32,7 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import io.opentelemetry.api.logs.Severity
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import java.util.*
@@ -97,18 +98,21 @@ class Game(
                     BotProvider.addBotToTheFreeBotsQueue(userId)
                 }
             }
+            log("starting to delete game", Severity.INFO, gameId = gameId)
             gamesRepository.delete(gameId)
             usersRepository.updateRatingById(firstPlayerId, if (isFirstUserLost) -delta else delta)
             usersRepository.updateRatingById(secondPlayerId, if (isFirstUserLost) delta else -delta)
             CoroutineScope(Dispatchers.Default).launch {
-                delay(5.seconds)
-                log("sessions closed for firstPlayer", Severity.DEBUG, userId = firstPlayerId)
-                firstPlayer?.close()
+                withTimeout(20.seconds) {
+                    log("sessions closed for firstPlayer", Severity.DEBUG, userId = firstPlayerId)
+                    firstPlayer?.close()
+                }
             }
             CoroutineScope(Dispatchers.Default).launch {
-                delay(5.seconds)
-                log("sessions closed for secondPlayer", Severity.DEBUG, userId = secondPlayerId)
-                secondPlayer?.close()
+                withTimeout(20.seconds) {
+                    log("sessions closed for secondPlayer", Severity.DEBUG, userId = secondPlayerId)
+                    secondPlayer?.close()
+                }
             }
         }
     }
@@ -134,7 +138,7 @@ class Game(
         val firstUserId = gamesRepository.getFirstUserIdByGameId(gameId)!!
         val secondUserId = gamesRepository.getSecondUserIdByGameId(gameId)!!
         try {
-            withTimeout(5.seconds) {
+            withTimeout(15.seconds) {
                 when (userId) {
                     firstUserId -> {
                         val sendToFirstUser = !opposite
@@ -165,6 +169,10 @@ class Game(
             }
         } catch (e: TimeoutCancellationException) {
             log("reached timeout for sending data", Severity.WARN)
+        } catch (_: ClosedSendChannelException) {
+        } catch (_: CancellationException) {
+        } catch (e: Exception) {
+            log("uncaught exception when sending data", severity = Severity.ERROR, throwable = e)
         }
     }
 
