@@ -133,32 +133,38 @@ class Game(
     private suspend fun sendDataTo(userId: Long, opposite: Boolean, data: String) {
         val firstUserId = gamesRepository.getFirstUserIdByGameId(gameId)!!
         val secondUserId = gamesRepository.getSecondUserIdByGameId(gameId)!!
-        when (userId) {
-            firstUserId -> {
-                val sendToFirstUser = !opposite
-                if (sendToFirstUser) {
-                    log("sent \"$data\"", Severity.DEBUG, userId = firstUserId)
-                    firstPlayer?.send(data)
-                } else {
-                    log("sent \"$data\"", Severity.DEBUG, userId = secondUserId)
-                    secondPlayer?.send(data)
+        try {
+            withTimeout(5.seconds) {
+                when (userId) {
+                    firstUserId -> {
+                        val sendToFirstUser = !opposite
+                        if (sendToFirstUser) {
+                            log("sent \"$data\"", Severity.DEBUG, userId = firstUserId)
+                            firstPlayer?.send(data)
+                        } else {
+                            log("sent \"$data\"", Severity.DEBUG, userId = secondUserId)
+                            secondPlayer?.send(data)
+                        }
+                    }
+
+                    secondUserId -> {
+                        val sendToSecondUser = !opposite
+                        if (sendToSecondUser) {
+                            secondPlayer?.send(data)
+                            log("sent \"$data\"", Severity.DEBUG, userId = secondUserId)
+                        } else {
+                            firstPlayer?.send(data)
+                            log("sent \"$data\"", Severity.DEBUG, userId = firstUserId)
+                        }
+                    }
+
+                    else -> {
+                        error("jwt token must either belong to the first user or to second one")
+                    }
                 }
             }
-
-            secondUserId -> {
-                val sendToSecondUser = !opposite
-                if (sendToSecondUser) {
-                    secondPlayer?.send(data)
-                    log("sent \"$data\"", Severity.DEBUG, userId = secondUserId)
-                } else {
-                    firstPlayer?.send(data)
-                    log("sent \"$data\"", Severity.DEBUG, userId = firstUserId)
-                }
-            }
-
-            else -> {
-                error("jwt token must either belong to the first user or to second one")
-            }
+        } catch (e: TimeoutCancellationException) {
+            log("reached timeout for sending data", Severity.WARN)
         }
     }
 
