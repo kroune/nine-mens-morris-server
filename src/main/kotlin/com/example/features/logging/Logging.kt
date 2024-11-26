@@ -64,7 +64,7 @@ fun log(
 ) {
     val sdf = SimpleDateFormat("hh:mm:ss dd/M/yyyy ")
     val currentDate = sdf.format(Date())
-    println("$currentDate $text")
+    println("$currentDate $text ${throwable?.stackTraceToString() ?: ""}")
     loggerInstance.logRecordBuilder()
         .setBody(text)
         .apply {

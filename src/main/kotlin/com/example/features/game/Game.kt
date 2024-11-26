@@ -25,7 +25,6 @@ import com.example.data.local.usersRepository
 import com.example.features.currentConfig
 import com.example.features.logging.log
 import com.kroune.nineMensMorrisLib.GameState
-import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.move.Movement
 import com.kroune.nineMensMorrisShared.GameEndReason
 import io.ktor.server.websocket.*
@@ -42,16 +41,13 @@ import kotlin.time.Duration.Companion.seconds
 object GameDataFactory {
     private val gamesCache = Collections.synchronizedMap(hashMapOf<Long, Game>())
 
-    fun getGame(gameId: Long, userId: Long, playerSession: DefaultWebSocketServerSession): Game {
+    fun getGame(gameId: Long): Game {
         synchronized(gamesCache) {
             val cache = gamesCache[gameId]
             if (cache != null) {
                 return cache
             }
             val gameClass = Game(gameId)
-            runBlocking {
-                gameClass.updateSession(userId, playerSession)
-            }
             gamesCache[gameId] = gameClass
             return gameClass
         }
@@ -93,7 +89,7 @@ class Game(
                 )
             listOf(firstPlayerId, secondPlayerId).forEach { userId ->
                 sendMove(userId, Movement(null, null), false)
-                sendDataTo(userId, false, "game ended")
+                sendDataTo(userId, false, reason.javaClass.simpleName)
                 if (BotProvider.isBot(userId)) {
                     BotProvider.addBotToTheFreeBotsQueue(userId)
                 }
@@ -183,12 +179,9 @@ class Game(
      * @throws SerializationException if encoding failed
      * @throws IllegalArgumentException if encoding failed
      */
-    suspend fun sendPosition(userId: Long, opposite: Boolean) {
+    suspend fun sendPosition(session: DefaultWebSocketServerSession) {
         val position = gamesRepository.getPositionByGameId(gameId)!!
-        val pos = json.encodeToString<Position>(position)
-        sendDataTo(
-            userId = userId, opposite = opposite, data = pos
-        )
+        session.sendSerialized(position)
     }
 
     /**
@@ -237,9 +230,8 @@ class Game(
     private val timeForMove = currentConfig.gameConfig.timeForMove
 
     suspend fun applyMove(move: Movement, isFirstPlayerPerformedMove: Boolean) {
-        val previousMoveCount = gamesRepository.getMovesCountByGameId(gameId)
         gamesRepository.applyMove(gameId, move)
-        val currentMoveCount = gamesRepository.getMovesCountByGameId(gameId)
+        val previousMoveCount = gamesRepository.getMovesCountByGameId(gameId)
         val position = gamesRepository.getPositionByGameId(gameId)!!
         if (position.gameState() == GameState.End || position.generateMoves().isEmpty()) {/*
              * if game has ended after players move it means, that other player lost
@@ -259,6 +251,7 @@ class Game(
             botMove()
             CoroutineScope(Dispatchers.IO).launch {
                 delay(timeForMove)
+                val currentMoveCount = gamesRepository.getMovesCountByGameId(gameId)
                 // if no moves were performed
                 if (currentMoveCount == previousMoveCount) {
                     val firstPlayerMovesFirst = gamesRepository.getFirstPlayerMovesFirstByGameId(gameId)

@@ -36,7 +36,6 @@ object GamesDataTable : Table("games_data") {
     val position = json<Position>("position", Json).default(gameStartPosition)
     val moveHistory = json<List<Movement>>("moves_history", Json).default(listOf())
     val firstPlayerMovesFirst = bool("first_player_moves_first")
-    val movesCount = integer("moves_count").default(0)
 
     override val primaryKey = PrimaryKey(gameId)
 }

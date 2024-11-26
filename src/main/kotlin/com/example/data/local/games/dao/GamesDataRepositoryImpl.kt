@@ -59,7 +59,6 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
                 it[position] = game.position
                 it[moveHistory] = game.movesHistory
                 it[firstPlayerMovesFirst] = game.firstPlayerMovesFirst
-                it[movesCount] = game.movesCount
             }
             true
         }
@@ -143,7 +142,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
             GamesDataTable.selectAll().where {
                 GamesDataTable.gameId eq gameId
             }.limit(1).map {
-                it[GamesDataTable.movesCount]
+                it[GamesDataTable.moveHistory].size
             }.firstOrNull()
         }
     }

@@ -31,5 +31,4 @@ class GameData(
     val movesHistory: List<Movement> = listOf(),
     val position: Position = gameStartPosition,
     val firstPlayerMovesFirst: Boolean = Random.nextBoolean(),
-    val movesCount: Int = 0
 )

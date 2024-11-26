@@ -2,7 +2,7 @@ serverConfig:
   host: "0.0.0.0"
   port: 8080
 rateLimitConfig:
-  rateLimit: 30
+  rateLimit: 120
   refillSpeed: "PT1M"
 webSocketConfig:
   pingPeriod: "PT3S"
@@ -11,7 +11,7 @@ encryptionToken: "AIkjDRWCktbcdFJoFzmeoYyfcxtYoMvNcfDmyLpPApqkNdZgzAyMxFMzKsxFKv
 fileConfig:
   profilePictureMaxSize: 200
 gameConfig:
-  timeForMove: 300000000
+  timeForMove: 30000
   maxRatingDifference: 200
   bucketSize: 100
   delayBeforeRecheckingBucket: 3000

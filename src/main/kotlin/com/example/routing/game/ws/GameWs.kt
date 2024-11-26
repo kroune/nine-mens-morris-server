@@ -35,12 +35,12 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import io.opentelemetry.api.logs.Severity
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.io.IOException
 
 fun Route.gameRoutingWS() {
     webSocket("/search-for-game") {
@@ -50,7 +50,7 @@ fun Route.gameRoutingWS() {
 
         val jwtToken = call.parameters["jwtToken"]!!
         val userId = usersRepository.getIdByJwtToken(jwtToken)!!
-        val channel = Channel<Pair<Boolean, Long>>()
+        val channel = Channel<Pair<Boolean, Long>>(capacity = 10, onBufferOverflow = BufferOverflow.DROP_OLDEST)
         SearchingForGame.addUser(userId, channel)
         try {
             while (true) {
@@ -87,23 +87,23 @@ fun Route.gameRoutingWS() {
             jwtTokenIsNotValidForThisGame()
             return@webSocket
         }
-        val game = GameDataFactory.getGame(gameId, userId, this)
+        val game = GameDataFactory.getGame(gameId)
         try {
             val isFirstUser = game.isFirstPlayer(userId)
-            game.updateSession(userId, this)
             val isGreen = if (game.isFirstPlayer(userId)) {
                 game.isFirstPlayerMovesFirst()
             } else {
                 !game.isFirstPlayerMovesFirst()
             }
             val enemyId = game.enemyId(userId)
-            send(isGreen.toString())
+            sendSerialized(isGreen)
             log("sending isGreen info - [$isGreen]", Severity.DEBUG, userId = userId, gameId = game.gameId)
-            // we send position to the new connection
-            game.sendPosition(userId, opposite = false)
-            log("sending position info", Severity.DEBUG, userId = userId, gameId = game.gameId)
-            send(enemyId.toString())
+            sendSerialized(enemyId)
             log("sending enemy id info - [$enemyId]", Severity.DEBUG, userId = userId, gameId = game.gameId)
+            // we send position to the new connections
+            game.sendPosition(this)
+            log("sending position info", Severity.DEBUG, userId = userId, gameId = game.gameId)
+            game.updateSession(userId, this)
             while (true) {
                 val frame = this.incoming.receive()
                 if (frame !is Frame.Text) continue
@@ -154,7 +154,7 @@ fun Route.gameRoutingWS() {
                 gameId = gameId
             )
             return@webSocket
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             log(
                 "uncaught exception",
                 Severity.DEBUG,
