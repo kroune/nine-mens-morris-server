@@ -91,7 +91,6 @@ object SearchingForGame {
                 }
                 val gameId = gamesRepository.getGameIdByUserId(userId)!!
                 channel.send(Pair(false, gameId))
-                channel.close()
             }
         }
         usersSearchingForGameJobsMap[userId] = job
@@ -116,7 +115,7 @@ object SearchingForGame {
                     log("bucket.size - ${availablePlayers.size}", Severity.DEBUG)
                     if (availablePlayers.size == 1) {
                         // TODO: add average game search time updater
-                        val expectedWaitingTime = 15L
+                        val expectedWaitingTime = (10..20L).random()
                         userIdToSession[availablePlayers.first()]?.trySend(
                             Pair(true, expectedWaitingTime)
                         )
