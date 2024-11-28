@@ -107,6 +107,7 @@ fun Application.module() {
 
 fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
     install(WebSockets) {
+        contentConverter = KotlinxWebsocketSerializationConverter(Json)
         val webSocketConfig = currentConfig.webSocketConfig
         pingPeriod = webSocketConfig.pingPeriod
         timeout = webSocketConfig.timeout
