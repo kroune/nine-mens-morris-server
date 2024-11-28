@@ -35,6 +35,7 @@ import com.example.routing.game.gameRouting
 import com.example.routing.misc.miscRouting
 import com.example.routing.userInfo.userInfoRouting
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -54,6 +55,7 @@ import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import io.opentelemetry.semconv.ServiceAttributes
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
