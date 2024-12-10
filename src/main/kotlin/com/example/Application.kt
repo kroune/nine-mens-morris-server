@@ -80,12 +80,12 @@ fun main() {
         module = {
             applyPlugins()
             routing()
-            module()
+            database()
         }
     ).start(wait = true)
 }
 
-fun Application.module() {
+fun database() {
     val isInK8s = System.getenv("IS_IN_K8S") == "1"
     val localhost = "127.0.0.1:5432"
     val podDomain = "postgres-service.default.svc.cluster.local"
@@ -93,8 +93,8 @@ fun Application.module() {
     Database.connect(
         "jdbc:postgresql://$url/postgres",
         driver = "org.postgresql.Driver",
-        user = "postgres",
-        password = "1234"
+        user = currentConfig.dbConfig.username,
+        password = currentConfig.dbConfig.password
     )
     log("initializing users repository", Severity.DEBUG)
     usersRepository
@@ -175,6 +175,9 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
             global {
                 val rateLimitConfig = currentConfig.rateLimitConfig
                 rateLimiter(limit = rateLimitConfig.rateLimit, refillPeriod = rateLimitConfig.refillSpeed)
+            }
+            register(RateLimitName("imageUploading")) {
+                rateLimiter(limit = 3, refillPeriod = 60.seconds)
             }
         }
 }

@@ -26,6 +26,7 @@ import com.example.features.logging.log
 import com.example.routing.responses.get.*
 import com.example.routing.responses.requireValidJwtToken
 import io.ktor.http.*
+import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -52,54 +53,57 @@ fun Route.userInfoRoutingPOST() {
      *
      * [Nothing] - success
      */
-    post("upload-picture") {
-        requireValidJwtToken {
-            return@post
-        }
-
-        val jwtToken = call.parameters["jwtToken"]!!
-        val jwtTokenObject = JwtTokenImpl(jwtToken)
-        log("getting from jwt token object ${jwtTokenObject.token}", Severity.DEBUG)
-        val login = jwtTokenObject.getLogin().getOrElse {
-            internalServerError()
-            return@post
-        }
-        log("receiving picture byte array", Severity.DEBUG)
-        val byteArray = try {
-            call.receive<ByteArray>()
-        } catch (_: ContentTransformationException) {
-            // actually anything can be converted to byte array
-            imageIsNotValid()
-            return@post
-        }
-        log("starting image decoding", Severity.DEBUG)
-        val decodedVariant = try {
-            val outputStream = ByteArrayOutputStream()
-
-            val bytes = ByteArrayInputStream(byteArray)
-            val buffer = ImageIO.read(bytes)!!
-            val maxSize = currentConfig.fileConfig.profilePictureMaxSize
-            if (buffer.height > maxSize || buffer.width > maxSize) {
-                imageIsTooLarge()
+    rateLimit(RateLimitName("imageUploading")) {
+        post("upload-picture") {
+            requireValidJwtToken {
                 return@post
             }
-            ImageIO.write(buffer, "png", outputStream)
-            outputStream.close()
-            outputStream.toByteArray()
-        } catch (e: Exception) {
-            when (e) {
-                is IOException, is IllegalArgumentException, is NullPointerException -> {
-                    imageIsNotValid()
+
+            val jwtToken = call.parameters["jwtToken"]!!
+            val jwtTokenObject = JwtTokenImpl(jwtToken)
+            log("getting from jwt token object ${jwtTokenObject.token}", Severity.DEBUG)
+            val login = jwtTokenObject.getLogin().getOrElse {
+                internalServerError()
+                return@post
+            }
+            log("receiving picture byte array", Severity.DEBUG)
+            val byteArray = try {
+                call.receive<ByteArray>()
+            } catch (_: ContentTransformationException) {
+                // actually anything can be converted to byte array
+                imageIsNotValid()
+                return@post
+            }
+            log("starting image decoding", Severity.DEBUG)
+            val decodedVariant = try {
+                val outputStream = ByteArrayOutputStream()
+
+                val bytes = ByteArrayInputStream(byteArray)
+                val buffer = ImageIO.read(bytes)!!
+                val maxSize = currentConfig.fileConfig.profilePictureMaxSize
+                if (buffer.height > maxSize || buffer.width > maxSize) {
+                    imageIsTooLarge()
                     return@post
                 }
-                else -> {
-                    internalServerError()
-                    log("unrecognized exception when decoding image", Severity.FATAL)
-                    return@post
+                ImageIO.write(buffer, "png", outputStream)
+                outputStream.close()
+                outputStream.toByteArray()
+            } catch (e: Exception) {
+                when (e) {
+                    is IOException, is IllegalArgumentException, is NullPointerException -> {
+                        imageIsNotValid()
+                        return@post
+                    }
+
+                    else -> {
+                        internalServerError()
+                        log("unrecognized exception when decoding image", Severity.FATAL)
+                        return@post
+                    }
                 }
             }
+            usersRepository.updatePictureByLogin(login, decodedVariant)
+            call.respond(HttpStatusCode.OK)
         }
-        usersRepository.updatePictureByLogin(login, decodedVariant)
-        call.respond(HttpStatusCode.OK)
     }
 }

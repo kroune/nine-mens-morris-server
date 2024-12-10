@@ -55,7 +55,7 @@ object GameDataFactory {
 }
 
 /**
- * if a bot exists in game - it is [secondUser]
+ * if a bot exists in game - it is [secondPlayer]
  */
 class Game(
     val gameId: Long,
@@ -76,7 +76,7 @@ class Game(
     fun handleGameEnd(
         reason: GameEndReason
     ) {
-        val isFirstUserLost = reason.isFirstUser
+        val isFirstUserLost = reason.isFirstUser!!
         CoroutineScope(Dispatchers.Default).launch {
             log("Game ended due to ${reason.javaClass.simpleName}, isFirstUserLost = ${reason.isFirstUser}", severity = Severity.INFO, gameId = gameId)
             val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!

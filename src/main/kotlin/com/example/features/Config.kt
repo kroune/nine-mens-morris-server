@@ -44,6 +44,13 @@ data class Config(
     val encryptionToken: String,
     val fileConfig: FileConfig,
     val gameConfig: GameConfig,
+    val dbConfig: DBConfig
+)
+
+@Serializable
+class DBConfig(
+    val username: String,
+    val password: String
 )
 
 @Serializable

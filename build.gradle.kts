@@ -19,6 +19,7 @@ application {
 tasks.dokkaHtml {
     suppressObviousFunctions = true
 }
+
 dependencies {
     // ktor
     implementation(libs.ktor.server.ohhttp)

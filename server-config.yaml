@@ -17,3 +17,6 @@ gameConfig:
   delayBeforeRecheckingBucket: 3000
   minTimeBeforePairingWithBot: 20000
   maxTimeBeforePairingWithBot: 30000
+dbConfig:
+  username: "postgres"
+  password: "1234"
