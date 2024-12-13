@@ -112,7 +112,7 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
     install(CORS) {
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
-        allowHost("kroune.github.io", listOf("http", "https"))
+        allowHost("github.io", listOf("http", "https"), listOf("kroune"))
     }
     install(WebSockets) {
         contentConverter = KotlinxWebsocketSerializationConverter(Json)
