@@ -31,11 +31,10 @@ dependencies {
     implementation(libs.ktor.server.auth.jwt)
     implementation(libs.ktor.server.rate.limit)
     implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.server.cors)
 
     // other libs
     implementation(libs.logback.classic)
-    testImplementation(libs.kotlin.test.junit)
-    testImplementation(kotlin("reflect"))
     implementation(libs.bcrypt)
 
     // serialization
@@ -63,4 +62,6 @@ dependencies {
     testImplementation(libs.test.container.postgresql)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.ktor.server.test)
+    testImplementation(libs.kotlin.test.junit)
+    testImplementation(kotlin("reflect"))
 }

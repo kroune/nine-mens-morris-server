@@ -26,6 +26,7 @@ ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", v
 ktor-server-auth-jwt = { group = "io.ktor", name = "ktor-server-auth-jwt", version.ref = "ktor" }
 ktor-server-rate-limit = { group = "io.ktor", name = "ktor-server-rate-limit", version.ref = "ktor" }
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-server-cors = { group = "io.ktor", name = "ktor-server-cors", version.ref = "ktor" }
 ktor-server-test = { group = "io.ktor", name = "ktor-server-test-host", version.ref = "ktor" }
 ktor-server-kafka = { group = "io.github.flaxoos", name = "ktor-server-kafka", version.ref = "kafka" }
 logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback_version" }
