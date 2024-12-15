@@ -36,6 +36,11 @@ interface GamesDataRepositoryI {
     suspend fun getFirstUserIdByGameId(gameId: Long): Long?
     suspend fun getSecondUserIdByGameId(gameId: Long): Long?
     suspend fun getFirstPlayerMovesFirstByGameId(gameId: Long): Boolean?
+
+    /**
+     * @param gameId id of the game
+     * @return null if there is no bot in game or botId
+     */
     suspend fun getBotIdByGameId(gameId: Long): Long?
     suspend fun getMovesCountByGameId(gameId: Long): Int?
     suspend fun getGameIdByUserId(userId: Long): Long?

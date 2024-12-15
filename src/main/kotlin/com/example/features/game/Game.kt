@@ -207,7 +207,7 @@ class Game(
     private suspend fun botMove() {
         val firstUserId = gamesRepository.getFirstUserIdByGameId(gameId)!!
         val secondUserId = gamesRepository.getSecondUserIdByGameId(gameId)!!
-        val botUserId = gamesRepository.getBotIdByGameId(gameId)!!
+        val botUserId = gamesRepository.getBotIdByGameId(gameId)
         val position = gamesRepository.getPositionByGameId(gameId)!!
         val firstPlayerMovesFirst = gamesRepository.getFirstPlayerMovesFirstByGameId(gameId)!!
         // if bot should make move
