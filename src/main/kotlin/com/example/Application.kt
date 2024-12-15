@@ -183,7 +183,7 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
                 rateLimiter(limit = rateLimitConfig.rateLimit, refillPeriod = rateLimitConfig.refillSpeed)
             }
             register(RateLimitName("imageUploading")) {
-                rateLimiter(limit = 3, refillPeriod = 60.seconds)
+                rateLimiter(limit = 3, refillPeriod = 60.seconds, initialSize = 5)
             }
         }
 }

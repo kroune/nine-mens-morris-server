@@ -90,6 +90,8 @@ object SearchingForGame {
                     return@launch
                 }
                 val gameId = gamesRepository.getGameIdByUserId(userId)!!
+                // make sure to initialize it, so time count starts
+                GameDataFactory.getGame(gameId)
                 channel.send(Pair(false, gameId))
             }
         }
@@ -138,6 +140,8 @@ object SearchingForGame {
                         userIdToSession[userId]?.trySend(Pair(false, gameId))
                         usersSearchingForGameJobsMap[userId]?.cancel()
                     }
+                    // make sure to initialize it, so time count starts
+                    GameDataFactory.getGame(gameId)
                 }
             }
         }
