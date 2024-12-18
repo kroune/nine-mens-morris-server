@@ -43,7 +43,7 @@ jobs:
       - name: Checkout kubernetes cluster
         uses: actions/checkout@v4
         with:
-          repository: 'https://github.com/kroune/kuber-configs'
+          repository: kroune/kuber-configs
           path: kubernetes
       - name: Cd into kubernetes
         run: |
@@ -53,6 +53,7 @@ jobs:
           python -m scripts.main
         #  to make sure everything gets setup
           sleep 120s
+
       - name: Check connection
         run: |
           curl -s https://localhost:30066/
