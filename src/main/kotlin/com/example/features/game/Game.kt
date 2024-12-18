@@ -292,7 +292,7 @@ class Game(
      */
     suspend fun updateSession(userId: Long, session: DefaultWebSocketServerSession) {
         val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
-        val secondPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
+        val secondPlayerId = gamesRepository.getSecondUserIdByGameId(gameId)!!
         when (userId) {
             firstPlayerId -> {
                 firstPlayer = session
