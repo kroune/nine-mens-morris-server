@@ -268,7 +268,7 @@ class Game(
 
     suspend fun isFirstPlayer(userId: Long): Boolean {
         val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)
-        val secondPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)
+        val secondPlayerId = gamesRepository.getSecondUserIdByGameId(gameId)
         return when (userId) {
             firstPlayerId -> {
                 true
