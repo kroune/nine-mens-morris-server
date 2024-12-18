@@ -1,0 +1,59 @@
+name: Load testing
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      IS_PROD: False
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          path: "~/backend"
+      - name: Cd into backend
+        run: |
+          cd ~/backend
+      - name: Set up JDK 20
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: 20
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Run tests
+        run: gradle build
+      - name: Build jar
+        run: gradle build
+      - name: Build and Docker image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: testing/backend
+      - name: Cd out of backend
+        run: |
+          cd ..
+      - name: Checkout kubernetes cluster
+        uses: actions/checkout@v4
+        with:
+          repository: 'https://github.com/kroune/kuber-configs'
+          path: "~/kubernetes"
+      - name: Cd into kubernetes
+        run: |
+          cd ~/kubernetes
+          kind create cluster --config kind/cluster.yaml
+          kind load docker-image testing/backend
+          python -m scripts.main
+        #  to make sure everything gets setup
+          sleep 120s
+      - name: Check connection
+        run: |
+          curl -s https://localhost:30066/
+          kubectl get pods --all-namespaces
