@@ -11,13 +11,13 @@ jobs:
     env:
       IS_PROD: False
     steps:
+      - name: Create directories and cd
+        run: |
+          mkdir backend
+          mkdir kubernetes
+          cd backend
       - name: Checkout the repository
         uses: actions/checkout@v4
-        with:
-          path: backend
-      - name: Cd into backend
-        run: |
-          cd ~/backend
       - name: Set up JDK 20
         uses: actions/setup-java@v4
         with:
@@ -39,15 +39,13 @@ jobs:
           tags: testing/backend
       - name: Cd out of backend
         run: |
-          cd ..
+          cd ../kubernetes
       - name: Checkout kubernetes cluster
         uses: actions/checkout@v4
         with:
           repository: kroune/kuber-configs
-          path: kubernetes
-      - name: Cd into kubernetes
+      - name: Create cluster
         run: |
-          cd ~/kubernetes
           kind create cluster --config kind/cluster.yaml
           kind load docker-image testing/backend
           python -m scripts.main
