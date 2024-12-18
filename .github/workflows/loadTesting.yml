@@ -36,19 +36,19 @@ jobs:
 
       - name: Build jar
         run: gradle build
-#
-#      - name: Build and Docker image
-#        id: push
-#        uses: docker/build-push-action@v6
-#        with:
-#          context: .
-#          file: ./Dockerfile
-#          push: false
-#          tags: testing/backend
-#
-#      - name: Cd out of backend
-#        run: |
-#          cd ../kubernetes
+
+      - name: Build and Docker image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: testing/backend
+
+      - name: Cd out of backend
+        run: |
+          cd ../kubernetes
 #
 #      - name: Checkout kubernetes cluster
 #        uses: actions/checkout@v4
