@@ -8,7 +8,7 @@ kaml = "0.65.0"
 exposed_version = "0.56.0"
 postgresql = "42.7.4"
 nine_mens_morris_shared = "d8439fe65f"
-lib = "v1.0.0"
+lib = "1.0.2"
 otlp = "1.44.1"
 otlp_ktor = "2.10.0-alpha"
 junit = "5.10.2"
@@ -40,7 +40,7 @@ exposed-kotlin-datetime = { group = "org.jetbrains.exposed", name = "exposed-kot
 exposed-json = { group = "org.jetbrains.exposed", name = "exposed-json", version.ref = "exposed_version" }
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
 nine-men-s-morris-shared = { group = "com.github.kroune", name = "9-men-s-morris-shared", version.ref = "nine_mens_morris_shared" }
-nine-men-s-morris-lib = { group = "com.github.kroune", name = "9-men-s-morris-lib", version.ref = "lib" }
+nine-men-s-morris-lib = { group = "io.github.kroune", name = "nineMensMorris-jvm", version.ref = "lib" }
 opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp", version.ref = "otlp" }
 opentelemetry-sdk = { group = "io.opentelemetry", name = "opentelemetry-sdk", version.ref = "otlp" }
 opentelemetry-ktor = { group = "io.opentelemetry.instrumentation", name = "opentelemetry-ktor-3.0", version.ref = "otlp_ktor" }
