@@ -61,9 +61,10 @@ jobs:
           kind create cluster --config kind/cluster.yaml
           kind load docker-image testing/backend
           python -m scripts.main
+#         to make sure everything gets setup
           sleep 120s
-#
-#      - name: Check connection
-#        run: |
-#          curl -s https://localhost:30066/
-#          kubectl get pods --all-namespaces
+
+      - name: Check connection
+        run: |
+          curl -s https://localhost:30066/
+          kubectl get pods --all-namespaces
