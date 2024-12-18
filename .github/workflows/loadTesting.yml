@@ -8,27 +8,35 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     env:
       IS_PROD: False
+
     steps:
       - name: Create directories and cd
         run: |
           mkdir backend
           mkdir kubernetes
           cd backend
+
       - name: Checkout the repository
         uses: actions/checkout@v4
+
       - name: Set up JDK 20
         uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
           java-version: 20
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
       - name: Run tests
         run: gradle build
+
       - name: Build jar
         run: gradle build
+
       - name: Build and Docker image
         id: push
         uses: docker/build-push-action@v6
@@ -37,14 +45,17 @@ jobs:
           file: ./Dockerfile
           push: false
           tags: testing/backend
+
       - name: Cd out of backend
         run: |
           cd ../kubernetes
+
       - name: Checkout kubernetes cluster
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
           repository: kroune/kuber-configs
+
       - name: Create cluster
         run: |
           kind create cluster --config kind/cluster.yaml
