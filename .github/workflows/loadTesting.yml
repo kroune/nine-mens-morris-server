@@ -44,7 +44,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'https://github.com/kroune/kuber-configs'
-          path: "~/kubernetes"
+          path: ~/kubernetes
       - name: Cd into kubernetes
         run: |
           cd ~/kubernetes
