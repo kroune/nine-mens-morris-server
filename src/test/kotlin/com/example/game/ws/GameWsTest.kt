@@ -95,6 +95,7 @@ class GameWsTest {
                 }
             }
         }
+
         @Test
         fun `connect with real player`() {
             testApplication {
