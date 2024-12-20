@@ -13,12 +13,6 @@ jobs:
       IS_PROD: False
 
     steps:
-      - name: Create directories and cd
-        run: |
-          mkdir backend
-          mkdir kubernetes
-          cd backend
-
       - name: Checkout the repository
         uses: actions/checkout@v4
 
@@ -48,8 +42,7 @@ jobs:
 
       - name: Cd out of backend
         run: |
-          ls ../
-          cd ../kubernetes/
+          cd ..
 
       - name: Checkout kubernetes cluster
         uses: actions/checkout@v4
