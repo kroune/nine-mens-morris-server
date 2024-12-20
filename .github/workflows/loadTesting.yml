@@ -48,7 +48,8 @@ jobs:
 
       - name: Cd out of backend
         run: |
-          cd ../kubernetes
+          ls ../
+          cd ../kubernetes/
 
       - name: Checkout kubernetes cluster
         uses: actions/checkout@v4
