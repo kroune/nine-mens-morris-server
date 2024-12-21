@@ -68,7 +68,7 @@ object ConfigurationLoader {
     )
 
     private fun loadConfig(): ConfigMember {
-        val configDirectory = System.getenv("CONFIG_PATH") ?: "/etc/game-server/config.yaml"
+        val configDirectory = System.getenv("CONFIG_PATH") ?: "/etc/game-server/config.json"
         val config = File(configDirectory).readText()
         return Yaml.default.decodeFromString<ConfigMember>(config)
     }
