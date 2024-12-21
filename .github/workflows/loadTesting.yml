@@ -25,6 +25,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Create example config
+        run: |
+          sudo mkdir /etc/game-server/
+          sudo chmod -R ugo+rws /etc/game-server/
+          touch /etc/game-server/config.yaml
+          echo -n ${{ secrets.TEST_CONFIG }} | base64 -d  >> /etc/game-server/config.yaml
+
       - name: Run tests
         run: gradle build
 
