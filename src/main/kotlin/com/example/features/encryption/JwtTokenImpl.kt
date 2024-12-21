@@ -22,8 +22,8 @@ package com.example.features.encryption
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTDecodeException
-import com.example.features.currentConfig
 import com.example.data.local.usersRepository
+import com.example.features.ConfigurationLoader.currentConfig
 import com.example.features.logging.log
 import io.opentelemetry.api.logs.Severity
 import kotlinx.datetime.Clock

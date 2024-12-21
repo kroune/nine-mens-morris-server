@@ -22,7 +22,7 @@ package com.example.features.game
 import com.example.common.json
 import com.example.data.local.gamesRepository
 import com.example.data.local.usersRepository
-import com.example.features.currentConfig
+import com.example.features.ConfigurationLoader.currentConfig
 import com.example.features.logging.log
 import com.kroune.nineMensMorrisLib.GameState
 import com.kroune.nineMensMorrisLib.move.Movement

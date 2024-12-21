@@ -20,7 +20,7 @@
 package com.example.routing.userInfo.post
 
 import com.example.data.local.usersRepository
-import com.example.features.currentConfig
+import com.example.features.ConfigurationLoader.currentConfig
 import com.example.features.encryption.JwtTokenImpl
 import com.example.features.logging.log
 import com.example.routing.responses.get.*

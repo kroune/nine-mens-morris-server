@@ -23,7 +23,7 @@ import com.example.data.local.games.GameData
 import com.example.data.local.gamesRepository
 import com.example.data.local.queueRepository
 import com.example.data.local.usersRepository
-import com.example.features.currentConfig
+import com.example.features.ConfigurationLoader.currentConfig
 import com.example.features.logging.log
 import io.opentelemetry.api.logs.Severity
 import kotlinx.coroutines.*

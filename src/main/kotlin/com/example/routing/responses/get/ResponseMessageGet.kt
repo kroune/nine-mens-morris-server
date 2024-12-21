@@ -19,7 +19,7 @@
  */
 package com.example.routing.responses.get
 
-import com.example.features.currentConfig
+import com.example.features.ConfigurationLoader.currentConfig
 import com.example.features.logging.log
 import io.ktor.http.*
 import io.ktor.server.response.*

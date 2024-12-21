@@ -19,13 +19,11 @@
  */
 package com.example
 
-import com.example.common.json
 import com.example.data.local.botsRepository
 import com.example.data.local.gamesRepository
 import com.example.data.local.queueRepository
 import com.example.data.local.usersRepository
-import com.example.features.Config
-import com.example.features.currentConfig
+import com.example.features.ConfigurationLoader.currentConfig
 import com.example.features.logging.identifier
 import com.example.features.logging.log
 import com.example.features.logging.openTelemetryEndpoint
@@ -55,7 +53,6 @@ import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import io.opentelemetry.semconv.ServiceAttributes
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
 import java.time.Instant
@@ -64,9 +61,6 @@ import kotlin.time.toJavaDuration
 
 fun main() {
     log("starting server", Severity.INFO)
-    log("printing server config", Severity.INFO)
-    log(json.encodeToString<Config>(currentConfig), Severity.INFO)
-    currentConfig
     val serverConfig = currentConfig.serverConfig
     embeddedServer(
         Netty,
@@ -87,16 +81,14 @@ fun main() {
 }
 
 fun database() {
-    val isInK8s = System.getenv("IS_IN_K8S") == "1"
-    val localhost = "127.0.0.1:5432"
-    val podDomain = "postgres-service.default.svc.cluster.local"
-    val url = if (isInK8s) podDomain else localhost
-    Database.connect(
-        "jdbc:postgresql://$url/postgres",
-        driver = "org.postgresql.Driver",
-        user = currentConfig.dbConfig.username,
-        password = currentConfig.dbConfig.password
-    )
+    currentConfig.serviceLocator.postgres.let {
+        Database.connect(
+            it.url,
+            driver = "org.postgresql.Driver",
+            user = it.username,
+            password = it.password
+        )
+    }
     log("initializing users repository", Severity.DEBUG)
     usersRepository
     log("initializing games repository", Severity.DEBUG)
@@ -180,7 +172,11 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
         install(RateLimit) {
             global {
                 val rateLimitConfig = currentConfig.rateLimitConfig
-                rateLimiter(limit = rateLimitConfig.rateLimit, refillPeriod = rateLimitConfig.refillSpeed)
+                rateLimiter(
+                    limit = rateLimitConfig.rateLimit,
+                    refillPeriod = rateLimitConfig.refillSpeed,
+                    initialSize = rateLimitConfig.initialSize
+                )
             }
             register(RateLimitName("imageUploading")) {
                 rateLimiter(limit = 3, refillPeriod = 60.seconds, initialSize = 5)
