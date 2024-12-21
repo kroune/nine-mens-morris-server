@@ -18,6 +18,11 @@ jobs:
         java-version: 21
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
+    - name: Create example config
+      run: |
+        mkdir /etc/game-server/
+        touch /etc/game-server/config.yaml
+        echo ${{ secrets.TEST_CONFIG }} >> /etc/game-server/config.yaml
     - name: Run tests
       run: gradle test
     - name: Build jar
