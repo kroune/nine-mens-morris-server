@@ -1,8 +1,7 @@
 package com.example.features
 
-import com.charleskorn.kaml.Yaml
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.time.Duration
 
@@ -70,7 +69,7 @@ object ConfigurationLoader {
     private fun loadConfig(): ConfigMember {
         val configDirectory = System.getenv("CONFIG_PATH") ?: "/etc/game-server/config.json"
         val config = File(configDirectory).readText()
-        return Yaml.default.decodeFromString<ConfigMember>(config)
+        return Json.decodeFromString<ConfigMember>(config)
     }
 
     val currentConfig: ConfigMember = loadConfig()
