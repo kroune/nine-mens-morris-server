@@ -5,7 +5,7 @@ import com.example.data.local.gamesRepository
 import com.example.data.local.queueRepository
 import com.example.data.local.users.UserData
 import com.example.data.local.usersRepository
-import com.example.features.currentConfig
+import com.example.features.ConfigurationLoader.currentConfig
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Database
 import org.testcontainers.containers.PostgreSQLContainer
