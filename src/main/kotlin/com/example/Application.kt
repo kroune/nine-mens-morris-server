@@ -120,9 +120,7 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
                             .setEndpoint(openTelemetryEndpoint)
                             .setCompression("gzip")
                             .setRetryPolicy(
-                                RetryPolicy.builder()
-                                    .setMaxAttempts(Int.MAX_VALUE)
-                                    .build()
+                                RetryPolicy.getDefault()
                             )
                             .build()
                     )
