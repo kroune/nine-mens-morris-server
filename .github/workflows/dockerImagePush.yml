@@ -23,7 +23,7 @@ jobs:
         touch /etc/game-server/config.json
         echo -n ${{ secrets.TEST_CONFIG }} | base64 -d  >> /etc/game-server/config.json
     - name: Run tests
-      run: gradle test
+      run: gradle test --rerun-tasks
     - name: Build jar
       run: gradle build
     - name: Log in to Docker Hub

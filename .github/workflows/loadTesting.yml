@@ -33,7 +33,7 @@ jobs:
           echo -n ${{ secrets.TEST_CONFIG }} | base64 -d  >> /etc/game-server/config.json
 
       - name: Run tests
-        run: gradle build
+        run: gradle test --rerun-tasks
 
       - name: Build jar
         run: gradle build

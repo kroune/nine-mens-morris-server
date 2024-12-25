@@ -24,7 +24,6 @@ val openTelemetryLogger: SdkLoggerProvider = SdkLoggerProvider.builder()
                 .setCompression("gzip")
                 .setRetryPolicy(
                     RetryPolicy.builder()
-                        .setMaxAttempts(Int.MAX_VALUE)
                         .build()
                 )
                 .build()
