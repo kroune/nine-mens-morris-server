@@ -19,14 +19,19 @@
  */
 package com.example.routing.misc.get
 
+import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 fun Route.miscRoutingGET() {
     get("/") {
         call.respondText("Hello, world, this is nine mens morris server!")
     }
-    get("ping") {
-        call.respondText("pong")
+    get("/healthz") {
+        val sdf = SimpleDateFormat("hh:mm:ss dd/M/yyyy")
+        val currentDate = sdf.format(Date())
+        call.respond(HttpStatusCode.OK, "I am fine at $currentDate")
     }
 }

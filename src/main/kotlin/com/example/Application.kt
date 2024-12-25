@@ -57,7 +57,6 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
 import java.time.Instant
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.toJavaDuration
 
 fun main() {
     log("starting server", Severity.INFO)
@@ -120,10 +119,13 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
                         OtlpGrpcSpanExporter.builder()
                             .setEndpoint(openTelemetryEndpoint)
                             .setCompression("gzip")
-                            .setRetryPolicy(RetryPolicy.getDefault())
+                            .setRetryPolicy(
+                                RetryPolicy.builder()
+                                    .setMaxAttempts(Int.MAX_VALUE)
+                                    .build()
+                            )
                             .build()
                     )
-                        .setExporterTimeout(3.seconds.toJavaDuration())
                         .build()
                 )
                 .setResource(
