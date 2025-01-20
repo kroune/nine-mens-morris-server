@@ -2,7 +2,6 @@ name: LoadTesting
 
 on:
   push:
-  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -75,6 +74,6 @@ jobs:
           curl -s http://localhost:30066/
           cd ../nine-mens-morris-server
 
-      - name: 100 RPS test
+      - name: 2000 RPS test
         run: |
-          k6 run ./.github/workflows/100-rps.js
+          k6 run ./.github/workflows/2000-rps.js &
