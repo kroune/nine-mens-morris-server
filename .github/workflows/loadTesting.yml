@@ -68,3 +68,13 @@ jobs:
         run: |
           kubectl get pods --all-namespaces
           curl -s http://localhost:30066/
+
+      - name: Check connection
+        run: |
+          kubectl get pods --all-namespaces
+          curl -s http://localhost:30066/
+          cd ../nine-mens-morris-server
+
+      - name: 100 RPS test
+        run: |
+          k6 run ./.github/workflows/100-rps.js
