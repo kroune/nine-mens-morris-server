@@ -67,12 +67,11 @@ jobs:
         run: |
           kubectl get pods --all-namespaces
           curl -s http://localhost:30066/
-
-      - name: Check connection
-        run: |
-          kubectl get pods --all-namespaces
-          curl -s http://localhost:30066/
           cd ../nine-mens-morris-server
+
+      - name: Install k6
+        run: |
+          sudo apt-get install -y k6
 
       - name: 2000 RPS test
         run: |
