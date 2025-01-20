@@ -19,5 +19,5 @@ export const options = {
 
 
 export default function () {
-    const response = http.get('http://localhost:30066');
+    http.get('http://localhost:30066');
 }
