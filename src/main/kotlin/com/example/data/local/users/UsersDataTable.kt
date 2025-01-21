@@ -23,7 +23,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.kotlin.datetime.date
 
 object UsersDataTable : Table("users_data") {
-    val login = varchar("login", 20)
+    val login = varchar("login", 20).uniqueIndex()
     val passwordHash = varchar("password_hash", 500)
     val id = long("id").autoIncrement().uniqueIndex()
     val rating = integer("rating").default(1000)

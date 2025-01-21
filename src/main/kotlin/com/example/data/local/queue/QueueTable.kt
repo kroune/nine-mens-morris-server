@@ -22,6 +22,6 @@ package com.example.data.local.queue
 import org.jetbrains.exposed.sql.Table
 
 object QueueTable: Table("queue") {
-    val bucketId = integer("bucketId")
+    val bucketId = integer("bucketId").index()
     val userId = long("userId")
 }
