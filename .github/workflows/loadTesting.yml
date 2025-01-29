@@ -77,4 +77,6 @@ jobs:
 
       - name: 2000 RPS test
         run: |
-          k6 run ./.github/workflows/2000-rps.js &
+          ls -hlas
+          ls -hlas ..
+          k6 run ./2000-rps.js &
