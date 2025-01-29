@@ -1,0 +1,724 @@
+openapi: "3.1.0"
+info:
+  title: "NineMensMorris_backend API"
+  description: "NineMensMorris_backend API"
+  version: "1.0.0"
+servers:
+  - url: "https://nine-men-s-morris.me/"
+paths:
+  /:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Hello, world, this is nine mens morris server!"
+  /api/v1/user/check-jwt-token:
+    get:
+      description: "possible responses: <br>  noJwtToken  jwtTokenIsNotValid  Boolean\
+        \ - true"
+      parameters:
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "no [jwtToken] parameter found"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "[jwtToken] parameter is not valid"
+        "200":
+          description: "OK"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+  /api/v1/user/get-creation-date-by-id:
+    get:
+      description: "possible responses: <br>  noUserId  userIdIsNotLong  userIdIsNotValid\
+        \  internalServerError  Int - rating"
+      parameters:
+        - name: "id"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "id"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "no [jwtToken] parameter found"
+                Example#2:
+                  value: "no [id] parameter found"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "[jwtToken] parameter is not valid"
+                Example#2:
+                  value: "[id] parameter is not valid"
+                Example#3:
+                  value: "[id] parameter is not a long"
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Internal server error"
+        "200":
+          description: ""
+          content:
+            text/plain:
+              schema:
+                type: "string"
+  /api/v1/user/get-id-by-jwt-token:
+    get:
+      description: "possible responses: <br>  noJwtToken  jwtTokenIsNotValid  internalServerError\
+        \  Long - user id"
+      parameters:
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "no [jwtToken] parameter found"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "[jwtToken] parameter is not valid"
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Internal server error"
+        "200":
+          description: ""
+          content:
+            text/plain:
+              schema:
+                type: "string"
+  /api/v1/user/get-login-by-id:
+    get:
+      description: "possible responses: <br>  noUserId  userIdIsNotLong  userIdIsNotValid\
+        \  internalServerError  String - login"
+      parameters:
+        - name: "id"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "id"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "no [jwtToken] parameter found"
+                Example#2:
+                  value: "no [id] parameter found"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "[jwtToken] parameter is not valid"
+                Example#2:
+                  value: "[id] parameter is not valid"
+                Example#3:
+                  value: "[id] parameter is not a long"
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Internal server error"
+        "200":
+          description: ""
+          content:
+            text/plain:
+              schema:
+                type: "string"
+  /api/v1/user/get-picture-by-id:
+    get:
+      description: "possible responses: <br>  noUserId  userIdIsNotLong  userIdIsNotValid\
+        \  ByteArray - profile picture"
+      parameters:
+        - name: "id"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "id"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "no [jwtToken] parameter found"
+                Example#2:
+                  value: "no [id] parameter found"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "[jwtToken] parameter is not valid"
+                Example#2:
+                  value: "[id] parameter is not valid"
+                Example#3:
+                  value: "[id] parameter is not a long"
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Internal server error"
+        "200":
+          description: ""
+          content:
+            text/plain:
+              schema:
+                type: "string"
+  /api/v1/user/get-rating-by-id:
+    get:
+      description: "possible responses: <br>  noUserId  userIdIsNotLong  userIdIsNotValid\
+        \  internalServerError  Int - rating"
+      parameters:
+        - name: "id"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "id"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "no [jwtToken] parameter found"
+                Example#2:
+                  value: "no [id] parameter found"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "[jwtToken] parameter is not valid"
+                Example#2:
+                  value: "[id] parameter is not valid"
+                Example#3:
+                  value: "[id] parameter is not a long"
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Internal server error"
+        "200":
+          description: ""
+          content:
+            text/plain:
+              schema:
+                type: "string"
+  /api/v1/user/is-playing:
+    get:
+      description: "400 = incorrect jwt token <br> null = user isn't playing currently\
+        \ <br>  Long = game id <br> 500 = internal server error"
+      parameters:
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "no [jwtToken] parameter found"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "[jwtToken] parameter is not valid"
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "server error"
+        "200":
+          description: ""
+          content:
+            text/plain:
+              schema:
+                type: "string"
+  /api/v1/user/leaderboard:
+    get:
+      description: ""
+      parameters:
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "no [jwtToken] parameter found"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "[jwtToken] parameter is not valid"
+        "200":
+          description: ""
+          content:
+            text/plain:
+              schema:
+                type: "string"
+  /api/v1/user/login:
+    get:
+      description: "possible responses: <br>  noLogin  noPassword  HttpStatusCode.Unauthorized\
+        \ - login + password aren't present in the db <br>  String - jwt token"
+      parameters:
+        - name: "login"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "password"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "login"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "password"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "invalid [password] parameter found"
+                Example#2:
+                  value: "no [password] parameter found"
+                Example#3:
+                  value: "invalid [login] parameter found"
+                Example#4:
+                  value: "no [login] parameter found"
+        "401":
+          description: "Unauthorized"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "login + password aren't present in the db"
+        "200":
+          description: "OK"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+  /api/v1/user/reg:
+    get:
+      description: "possible responses: <br>  noLogin  noPassword  HttpStatusCode.Conflict\
+        \ - login is already in use <br>  String - jwt token"
+      parameters:
+        - name: "login"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "password"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "login"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "password"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "invalid [password] parameter found"
+                Example#2:
+                  value: "no [password] parameter found"
+                Example#3:
+                  value: "invalid [login] parameter found"
+                Example#4:
+                  value: "no [login] parameter found"
+        "409":
+          description: "Conflict"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "login is already in use"
+        "200":
+          description: "OK"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+  /api/v1/user/upload-picture:
+    post:
+      description: ""
+      parameters:
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      requestBody:
+        content:
+          '*/*':
+            schema:
+              type: "array"
+              items:
+                type: "string"
+                format: "byte"
+        required: true
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "no [jwtToken] parameter found"
+        "403":
+          description: "Forbidden"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "provided image (byte array) is not valid"
+                Example#2:
+                  value: ""
+                Example#3:
+                  value: "provided image (byte array) is not valid"
+                Example#4:
+                  value: "[jwtToken] parameter is not valid"
+        "500":
+          description: "Internal Server Error"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Internal server error"
+                Example#2:
+                  value: "Internal server error"
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+  /healthz:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: ""
+  /api/v1/user/game:
+    get:
+      description: ""
+      parameters:
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "gameId"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "gameId"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "Connection"
+          in: "header"
+          required: true
+          description: "Websocket Connection parameter"
+          schema:
+            type: "string"
+        - name: "Upgrade"
+          in: "header"
+          required: true
+          description: "Websocket Upgrade parameter"
+          schema:
+            type: "string"
+        - name: "Sec-WebSocket-Key"
+          in: "header"
+          required: true
+          description: "Websocket Sec-WebSocket-Key parameter"
+          schema:
+            type: "string"
+      responses:
+        "101":
+          description: "Switching Protocols"
+          headers:
+            Connection:
+              required: true
+              schema:
+                type: "string"
+            Upgrade:
+              required: true
+              schema:
+                type: "string"
+            Sec-WebSocket-Accept:
+              required: true
+              schema:
+                type: "string"
+  /api/v1/user/search-for-game:
+    get:
+      description: ""
+      parameters:
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "jwtToken"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+        - name: "Connection"
+          in: "header"
+          required: true
+          description: "Websocket Connection parameter"
+          schema:
+            type: "string"
+        - name: "Upgrade"
+          in: "header"
+          required: true
+          description: "Websocket Upgrade parameter"
+          schema:
+            type: "string"
+        - name: "Sec-WebSocket-Key"
+          in: "header"
+          required: true
+          description: "Websocket Sec-WebSocket-Key parameter"
+          schema:
+            type: "string"
+      responses:
+        "101":
+          description: "Switching Protocols"
+          headers:
+            Connection:
+              required: true
+              schema:
+                type: "string"
+            Upgrade:
+              required: true
+              schema:
+                type: "string"
+            Sec-WebSocket-Accept:
+              required: true
+              schema:
+                type: "string"

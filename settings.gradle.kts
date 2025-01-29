@@ -1,4 +1,4 @@
-rootProject.name = "MensMorris-backend"
+rootProject.name = "NineMensMorris-backend"
 
 dependencyResolutionManagement {
     repositories {

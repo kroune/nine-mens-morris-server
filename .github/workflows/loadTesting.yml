@@ -69,9 +69,11 @@ jobs:
           curl -s http://localhost:30066/
           cd ../nine-mens-morris-server
 
+
       - name: Install k6
-        run: |
-          sudo apt-get install -y k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: '0.56.0'
 
       - name: 2000 RPS test
         run: |
