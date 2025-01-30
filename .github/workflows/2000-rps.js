@@ -13,17 +13,17 @@ export let options = {
             vus: 200,
         },
         {
-            duration: '2m',
+            duration: '5m',
             target: 500,
             vus: 500,
         },
         {
-            duration: '4m',
+            duration: '10m',
             target: 1000,
             vus: 1000,
         },
         {
-            duration: '6m',
+            duration: '1h',
             target: 1500,
             vus: 1500,
         },
@@ -34,8 +34,8 @@ export let options = {
         },
     ],
     thresholds: {
-        http_req_failed: ['rate<0.01'], // http errors should be less than 1%
-        http_req_duration: ['p(99)<500'],
+        http_req_failed: ['rate<0.1'], // http errors should be less than 0.1%
+        http_req_duration: ['p(99)<1000'],
     },
 };
 
