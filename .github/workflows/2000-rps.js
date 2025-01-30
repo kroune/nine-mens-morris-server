@@ -13,19 +13,19 @@ export let options = {
             vus: 200,
         },
         {
-            duration: '50s',
+            duration: '2m',
             target: 500,
             vus: 500,
         },
         {
-            duration: '60s',
+            duration: '4m',
             target: 1000,
             vus: 1000,
         },
         {
-            duration: '60s',
-            target: 2000,
-            vus: 2000,
+            duration: '6m',
+            target: 1500,
+            vus: 1500,
         },
         {
             duration: '10s',
