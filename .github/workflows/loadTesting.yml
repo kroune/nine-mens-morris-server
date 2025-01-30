@@ -28,20 +28,18 @@ jobs:
 
       - name: Create example config
         run: |
-          ls -hlas
-          cd server
-          ls -hlas
           sudo mkdir /etc/game-server/
           sudo chmod -R ugo+rws /etc/game-server/
           touch /etc/game-server/config.json
           echo -n ${{ secrets.TEST_CONFIG }} | base64 -d  >> /etc/game-server/config.json
+          cd server
 
 #      - name: Run tests
 #        run: gradle test --rerun
 
       - name: Build jar
         run: |
-          ls -hlas
+          cd server
           gradle build -x test
 
       - name: Build and Docker image
