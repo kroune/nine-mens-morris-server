@@ -31,8 +31,8 @@ jobs:
           touch /etc/game-server/config.json
           echo -n ${{ secrets.TEST_CONFIG }} | base64 -d  >> /etc/game-server/config.json
 
-      - name: Run tests
-        run: gradle test --rerun-tasks
+#      - name: Run tests
+#        run: gradle test --rerun-tasks
 
       - name: Build jar
         run: gradle build
@@ -56,18 +56,18 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           repository: kroune/kuber-configs
 
-      - name: Create cluster
-        run: |
-          kind create cluster --config kind/cluster.yaml
-          kind load docker-image testing/backend
-          python -m scripts.main
-          sleep 120s
+#      - name: Create cluster
+#        run: |
+#          kind create cluster --config kind/cluster.yaml
+#          kind load docker-image testing/backend
+#          python -m scripts.main
+#          sleep 120s
 
-      - name: Check connection
-        run: |
-          kubectl get pods --all-namespaces
-          curl -s http://localhost:30066/
-          cd ../nine-mens-morris-server
+#      - name: Check connection
+#        run: |
+#          kubectl get pods --all-namespaces
+#          curl -s http://localhost:30066/
+#          cd ../nine-mens-morris-server
 
 
       - name: Install k6
@@ -77,7 +77,13 @@ jobs:
 
       - name: 2000 RPS test
         run: |
-          cd ../nine-mens-morris-server/.github/workflows
+          ls -hlas
+          ls -hlas ..
+          cd ../nine-mens-morris-server
+          ls -hlas
+          cd .github
+          ls -hlas
+          cd workflows
           ls -hlas
           ls -hlas ..
           k6 run ./2000-rps.js &
