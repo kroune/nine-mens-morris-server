@@ -28,7 +28,9 @@ jobs:
 
       - name: Create example config
         run: |
+          ls -hlas
           cd server
+          ls -hlas
           sudo mkdir /etc/game-server/
           sudo chmod -R ugo+rws /etc/game-server/
           touch /etc/game-server/config.json
@@ -38,7 +40,9 @@ jobs:
 #        run: gradle test --rerun
 
       - name: Build jar
-        run: gradle build -x test
+        run: |
+          ls -hlas
+          gradle build -x test
 
       - name: Build and Docker image
         id: push
