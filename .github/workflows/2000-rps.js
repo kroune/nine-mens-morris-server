@@ -8,9 +8,24 @@ export let options = {
             duration: '20s',
         },
         {
-            duration: '50s',
+            duration: '20s',
             target: 200,
             vus: 200,
+        },
+        {
+            duration: '50s',
+            target: 500,
+            vus: 500,
+        },
+        {
+            duration: '60s',
+            target: 1000,
+            vus: 1000,
+        },
+        {
+            duration: '60s',
+            target: 2000,
+            vus: 2000,
         },
         {
             duration: '10s',

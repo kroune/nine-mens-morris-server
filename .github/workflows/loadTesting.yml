@@ -74,5 +74,4 @@ jobs:
 
       - name: 2000 RPS test
         run: |
-          ls -hlas ~
           k6 run ~/2000-rps.js &
