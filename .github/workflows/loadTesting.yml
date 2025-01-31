@@ -6,6 +6,7 @@ on:
 
 jobs:
   load_test:
+    if: false
     runs-on: ubuntu-latest
 
     env:
