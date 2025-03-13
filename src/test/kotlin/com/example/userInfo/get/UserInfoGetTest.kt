@@ -4,7 +4,7 @@ package com.example.userInfo.get
 
 import com.example.TestDatabase
 import com.example.applyPlugins
-import com.example.data.local.users.UserData
+import com.example.data.local.users.InsertUserData
 import com.example.data.local.usersRepository
 import com.example.features.encryption.JwtTokenImpl
 import com.example.routing.userInfo.get.userInfoRoutingGET
@@ -289,7 +289,7 @@ class UserInfoGetTest {
                 routing {
                     userInfoRoutingGET()
                 }
-                val user = db.createDummyUser(UserData("exampleLogin", "examplePass", rating = 3307))
+                val user = db.createDummyUser(InsertUserData("exampleLogin", "examplePass", rating = 3307))
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-rating-by-id") {
                     parameter("id", id)
@@ -416,7 +416,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser(UserData("exampleLogin", "examplePass", rating = 3307))
+                val user = db.createDummyUser(InsertUserData("exampleLogin", "examplePass", rating = 3307))
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-id-by-jwt-token") {
                     parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
@@ -478,7 +478,7 @@ class UserInfoGetTest {
                 routing {
                     userInfoRoutingGET()
                 }
-                val user = db.createDummyUser(UserData("exampleLogin", "examplePass"))
+                val user = db.createDummyUser(InsertUserData("exampleLogin", "examplePass"))
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-picture-by-id") {
                     parameter("id", id)
@@ -504,7 +504,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 val user = db.createDummyUser(
-                    UserData(
+                    InsertUserData(
                         "exampleLogin",
                         "examplePass",
                         profilePicture = this.javaClass.getResource("/valid.png")!!.readBytes()
@@ -643,7 +643,7 @@ class UserInfoGetTest {
                 var jwtToken: String? = null
                 for (i in 1..14) {
                     val user = db.createDummyUser(
-                        userData = UserData(
+                        userData = InsertUserData(
                             "user$i",
                             password = "44444441s",
                             rating = 1000 + 2 * i
@@ -680,7 +680,7 @@ class UserInfoGetTest {
                 var jwtToken: String? = null
                 for (i in 1..14) {
                     val user = db.createDummyUser(
-                        userData = UserData(
+                        userData = InsertUserData(
                             "user$i",
                             password = "44444441s",
                             rating = 1000 + 2 * i
@@ -713,7 +713,7 @@ class UserInfoGetTest {
                 var jwtToken: String? = null
                 for (i in 1..4) {
                     val user = db.createDummyUser(
-                        userData = UserData(
+                        userData = InsertUserData(
                             "user$i",
                             password = "44444441s",
                             rating = 1000 + 2 * i

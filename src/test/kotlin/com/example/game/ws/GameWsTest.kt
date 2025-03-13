@@ -2,7 +2,7 @@ package com.example.game.ws
 
 import com.example.TestDatabase
 import com.example.applyPlugins
-import com.example.data.local.users.UserData
+import com.example.data.local.users.InsertUserData
 import com.example.features.encryption.JwtTokenImpl
 import com.example.routing.game.ws.gameRoutingWS
 import io.ktor.client.plugins.websocket.*
@@ -36,8 +36,8 @@ class GameWsTest {
                     gameRoutingWS()
                 }
                 db.connect()
-                val user1 = db.createDummyUser(UserData("user1", "password1"))
-                val user2 = db.createDummyUser(UserData("user2", "password2"))
+                val user1 = db.createDummyUser(InsertUserData("user1", "password1"))
+                val user2 = db.createDummyUser(InsertUserData("user2", "password2"))
                 runBlocking {
                     withTimeoutOrNull(100.seconds) {
                         var firstGameId: Long? = null
@@ -113,8 +113,8 @@ class GameWsTest {
                     gameRoutingWS()
                 }
                 db.connect()
-                val user1 = db.createDummyUser(UserData("user1", "password1"))
-                val user2 = db.createDummyUser(UserData("user2", "password2"))
+                val user1 = db.createDummyUser(InsertUserData("user1", "password1"))
+                val user2 = db.createDummyUser(InsertUserData("user2", "password2"))
                 runBlocking {
                     withTimeoutOrNull(100.seconds) {
                         var firstGameId: Long? = null
@@ -183,7 +183,7 @@ class GameWsTest {
                     gameRoutingWS()
                 }
                 db.connect()
-                val user1 = db.createDummyUser(UserData("user1", "password1"))
+                val user1 = db.createDummyUser(InsertUserData("user1", "password1"))
                 runBlocking {
                     withTimeoutOrNull(100.seconds) {
                         var firstGameId: Long? = null
@@ -204,8 +204,10 @@ class GameWsTest {
                             }
                         }
                         listOf(job1).forEach { it.join() }
-                        println("firstGameId = $firstGameId" +
-                                "")
+                        println(
+                            "firstGameId = $firstGameId" +
+                                    ""
+                        )
                     }!!
                 }
             }

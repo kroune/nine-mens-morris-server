@@ -3,7 +3,7 @@ package com.example
 import com.example.data.local.botsRepository
 import com.example.data.local.gamesRepository
 import com.example.data.local.queueRepository
-import com.example.data.local.users.UserData
+import com.example.data.local.users.InsertUserData
 import com.example.data.local.usersRepository
 import com.example.features.ConfigurationLoader.currentConfig
 import kotlinx.coroutines.runBlocking
@@ -19,7 +19,7 @@ class TestDatabase {
         start() // Start the container
     }
 
-    fun createDummyUser(userData: UserData = UserData("testLogin", "testPassword")): UserData {
+    fun createDummyUser(userData: InsertUserData = InsertUserData("testLogin", "testPassword")): InsertUserData {
         runBlocking {
             usersRepository.create(userData)
         }

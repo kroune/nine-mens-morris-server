@@ -19,25 +19,28 @@
  */
 package com.example.data.local.users.dao
 
-import com.example.data.local.users.UserData
+import com.example.data.local.users.InsertUserData
 import com.example.data.local.users.UsersDataTable
 import com.example.features.encryption.Bcrypter
 import com.example.features.encryption.JwtTokenImpl
 import com.example.features.logging.log
 import io.opentelemetry.api.logs.Severity
 import kotlinx.datetime.LocalDate
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
-class UsersDataRepositoryImpl : UsersDataRepositoryI {
+class UsersDataServiceImpl : UsersDataServiceI {
     init {
         transaction {
             SchemaUtils.create(UsersDataTable)
         }
     }
 
-    override suspend fun create(data: UserData) {
+    override suspend fun create(data: InsertUserData) {
         newSuspendedTransaction {
             val passwordHashValue = Bcrypter.hash(data.password)
             UsersDataTable.insert {
@@ -52,7 +55,7 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
 
     override suspend fun getIdByLogin(login: String): Long? {
         return newSuspendedTransaction {
-            UsersDataTable.selectAll()
+            UsersDataTable.select(UsersDataTable.id)
                 .where {
                     UsersDataTable.login eq login
                 }.map {
@@ -63,7 +66,7 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
 
     override suspend fun getLoginById(id: Long): String? {
         return newSuspendedTransaction {
-            UsersDataTable.selectAll()
+            UsersDataTable.select(UsersDataTable.login)
                 .where {
                     UsersDataTable.id eq id
                 }.limit(1).map {
@@ -94,7 +97,7 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
 
     override suspend fun getPictureById(id: Long): ByteArray? {
         return newSuspendedTransaction {
-            UsersDataTable.selectAll()
+            UsersDataTable.select(UsersDataTable.profilePicture)
                 .where {
                     UsersDataTable.id eq id
                 }.limit(1).map {
@@ -105,7 +108,7 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
 
     override suspend fun getRatingByLogin(login: String): Int? {
         return newSuspendedTransaction {
-            UsersDataTable.selectAll()
+            UsersDataTable.select(UsersDataTable.rating)
                 .where {
                     UsersDataTable.login eq login
                 }.limit(1).map {
@@ -116,7 +119,7 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
 
     override suspend fun getRatingById(id: Long): Int? {
         return newSuspendedTransaction {
-            UsersDataTable.selectAll()
+            UsersDataTable.select(UsersDataTable.rating)
                 .where {
                     UsersDataTable.id eq id
                 }.limit(1).map {
@@ -127,7 +130,7 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
 
     override suspend fun getCreationDateById(id: Long): LocalDate? {
         return newSuspendedTransaction {
-            UsersDataTable.selectAll()
+            UsersDataTable.select(UsersDataTable.creationDate)
                 .where {
                     UsersDataTable.id eq id
                 }.limit(1).map {
@@ -169,7 +172,7 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
 
     override suspend fun isLoginPresent(login: String): Boolean {
         return newSuspendedTransaction {
-            UsersDataTable.selectAll()
+            UsersDataTable.select(UsersDataTable.login)
                 .where {
                     UsersDataTable.login eq login
                 }.limit(1).map {
@@ -182,7 +185,7 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
         return newSuspendedTransaction {
             Bcrypter.verify(
                 password,
-                UsersDataTable.selectAll()
+                UsersDataTable.select(UsersDataTable.passwordHash)
                     .where {
                         UsersDataTable.login eq login
                     }.limit(1).map {
@@ -194,9 +197,11 @@ class UsersDataRepositoryImpl : UsersDataRepositoryI {
 
     override suspend fun getLeaderboard(size: Int): List<Long> {
         return newSuspendedTransaction {
-            UsersDataTable.selectAll().orderBy(UsersDataTable.rating, SortOrder.DESC).limit(size).map {
-                it[UsersDataTable.id]
-            }
+            UsersDataTable.select(UsersDataTable.id)
+                .orderBy(UsersDataTable.rating, SortOrder.DESC)
+                .limit(size).map {
+                    it[UsersDataTable.id]
+                }
         }
     }
 }

@@ -19,11 +19,11 @@
  */
 package com.example.data.local.users.dao
 
-import com.example.data.local.users.UserData
+import com.example.data.local.users.InsertUserData
 import kotlinx.datetime.LocalDate
 
-interface UsersDataRepositoryI {
-    suspend fun create(data: UserData)
+interface UsersDataServiceI {
+    suspend fun create(data: InsertUserData)
     suspend fun getIdByLogin(login: String): Long?
     suspend fun getLoginById(id: Long): String?
     suspend fun updatePictureByLogin(login: String, newPicture: ByteArray)

@@ -19,16 +19,16 @@
  */
 package com.example.data.local
 
-import com.example.data.local.bots.dao.BotsRepositoryI
-import com.example.data.local.bots.dao.BotsRepositoryImpl
-import com.example.data.local.games.dao.GamesDataRepositoryI
-import com.example.data.local.games.dao.GamesDataRepositoryImpl
-import com.example.data.local.queue.dao.QueueRepositoryI
-import com.example.data.local.queue.dao.QueueRepositoryImpl
-import com.example.data.local.users.dao.UsersDataRepositoryI
-import com.example.data.local.users.dao.UsersDataRepositoryImpl
+import com.example.data.local.bots.dao.BotsServiceI
+import com.example.data.local.bots.dao.BotsServiceImpl
+import com.example.data.local.games.dao.GamesDataServiceI
+import com.example.data.local.games.dao.GamesDataServiceImpl
+import com.example.data.local.queue.dao.QueueServiceI
+import com.example.data.local.queue.dao.QueueServiceImpl
+import com.example.data.local.users.dao.UsersDataServiceI
+import com.example.data.local.users.dao.UsersDataServiceImpl
 
-var usersRepository: UsersDataRepositoryI = UsersDataRepositoryImpl()
-var botsRepository: BotsRepositoryI = BotsRepositoryImpl()
-var gamesRepository: GamesDataRepositoryI = GamesDataRepositoryImpl()
-var queueRepository: QueueRepositoryI = QueueRepositoryImpl()
+var usersRepository: UsersDataServiceI = UsersDataServiceImpl()
+var botsRepository: BotsServiceI = BotsServiceImpl()
+var gamesRepository: GamesDataServiceI = GamesDataServiceImpl()
+var queueRepository: QueueServiceI = QueueServiceImpl()

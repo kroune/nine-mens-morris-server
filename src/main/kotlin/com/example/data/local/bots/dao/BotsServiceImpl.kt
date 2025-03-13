@@ -22,11 +22,10 @@ package com.example.data.local.bots.dao
 import com.example.data.local.bots.BotsDataTable
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class BotsRepositoryImpl: BotsRepositoryI {
+class BotsServiceImpl: BotsServiceI {
     init {
         transaction {
             SchemaUtils.create(BotsDataTable)
@@ -43,7 +42,7 @@ class BotsRepositoryImpl: BotsRepositoryI {
 
     override suspend fun exists(id: Long): Boolean {
         return newSuspendedTransaction {
-            BotsDataTable.selectAll().where {
+            BotsDataTable.select(BotsDataTable.userId).where {
                 BotsDataTable.userId eq id
             }.limit(1).map {
                 it[BotsDataTable.userId]

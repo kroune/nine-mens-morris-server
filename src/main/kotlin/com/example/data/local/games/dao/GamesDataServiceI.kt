@@ -23,7 +23,7 @@ import com.example.data.local.games.GameData
 import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.move.Movement
 
-interface GamesDataRepositoryI {
+interface GamesDataServiceI {
     /**
      * Tries to create game with provided parameters
      * @param game game information

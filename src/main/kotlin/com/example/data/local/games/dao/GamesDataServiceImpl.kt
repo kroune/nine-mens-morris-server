@@ -31,7 +31,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.math.max
 import kotlin.math.min
 
-class GamesDataRepositoryImpl : GamesDataRepositoryI {
+class GamesDataServiceImpl : GamesDataServiceI {
     init {
         transaction {
             SchemaUtils.create(GamesDataTable)
@@ -66,7 +66,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun getPositionByGameId(gameId: Long): Position? {
         return newSuspendedTransaction {
-            GamesDataTable.selectAll().where {
+            GamesDataTable.select(GamesDataTable.position).where {
                 GamesDataTable.gameId eq gameId
             }.limit(1).map {
                 it[GamesDataTable.position]
@@ -76,7 +76,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun getGameMoveHistory(gameId: Long): List<Movement>? {
         return newSuspendedTransaction {
-            GamesDataTable.selectAll().where {
+            GamesDataTable.select(GamesDataTable.moveHistory).where {
                 GamesDataTable.gameId eq gameId
             }.limit(1).map {
                 it[GamesDataTable.moveHistory]
@@ -99,7 +99,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun getBotIdByGameId(gameId: Long): Long? {
         return newSuspendedTransaction {
-            GamesDataTable.selectAll().where {
+            GamesDataTable.select(GamesDataTable.botId).where {
                 GamesDataTable.gameId eq gameId
             }.limit(1).map {
                 it[GamesDataTable.botId]
@@ -109,7 +109,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun getFirstPlayerMovesFirstByGameId(gameId: Long): Boolean? {
         return newSuspendedTransaction {
-            GamesDataTable.selectAll().where {
+            GamesDataTable.select(GamesDataTable.firstPlayerMovesFirst).where {
                 GamesDataTable.gameId eq gameId
             }.limit(1).map {
                 it[GamesDataTable.firstPlayerMovesFirst]
@@ -119,7 +119,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun getFirstUserIdByGameId(gameId: Long): Long? {
         return newSuspendedTransaction {
-            GamesDataTable.selectAll().where {
+            GamesDataTable.select(GamesDataTable.firstPlayer).where {
                 GamesDataTable.gameId eq gameId
             }.limit(1).map {
                 it[GamesDataTable.firstPlayer]
@@ -129,7 +129,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun getSecondUserIdByGameId(gameId: Long): Long? {
         return newSuspendedTransaction {
-            GamesDataTable.selectAll().where {
+            GamesDataTable.select(GamesDataTable.secondPlayer).where {
                 GamesDataTable.gameId eq gameId
             }.limit(1).map {
                 it[GamesDataTable.secondPlayer]
@@ -139,7 +139,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun getMovesCountByGameId(gameId: Long): Int? {
         return newSuspendedTransaction {
-            GamesDataTable.selectAll().where {
+            GamesDataTable.select(GamesDataTable.moveHistory).where {
                 GamesDataTable.gameId eq gameId
             }.limit(1).map {
                 it[GamesDataTable.moveHistory].size
@@ -149,7 +149,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun getGameIdByUserId(userId: Long): Long? {
         return newSuspendedTransaction {
-            GamesDataTable.selectAll().where {
+            GamesDataTable.select(GamesDataTable.gameId).where {
                 (GamesDataTable.firstPlayer eq userId) or (GamesDataTable.secondPlayer eq userId)
             }.limit(1).map {
                 it[GamesDataTable.gameId]
@@ -159,7 +159,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun participates(userId: Long): Boolean {
         return newSuspendedTransaction {
-            GamesDataTable.selectAll().where {
+            GamesDataTable.select(GamesDataTable.gameId).where {
                 (GamesDataTable.firstPlayer eq userId) or (GamesDataTable.secondPlayer eq userId)
             }.limit(1).map {
                 it[GamesDataTable.gameId]
@@ -169,7 +169,7 @@ class GamesDataRepositoryImpl : GamesDataRepositoryI {
 
     override suspend fun exists(gameId: Long): Boolean {
         return newSuspendedTransaction {
-            GamesDataTable.selectAll().where {
+            GamesDataTable.select(GamesDataTable.gameId).where {
                 GamesDataTable.gameId eq gameId
             }.limit(1).map {
                 it[GamesDataTable.gameId]

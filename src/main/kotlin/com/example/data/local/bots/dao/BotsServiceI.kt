@@ -19,7 +19,7 @@
  */
 package com.example.data.local.bots.dao
 
-interface BotsRepositoryI {
+interface BotsServiceI {
     suspend fun add(id: Long)
     suspend fun exists(id: Long): Boolean
 }

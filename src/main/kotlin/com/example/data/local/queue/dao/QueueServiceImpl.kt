@@ -24,11 +24,10 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class QueueRepositoryImpl : QueueRepositoryI {
+class QueueServiceImpl : QueueServiceI {
     init {
         transaction {
             SchemaUtils.create(QueueTable)
@@ -50,7 +49,7 @@ class QueueRepositoryImpl : QueueRepositoryI {
 
     override suspend fun getUsers(bucket: Int): List<Long> {
         return newSuspendedTransaction {
-            QueueTable.selectAll().where {
+            QueueTable.select(QueueTable.userId).where {
                 QueueTable.bucketId eq bucket
             }.map {
                 it[QueueTable.userId]

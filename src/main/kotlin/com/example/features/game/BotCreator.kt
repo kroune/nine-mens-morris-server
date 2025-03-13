@@ -22,7 +22,7 @@ package com.example.features.game
 import com.example.data.remote.randomUserRepository
 import com.example.common.getRandomString
 import com.example.data.local.botsRepository
-import com.example.data.local.users.UserData
+import com.example.data.local.users.InsertUserData
 import com.example.data.local.usersRepository
 import com.example.features.logging.log
 import io.opentelemetry.api.logs.Severity
@@ -52,7 +52,7 @@ object BotCreator {
 
         val password = getRandomString(16)
         val rating = Random.nextInt(ratingRange)
-        val data = UserData(
+        val data = InsertUserData(
             login = login,
             password = password,
             profilePicture = picture,

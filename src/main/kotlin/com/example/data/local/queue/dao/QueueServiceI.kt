@@ -19,7 +19,7 @@
  */
 package com.example.data.local.queue.dao
 
-interface QueueRepositoryI {
+interface QueueServiceI {
     suspend fun addUser(userId: Long, bucketRange: IntRange)
     suspend fun getUsers(bucket: Int): List<Long>
 

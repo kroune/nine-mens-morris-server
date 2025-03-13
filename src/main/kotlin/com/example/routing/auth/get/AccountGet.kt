@@ -19,10 +19,10 @@
  */
 package com.example.routing.auth.get
 
-import com.example.data.local.users.UserData
+import com.example.common.json
+import com.example.data.local.users.InsertUserData
 import com.example.data.local.usersRepository
 import com.example.features.encryption.JwtTokenImpl
-import com.example.common.json
 import com.example.routing.responses.get.jwtTokenIsNotValid
 import com.example.routing.responses.get.noJwtToken
 import com.example.routing.responses.get.noLogin
@@ -31,7 +31,6 @@ import com.example.routing.responses.requireLogin
 import com.example.routing.responses.requirePassword
 import com.example.routing.responses.requireValidJwtToken
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
@@ -62,7 +61,7 @@ fun Route.accountRoutingGET() {
             call.respond(HttpStatusCode.Conflict, "login is already in use")
             return@get
         }
-        val data = UserData(login, password)
+        val data = InsertUserData(login, password)
         usersRepository.create(data)
         val jwtToken = JwtTokenImpl(login, password).token
         val jsonText = json.encodeToString<String>(jwtToken)
