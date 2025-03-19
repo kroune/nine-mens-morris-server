@@ -1,0 +1,36 @@
+{
+  "serverConfig": {
+    "host": "0.0.0.0",
+    "port": 8080
+  },
+  "rateLimitConfig": {
+    "rateLimit": 120,
+    "refillSpeed": "PT1M",
+    "initialSize": 120
+  },
+  "webSocketConfig": {
+    "pingPeriod": "PT3S",
+    "timeout": "PT1M"
+  },
+  "encryptionToken": "thisIsEncryptionTokenI_WILL_FUCKING_KILL_YOU_IF_YOU_USE_THIS_IN_PROD",
+  "fileConfig": {
+    "profilePictureMaxSize": 256
+  },
+  "grafanaConfig": {
+    "passwordForScrape": "some_password"
+  },
+  "gameConfig": {
+    "timeForMove": 30000,
+    "bucketSize": 100,
+    "delayBeforeRecheckingBucket": 3000,
+    "minTimeBeforePairingWithBot": 20000,
+    "maxTimeBeforePairingWithBot": 30000
+  },
+  "serviceLocator": {
+    "postgres": {
+      "url": "jdbc:postgresql://postgres-game-service.default.svc.cluster.local/postgres",
+      "username": "postgres",
+      "password": "1234"
+    }
+  }
+}

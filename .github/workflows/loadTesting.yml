@@ -29,8 +29,7 @@ jobs:
         run: |
           sudo mkdir /etc/game-server/
           sudo chmod -R ugo+rws /etc/game-server/
-          touch /etc/game-server/config.json
-          echo -n ${{ secrets.TEST_CONFIG }} | base64 -d  >> /etc/game-server/config.json
+          mv .github/workflows/test-config.json /etc/game-server/config.json
           cp .github/workflows/2000-rps.js ~/
 
       - name: Run tests

@@ -5,6 +5,7 @@ import com.example.applyPlugins
 import com.example.data.local.usersRepository
 import com.example.features.encryption.JwtTokenImpl
 import com.example.routing.userInfo.post.userInfoRoutingPOST
+import com.example.startDI
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
@@ -24,6 +25,7 @@ class UserInfoPostTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -49,6 +51,7 @@ class UserInfoPostTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -74,6 +77,7 @@ class UserInfoPostTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -99,6 +103,7 @@ class UserInfoPostTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -124,6 +129,7 @@ class UserInfoPostTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -148,6 +154,7 @@ class UserInfoPostTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {

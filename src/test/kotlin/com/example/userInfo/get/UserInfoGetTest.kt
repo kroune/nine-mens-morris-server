@@ -8,6 +8,7 @@ import com.example.data.local.users.InsertUserData
 import com.example.data.local.usersRepository
 import com.example.features.encryption.JwtTokenImpl
 import com.example.routing.userInfo.get.userInfoRoutingGET
+import com.example.startDI
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -27,6 +28,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -49,6 +51,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -70,6 +73,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -90,6 +94,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -111,6 +116,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -131,6 +137,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -155,6 +162,7 @@ class UserInfoGetTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -179,6 +187,7 @@ class UserInfoGetTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -199,6 +208,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -219,6 +229,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -240,6 +251,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -261,6 +273,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -284,6 +297,7 @@ class UserInfoGetTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -305,6 +319,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -326,6 +341,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -346,6 +362,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -367,6 +384,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -388,6 +406,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -410,6 +429,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -431,6 +451,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -451,6 +472,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -473,6 +495,7 @@ class UserInfoGetTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -498,6 +521,7 @@ class UserInfoGetTest {
             db.connect()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -528,6 +552,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -549,6 +574,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -569,6 +595,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -590,6 +617,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -611,6 +639,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -633,6 +662,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -670,6 +700,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -703,6 +734,7 @@ class UserInfoGetTest {
             val db = TestDatabase()
             testApplication {
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {

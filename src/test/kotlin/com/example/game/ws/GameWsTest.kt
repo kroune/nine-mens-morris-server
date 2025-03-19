@@ -5,6 +5,7 @@ import com.example.applyPlugins
 import com.example.data.local.users.InsertUserData
 import com.example.features.encryption.JwtTokenImpl
 import com.example.routing.game.ws.gameRoutingWS
+import com.example.startDI
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.*
@@ -13,6 +14,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import org.junit.experimental.runners.Enclosed
 import org.junit.runner.RunWith
+import org.koin.core.context.startKoin
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -23,6 +25,9 @@ class GameWsTest {
         fun `connect with real player and join`() {
             testApplication {
                 val db = TestDatabase()
+                val koin = startKoin {
+
+                }
                 val client2 = createClient {
                     install(WebSockets) {
                         contentConverter = KotlinxWebsocketSerializationConverter(Json)
@@ -30,6 +35,7 @@ class GameWsTest {
                     }
                 }
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -107,6 +113,7 @@ class GameWsTest {
                     }
                 }
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {
@@ -177,6 +184,7 @@ class GameWsTest {
                     }
                 }
                 application {
+                    startDI()
                     applyPlugins()
                 }
                 routing {

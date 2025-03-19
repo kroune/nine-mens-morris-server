@@ -23,6 +23,7 @@ import com.example.data.local.botsRepository
 import com.example.data.local.gamesRepository
 import com.example.data.local.queueRepository
 import com.example.data.local.usersRepository
+import com.example.di.koinModules
 import com.example.features.ConfigurationLoader.currentConfig
 import com.example.features.logging.logger
 import com.example.routing.auth.accountRouting
@@ -30,7 +31,6 @@ import com.example.routing.game.gameRouting
 import com.example.routing.misc.miscRouting
 import com.example.routing.monitoring.monitoringRouting
 import com.example.routing.userInfo.userInfoRouting
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
@@ -49,7 +49,6 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
 import org.koin.core.context.GlobalContext
-import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import kotlin.time.Duration.Companion.seconds
 
@@ -78,9 +77,9 @@ fun main() {
 
 fun Application.startDI() {
     install(Koin) {
-        modules(module {
-            single { KotlinLogging.logger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME) }
-        })
+        modules(
+            koinModules
+        )
     }
 }
 
