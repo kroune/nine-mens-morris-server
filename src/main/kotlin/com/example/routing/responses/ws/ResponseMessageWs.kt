@@ -19,68 +19,83 @@
  */
 package com.example.routing.responses.ws
 
-import com.example.features.logging.log
+import com.example.features.logging.globalLogger
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import io.opentelemetry.api.logs.Severity
 
 /**
  * closes web socket connection
  */
-suspend inline fun DefaultWebSocketServerSession.someThingsWentWrong(message: String) {
-    close(CloseReason(406_0, "Something went wrong $message"))
-    log("Something went wrong $message", Severity.INFO)
+suspend inline fun DefaultWebSocketServerSession.someThingsWentWrong(cause: String) {
+    close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Something went wrong $cause"))
+    globalLogger.atInfo {
+        message = "Something went wrong $cause"
+    }
 }
 
 /**
  * closes web socket connection
  */
 suspend inline fun DefaultWebSocketServerSession.jwtTokenIsNotValidForThisGame() {
-    close(CloseReason(400_0, "this [jwtToken] isn't valid for this game"))
-    log("Create new scratch file from selection", Severity.INFO)
+    close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "this [jwtToken] isn't valid for this game"))
+    globalLogger.atInfo {
+        message = "Create new scratch file from selection"
+    }
 }
 
 /**
  * closes web socket connection
  */
 suspend inline fun DefaultWebSocketServerSession.noGameId() {
-    close(CloseReason(400_0, "no [gameId] parameter found"))
-    log("no [gameId] parameter found", Severity.INFO)
+    close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "no [gameId] parameter found"))
+    globalLogger.atInfo {
+        message = "no [gameId] parameter found"
+    }
 }
 
 /**
  * closes web socket connection
  */
 suspend inline fun DefaultWebSocketServerSession.gameIdIsNotValid() {
-    close(CloseReason(400_0, "[gameId] parameter is not valid"))
-    log("[gameId] parameter is not valid", Severity.INFO)
+    close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "[gameId] parameter is not valid"))
+    globalLogger.atInfo {
+        message = "[gameId] parameter is not valid"
+    }
 }
 
 /**
  * closes web socket connection
  */
 suspend inline fun DefaultWebSocketServerSession.gameIdIsNotLong() {
-    close(CloseReason(400_0, "[gameId] parameter is not a valid representation of a number"))
-    log("[gameId] parameter is not a valid representation of a number", Severity.INFO)
+    close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "[gameId] parameter is not a valid representation of a number"))
+    globalLogger.atInfo {
+        message = "[gameId] parameter is not a valid representation of a number"
+    }
 }
 
 /**
  * closes web socket connection
  */
 suspend inline fun DefaultWebSocketServerSession.noJwtToken() {
-    close(CloseReason(400_0, "no [jwtToken] parameter found"))
-    log("no [jwtToken] parameter found", Severity.INFO)
+    close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "no [jwtToken] parameter found"))
+    globalLogger.atInfo {
+        message = "no [jwtToken] parameter found"
+    }
 }
 
 /**
  * closes web socket connection
  */
 suspend inline fun DefaultWebSocketServerSession.jwtTokenIsNotValid() {
-    close(CloseReason(403_0, "[jwtToken] parameter is not valid"))
-    log("[jwtToken] parameter is not valid", Severity.INFO)
+    close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "[jwtToken] parameter is not valid"))
+    globalLogger.atInfo {
+        message = "[jwtToken] parameter is not valid"
+    }
 }
 
 suspend inline fun DefaultWebSocketServerSession.internalServerError() {
-    close(CloseReason(500_0, "Internal server error"))
-    log("Internal server error", Severity.INFO)
+    close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Internal server error"))
+    globalLogger.atInfo {
+        message = "Internal server error"
+    }
 }

@@ -24,7 +24,9 @@ import com.example.data.local.gamesRepository
 import com.example.data.local.usersRepository
 import com.example.features.game.GameDataFactory
 import com.example.features.game.SearchingForGame
-import com.example.features.logging.log
+import com.example.features.logging.gameId
+import com.example.features.logging.logger
+import com.example.features.logging.userId
 import com.example.routing.responses.requireGameId
 import com.example.routing.responses.requireValidJwtToken
 import com.example.routing.responses.ws.jwtTokenIsNotValidForThisGame
@@ -34,7 +36,6 @@ import com.kroune.nineMensMorrisShared.GameEndReason
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import io.opentelemetry.api.logs.Severity
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
@@ -54,21 +55,39 @@ fun Route.gameRoutingWS() {
         SearchingForGame.addUser(userId, channel)
         try {
             while (true) {
-                val (isWaitingTime, it) = channel.receive()
-                val jsonText = Json.encodeToString<Pair<Boolean, Long>>(Pair(isWaitingTime, it))
+                val (isWaitingTime, gameId) = channel.receive()
+                val jsonText = Json.encodeToString<Pair<Boolean, Long>>(Pair(isWaitingTime, gameId))
                 send(jsonText)
                 if (!isWaitingTime) {
-                    log("sending game id to the user", Severity.DEBUG, userId = userId, gameId = it)
+                    logger.atDebug {
+                        message = "sending game id to the user"
+                        payload = buildMap {
+                            userId(userId)
+                            gameId(gameId)
+                        }
+                    }
                     channel.close()
-                    close(CloseReason(CloseReason.Codes.NORMAL, it.toString()))
+                    close(CloseReason(CloseReason.Codes.NORMAL, gameId.toString()))
                     break
                 }
             }
         } catch (e: ClosedSendChannelException) {
-            log("user disconnected from searching for game", Severity.DEBUG, userId = userId)
+            logger.atDebug {
+                message = "sending game id to the user"
+                payload = buildMap {
+                    userId(userId)
+                }
+                cause = e
+            }
             SearchingForGame.removeUser(userId)
         } catch (e: ClosedReceiveChannelException) {
-            log("user disconnected from searching for game", Severity.DEBUG, userId = userId)
+            logger.atDebug {
+                message = "user disconnected from searching for game"
+                payload = buildMap {
+                    userId(userId)
+                }
+                cause = e
+            }
             SearchingForGame.removeUser(userId)
         }
     }
@@ -97,12 +116,30 @@ fun Route.gameRoutingWS() {
             }
             val enemyId = game.enemyId(userId)
             sendSerialized(isGreen)
-            log("sending isGreen info - [$isGreen]", Severity.DEBUG, userId = userId, gameId = game.gameId)
+            logger.atDebug {
+                message = "sending isGreen info - [$isGreen]"
+                payload = buildMap {
+                    userId(userId)
+                    gameId(gameId)
+                }
+            }
             sendSerialized(enemyId)
-            log("sending enemy id info - [$enemyId]", Severity.DEBUG, userId = userId, gameId = game.gameId)
+            logger.atDebug {
+                message = "sending enemy id info - [$enemyId]"
+                payload = buildMap {
+                    userId(userId)
+                    gameId(gameId)
+                }
+            }
             // we send position to the new connections
             game.sendPosition(this)
-            log("sending position info", Severity.DEBUG, userId = userId, gameId = game.gameId)
+            logger.atDebug {
+                message = "sending position info"
+                payload = buildMap {
+                    userId(userId)
+                    gameId(gameId)
+                }
+            }
             game.updateSession(userId, this)
             while (true) {
                 val frame = this.incoming.receive()
@@ -110,33 +147,37 @@ fun Route.gameRoutingWS() {
                 val move = try {
                     json.decodeFromString<Movement>(frame.readText())
                 } catch (e: Exception) {
-                    log(
-                        "error decoding client movement: frame - [${frame.frameType}] stack trace - [${e.stackTraceToString()}]",
-                        Severity.DEBUG,
-                        userId = userId,
-                        gameId = game.gameId
-                    )
+                    logger.atDebug {
+                        message = "error decoding client movement: frameType - [${frame.frameType}]"
+                        payload = buildMap {
+                            userId(userId)
+                            gameId(gameId)
+                        }
+                        cause = e
+                    }
                     someThingsWentWrong("error decoding client movement")
                     return@webSocket
                 }
                 // user gave up
                 if (move.startIndex == null && move.endIndex == null) {
-                    log(
-                        "user gave up",
-                        Severity.DEBUG,
-                        userId = userId,
-                        gameId = game.gameId
-                    )
+                    logger.atDebug {
+                        message = "user gave up"
+                        payload = buildMap {
+                            userId(userId)
+                            gameId(gameId)
+                        }
+                    }
                     game.handleGameEnd(GameEndReason.UserGaveUp(isFirstUser))
                     return@webSocket
                 }
                 if (!game.isMovePossible(move, userId)) {
-                    log(
-                        "received an illegal move - [$move]",
-                        Severity.DEBUG,
-                        userId = userId,
-                        gameId = game.gameId
-                    )
+                    logger.atDebug {
+                        message = "received an illegal move - [$move]"
+                        payload = buildMap {
+                            userId(userId)
+                            gameId(gameId)
+                        }
+                    }
                     someThingsWentWrong("received an illegal move")
                     return@webSocket
                 }
@@ -145,23 +186,26 @@ fun Route.gameRoutingWS() {
                 game.applyMove(move, isFirstUser)
                 // note: checking if the game has ended happens in [GameData.applyMove]
             }
-        } catch (_: ClosedReceiveChannelException) {
+        } catch (e: ClosedReceiveChannelException) {
             // this exception is thrown if websocket session was closed, and we tried to receive smth
-            log(
-                "channel was closed",
-                Severity.INFO,
-                userId = userId,
-                gameId = gameId
-            )
+            logger.atDebug {
+                message = "channel was closed"
+                payload = buildMap {
+                    userId(userId)
+                    gameId(gameId)
+                }
+                cause = e
+            }
             return@webSocket
         } catch (e: Exception) {
-            log(
-                "uncaught exception",
-                Severity.DEBUG,
-                userId = userId,
-                throwable = e,
-                gameId = gameId
-            )
+            logger.atError {
+                message = "uncaught exception"
+                payload = buildMap {
+                    userId(userId)
+                    gameId(gameId)
+                }
+                cause = e
+            }
         }
     }
 }

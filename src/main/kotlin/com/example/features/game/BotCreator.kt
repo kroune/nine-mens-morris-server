@@ -19,13 +19,12 @@
  */
 package com.example.features.game
 
-import com.example.data.remote.randomUserRepository
 import com.example.common.getRandomString
 import com.example.data.local.botsRepository
 import com.example.data.local.users.InsertUserData
 import com.example.data.local.usersRepository
-import com.example.features.logging.log
-import io.opentelemetry.api.logs.Severity
+import com.example.data.remote.randomUserRepository
+import com.example.features.logging.globalLogger
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -36,7 +35,10 @@ object BotCreator {
         run {
             repeat(10) {
                 val (loginVariant, pictureVariant) = randomUserRepository.getLoginAndPicture().getOrElse {
-                    log("Failed creating bot", Severity.ERROR, throwable = it)
+                    globalLogger.atError {
+                        message = "Failed creating bot"
+                        cause = it
+                    }
                     return@repeat
                 }
 
@@ -62,7 +64,7 @@ object BotCreator {
         usersRepository.create(data)
         val id = usersRepository.getIdByLogin(login)!!
         botsRepository.add(id)
-        log("created bot with $login $password", Severity.DEBUG)
+        globalLogger.debug { "created bot with $login $password" }
         return id
     }
 }

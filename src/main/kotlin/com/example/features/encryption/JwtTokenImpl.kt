@@ -24,8 +24,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.exceptions.JWTDecodeException
 import com.example.data.local.usersRepository
 import com.example.features.ConfigurationLoader.currentConfig
-import com.example.features.logging.log
-import io.opentelemetry.api.logs.Severity
+import com.example.features.logging.globalLogger
 import kotlinx.datetime.Clock
 import kotlinx.datetime.toJavaInstant
 import kotlinx.serialization.Serializable
@@ -52,7 +51,10 @@ class JwtTokenImpl(val token: String) {
             val token = JWT.decode(token)
             token.claims["login"]!!.asString()
         }.onFailure {
-            log("error decoding login", Severity.WARN, throwable = it)
+            globalLogger.atInfo {
+                message = "error decoding login"
+                cause = it
+            }
         }
     }
 
@@ -68,7 +70,10 @@ class JwtTokenImpl(val token: String) {
             val token = JWT.decode(token)
             token.claims["password"]!!.asString()
         }.onFailure {
-            log("error decoding login", Severity.WARN, throwable = it)
+            globalLogger.atInfo {
+                message = "error decoding login"
+                cause = it
+            }
         }
     }
 

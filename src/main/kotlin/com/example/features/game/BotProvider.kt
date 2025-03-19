@@ -21,8 +21,9 @@ package com.example.features.game
 
 import com.example.data.local.botsRepository
 import com.example.data.local.usersRepository
-import com.example.features.logging.log
-import io.opentelemetry.api.logs.Severity
+import com.example.features.logging.bucketId
+import com.example.features.logging.globalLogger
+import com.example.features.logging.userId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,6 +32,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 object BotProvider {
     private const val BUCKETS_AMOUNT = 50
+
     /**
      * array of buckets, represented by queue of user ids
      */
@@ -43,7 +45,12 @@ object BotProvider {
             val botRating = usersRepository.getRatingById(id)!!
             val queueToAddBot = (botRating / bucketSize)
             availableBotsBuckets[queueToAddBot].add(id)
-            log("bot got free", Severity.DEBUG, userId = id)
+            globalLogger.atDebug {
+                message = "bot got free"
+                payload = buildMap {
+                    userId(id)
+                }
+            }
         }
     }
 
@@ -55,7 +62,12 @@ object BotProvider {
      * @return id of the bot
      */
     suspend fun getBotFromBucket(bucket: Int): Long {
-        log("getting bot from bucket", Severity.INFO, bucket = bucket)
+        globalLogger.atInfo {
+            message = "getting bot from bucket"
+            payload = buildMap {
+                bucketId(bucket)
+            }
+        }
         return availableBotsBuckets[bucket].poll() ?: run {
             val id = BotCreator.createBot(bucket * bucketSize..bucket * (bucketSize + 1))
             id

@@ -24,42 +24,36 @@ import com.example.data.local.gamesRepository
 import com.example.data.local.queueRepository
 import com.example.data.local.usersRepository
 import com.example.features.ConfigurationLoader.currentConfig
-import com.example.features.logging.identifier
-import com.example.features.logging.log
-import com.example.features.logging.openTelemetryEndpoint
-import com.example.features.logging.openTelemetryLogger
+import com.example.features.logging.logger
 import com.example.routing.auth.accountRouting
 import com.example.routing.game.gameRouting
 import com.example.routing.misc.miscRouting
+import com.example.routing.monitoring.monitoringRouting
 import com.example.routing.userInfo.userInfoRouting
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.ratelimit.*
-import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import io.opentelemetry.api.logs.Severity
-import io.opentelemetry.api.trace.SpanKind
-import io.opentelemetry.api.trace.StatusCode
-import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
-import io.opentelemetry.instrumentation.ktor.v3_0.server.KtorServerTracing
-import io.opentelemetry.sdk.OpenTelemetrySdk
-import io.opentelemetry.sdk.common.export.RetryPolicy
-import io.opentelemetry.sdk.resources.Resource
-import io.opentelemetry.sdk.trace.SdkTracerProvider
-import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
-import io.opentelemetry.semconv.ServiceAttributes
+import io.micrometer.core.instrument.binder.jvm.*
+import io.micrometer.core.instrument.binder.system.ProcessorMetrics
+import io.micrometer.core.instrument.binder.system.UptimeMetrics
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
-import java.time.Instant
+import org.koin.core.context.GlobalContext
+import org.koin.dsl.module
+import org.koin.ktor.plugin.Koin
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
-    log("starting server", Severity.INFO)
     val serverConfig = currentConfig.serverConfig
     embeddedServer(
         Netty,
@@ -72,14 +66,25 @@ fun main() {
             responseWriteTimeoutSeconds = 15
         },
         module = {
+            startDI()
+            logger.info { "starting server" }
             applyPlugins()
+            installMonitoring()
             routing()
             database()
         }
     ).start(wait = true)
 }
 
-fun database() {
+fun Application.startDI() {
+    install(Koin) {
+        modules(module {
+            single { KotlinLogging.logger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME) }
+        })
+    }
+}
+
+fun Application.database() {
     currentConfig.serviceLocator.postgres.let {
         Database.connect(
             it.url,
@@ -88,15 +93,36 @@ fun database() {
             password = it.password
         )
     }
-    log("initializing users repository", Severity.DEBUG)
+    logger.debug { "initializing users repository" }
     usersRepository
-    log("initializing games repository", Severity.DEBUG)
+    logger.debug { "initializing games repository" }
     gamesRepository
-    log("initializing bots repository", Severity.DEBUG)
+    logger.debug { "initializing bots repository" }
     botsRepository
-    log("initializing queue repository", Severity.DEBUG)
+    logger.debug { "initializing queue repository" }
     queueRepository
-    log("applying configs", Severity.DEBUG)
+    logger.debug { "applying configs" }
+}
+
+fun Application.installMonitoring() {
+    val appMicrometerRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    install(MicrometerMetrics) {
+        meterBinders = listOf(
+            UptimeMetrics(),
+            ProcessorMetrics(),
+
+            ClassLoaderMetrics(),
+            JvmCompilationMetrics(),
+            JvmGcMetrics(),
+            JvmHeapPressureMetrics(),
+            JvmInfoMetrics(),
+            JvmMemoryMetrics(),
+            JvmThreadDeadlockMetrics(),
+            JvmThreadMetrics(),
+        )
+        registry = appMicrometerRegistry
+    }
+    GlobalContext.getKoinApplicationOrNull()!!.koin.declare(appMicrometerRegistry)
 }
 
 fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
@@ -110,63 +136,6 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
         val webSocketConfig = currentConfig.webSocketConfig
         pingPeriod = webSocketConfig.pingPeriod
         timeout = webSocketConfig.timeout
-    }
-    val openTelemetry = OpenTelemetrySdk.builder()
-        .setTracerProvider(
-            SdkTracerProvider.builder()
-                .addSpanProcessor(
-                    BatchSpanProcessor.builder(
-                        OtlpGrpcSpanExporter.builder()
-                            .setEndpoint(openTelemetryEndpoint)
-                            .setCompression("gzip")
-                            .setRetryPolicy(
-                                RetryPolicy.getDefault()
-                            )
-                            .build()
-                    )
-                        .build()
-                )
-                .setResource(
-                    Resource.builder()
-                        .put(ServiceAttributes.SERVICE_NAME, "nine-mens-morris-server")
-                        .put(ServiceAttributes.SERVICE_VERSION, identifier)
-                        .build()
-                )
-                .build()
-        )
-        .setLoggerProvider(
-            openTelemetryLogger
-        )
-        .build()
-    install(KtorServerTracing) {
-        setOpenTelemetry(openTelemetry)
-
-        knownMethods(HttpMethod.DefaultMethods)
-        capturedRequestHeaders(HttpHeaders.UserAgent)
-        capturedResponseHeaders(HttpHeaders.ContentType)
-
-        spanStatusExtractor {
-            if (error != null) {
-                spanStatusBuilder.setStatus(StatusCode.ERROR)
-            }
-        }
-
-        spanKindExtractor {
-            if (httpMethod == HttpMethod.Post) {
-                SpanKind.PRODUCER
-            } else {
-                SpanKind.CLIENT
-            }
-        }
-
-        attributeExtractor {
-            onStart {
-                attributes.put("start-time", Instant.now().toEpochMilli())
-            }
-            onEnd {
-                attributes.put("end-time", Instant.now().toEpochMilli())
-            }
-        }
     }
     if (includeRateLimitPlugin)
         install(RateLimit) {
@@ -186,8 +155,9 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
 
 fun Application.routing() {
     routing {
-        log("initializing routing", Severity.DEBUG)
+        logger.debug { "initializing routing" }
         miscRouting()
+        monitoringRouting()
         route("/api/v1/user/") {
             userInfoRouting()
             gameRouting()

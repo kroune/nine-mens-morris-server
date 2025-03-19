@@ -22,7 +22,7 @@ package com.example.routing.userInfo.post
 import com.example.data.local.usersRepository
 import com.example.features.ConfigurationLoader.currentConfig
 import com.example.features.encryption.JwtTokenImpl
-import com.example.features.logging.log
+import com.example.features.logging.globalLogger
 import com.example.routing.responses.get.*
 import com.example.routing.responses.requireValidJwtToken
 import io.ktor.http.*
@@ -30,7 +30,6 @@ import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.opentelemetry.api.logs.Severity
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -61,12 +60,16 @@ fun Route.userInfoRoutingPOST() {
 
             val jwtToken = call.parameters["jwtToken"]!!
             val jwtTokenObject = JwtTokenImpl(jwtToken)
-            log("getting from jwt token object ${jwtTokenObject.token}", Severity.DEBUG)
+            globalLogger.atDebug {
+                message = "getting from jwt token object ${jwtTokenObject.token}"
+            }
             val login = jwtTokenObject.getLogin().getOrElse {
                 internalServerError()
                 return@post
             }
-            log("receiving picture byte array", Severity.DEBUG)
+            globalLogger.atDebug {
+                message = "receiving picture byte array"
+            }
             val byteArray = try {
                 call.receive<ByteArray>()
             } catch (_: ContentTransformationException) {
@@ -74,7 +77,9 @@ fun Route.userInfoRoutingPOST() {
                 imageIsNotValid()
                 return@post
             }
-            log("starting image decoding", Severity.DEBUG)
+            globalLogger.atDebug {
+                message = "starting image decoding"
+            }
             val decodedVariant = try {
                 val outputStream = ByteArrayOutputStream()
 
@@ -97,7 +102,9 @@ fun Route.userInfoRoutingPOST() {
 
                     else -> {
                         internalServerError()
-                        log("unrecognized exception when decoding image", Severity.FATAL)
+                        globalLogger.atError {
+                            message = "unrecognized exception when decoding image"
+                        }
                         return@post
                     }
                 }

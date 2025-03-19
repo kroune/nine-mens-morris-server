@@ -23,8 +23,8 @@ import com.example.data.local.users.InsertUserData
 import com.example.data.local.users.UsersDataTable
 import com.example.features.encryption.Bcrypter
 import com.example.features.encryption.JwtTokenImpl
-import com.example.features.logging.log
-import io.opentelemetry.api.logs.Severity
+import com.example.features.logging.globalLogger
+import com.example.features.logging.userId
 import kotlinx.datetime.LocalDate
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder
@@ -155,11 +155,12 @@ class UsersDataServiceImpl : UsersDataServiceI {
             UsersDataTable.update(
                 { UsersDataTable.id eq id }
             ) {
-                log(
-                    "updated rating of from $oldRating to ${(oldRating + delta).coerceAtLeast(0)}",
-                    Severity.INFO,
-                    userId = id
-                )
+                globalLogger.atInfo {
+                    message = "updated rating of from $oldRating to ${(oldRating + delta).coerceAtLeast(0)}"
+                    payload = buildMap {
+                        userId(id)
+                    }
+                }
                 it[rating] = (oldRating + delta).coerceAtLeast(0)
             }
         }

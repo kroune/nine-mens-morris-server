@@ -20,79 +20,90 @@
 package com.example.routing.responses.get
 
 import com.example.features.ConfigurationLoader.currentConfig
-import com.example.features.logging.log
+import com.example.features.logging.globalLogger
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.opentelemetry.api.logs.Severity
 
 suspend fun RoutingContext.noJwtToken() {
     call.respond(HttpStatusCode.BadRequest, "no [jwtToken] parameter found")
-    log("no [jwtToken] parameter found", Severity.WARN)
+    globalLogger.atInfo { "no [jwtToken] parameter found" }
 }
 
 suspend inline fun RoutingContext.jwtTokenIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "[jwtToken] parameter is not valid")
-    log("[jwtToken] parameter is not valid", Severity.WARN)
+    globalLogger.atInfo { "[jwtToken] parameter is not valid" }
 }
 
 suspend fun RoutingContext.noLogin() {
     call.respond(HttpStatusCode.BadRequest, "no [login] parameter found")
-    log("no [login] parameter found", Severity.WARN)
+    globalLogger.atInfo { "no [login] parameter found" }
 }
 
 suspend fun RoutingContext.invalidLogin() {
     call.respond(HttpStatusCode.BadRequest, "invalid [login] parameter found")
-    log("invalid [login] parameter found", Severity.WARN)
+    globalLogger.atInfo {
+        message = "invalid [login] parameter found"
+    }
 }
 
 suspend fun RoutingContext.noValidLogin() {
     call.respond(HttpStatusCode.BadRequest, "no [login] parameter found")
-    log("no [login] parameter found", Severity.WARN)
+    globalLogger.atInfo { "no [login] parameter found" }
 }
 
 suspend fun RoutingContext.invalidPassword() {
     call.respond(HttpStatusCode.BadRequest, "invalid [password] parameter found")
-    log("invalid [password] parameter found", Severity.WARN)
+    globalLogger.atInfo { "invalid [password] parameter found" }
 }
 
 suspend fun RoutingContext.noPassword() {
     call.respond(HttpStatusCode.BadRequest, "no [password] parameter found")
-    log("no [password] parameter found", Severity.WARN)
+    globalLogger.atInfo { "no [password] parameter found" }
 }
 
 suspend fun RoutingContext.noUserId() {
     call.respond(HttpStatusCode.BadRequest, "no [id] parameter found")
-    log("no [id] parameter found", Severity.WARN)
+    globalLogger.atInfo { "no [id] parameter found" }
 }
 
 suspend fun RoutingContext.userIdIsNotLong() {
     call.respond(HttpStatusCode.Forbidden, "[id] parameter is not a long")
-    log("[id] parameter is not a long", Severity.WARN)
+    globalLogger.atInfo {
+        message = "[id] parameter is not a long"
+    }
 }
 
 suspend fun RoutingContext.userIdIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "[id] parameter is not valid")
-    log("[id] parameter is not valid", Severity.WARN)
+    globalLogger.atInfo {
+        message = "[id] parameter is not valid"
+    }
 }
 
 suspend inline fun RoutingContext.imageIsTooLarge() {
-    call.respond(
-        HttpStatusCode.Forbidden,
-        "provided image (byte array) is too large, it can be ${currentConfig.fileConfig.profilePictureMaxSize}x${currentConfig.fileConfig.profilePictureMaxSize} at max"
-    )
-    log(
-        "provided image (byte array) is too large, it can be ${currentConfig.fileConfig.profilePictureMaxSize}x${currentConfig.fileConfig.profilePictureMaxSize} at max",
-        Severity.WARN
-    )
+    with(currentConfig.fileConfig) {
+        call.respond(
+            HttpStatusCode.Forbidden,
+            "provided image (byte array) is too large, it can be ${profilePictureMaxSize}x$profilePictureMaxSize at max"
+        )
+        globalLogger.atInfo {
+            message =
+                "provided image (byte array) is too large, it can be ${profilePictureMaxSize}x$profilePictureMaxSize at max"
+        }
+    }
 }
 
 suspend inline fun RoutingContext.imageIsNotValid() {
     call.respond(HttpStatusCode.Forbidden, "provided image (byte array) is not valid")
-    log("provided image (byte array) is not valid", Severity.WARN)
+    globalLogger.atInfo {
+        message = "provided image (byte array) is not valid"
+    }
 }
 
 suspend inline fun RoutingContext.internalServerError() {
     call.respond(HttpStatusCode.InternalServerError, "Internal server error")
-    log("Internal server error", Severity.ERROR)
+    globalLogger.atError {
+        message = "Internal server error"
+    }
 }

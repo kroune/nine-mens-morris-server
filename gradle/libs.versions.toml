@@ -2,6 +2,7 @@
 kotlin = "2.1.0"
 ktor = "3.0.0"
 logback_version = "1.4.14"
+logback_loki_version = "1.6.0"
 kotlin_serialization = "1.7.3"
 bcrypt = "0.10.2"
 kaml = "0.65.0"
@@ -9,12 +10,9 @@ exposed_version = "0.56.0"
 postgresql = "42.7.4"
 nine_mens_morris_shared = "d8439fe65f"
 lib = "1.0.2"
-otlp = "1.44.1"
-otlp_ktor = "2.10.0-alpha"
 junit = "5.10.2"
 test_container = "1.20.3"
 dokka = "1.9.20"
-kafka = "2.1.1"
 
 [libraries]
 ktor-server-ohhttp = { group = "io.ktor", name = "ktor-server-cors", version.ref = "ktor" }
@@ -28,8 +26,8 @@ ktor-server-rate-limit = { group = "io.ktor", name = "ktor-server-rate-limit", v
 ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
 ktor-server-cors = { group = "io.ktor", name = "ktor-server-cors", version.ref = "ktor" }
 ktor-server-test = { group = "io.ktor", name = "ktor-server-test-host", version.ref = "ktor" }
-ktor-server-kafka = { group = "io.github.flaxoos", name = "ktor-server-kafka", version.ref = "kafka" }
 logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback_version" }
+logback-loki = { group = "com.github.loki4j", name = "loki-logback-appender", version.ref = "logback_loki_version" }
 bcrypt = { group = "at.favre.lib", name = "bcrypt", version.ref = "bcrypt" }
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlin_serialization" }
@@ -41,9 +39,6 @@ exposed-json = { group = "org.jetbrains.exposed", name = "exposed-json", version
 postgresql = { group = "org.postgresql", name = "postgresql", version.ref = "postgresql" }
 nine-men-s-morris-shared = { group = "com.github.kroune", name = "9-men-s-morris-shared", version.ref = "nine_mens_morris_shared" }
 nine-men-s-morris-lib = { group = "io.github.kroune", name = "nineMensMorris", version.ref = "lib" }
-opentelemetry-exporter-otlp = { group = "io.opentelemetry", name = "opentelemetry-exporter-otlp", version.ref = "otlp" }
-opentelemetry-sdk = { group = "io.opentelemetry", name = "opentelemetry-sdk", version.ref = "otlp" }
-opentelemetry-ktor = { group = "io.opentelemetry.instrumentation", name = "opentelemetry-ktor-3.0", version.ref = "otlp_ktor" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 test-container-postgresql = { group = "org.testcontainers", name = "postgresql", version.ref = "test_container" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }

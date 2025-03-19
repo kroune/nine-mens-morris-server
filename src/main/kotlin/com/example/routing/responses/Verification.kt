@@ -22,12 +22,10 @@ package com.example.routing.responses
 import com.example.data.local.gamesRepository
 import com.example.data.local.usersRepository
 import com.example.features.encryption.JwtTokenImpl
-import com.example.features.logging.log
 import com.example.routing.responses.get.*
 import com.example.routing.responses.ws.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
-import io.opentelemetry.api.logs.Severity
 
 /**
  * possible responses:
@@ -41,15 +39,11 @@ import io.opentelemetry.api.logs.Severity
 suspend inline fun RoutingContext.requireValidJwtToken(lambda: () -> Unit) {
     val jwtToken = call.parameters["jwtToken"]
     if (jwtToken == null) {
-        log("jwt token is null", Severity.WARN)
         noJwtToken()
         lambda()
         return
     }
-    // no need to check for sql injection, cause Exposed handles it for us
-    // https://stackoverflow.com/questions/50180516/kotlin-exposed-how-to-create-prepared-statement-or-avoid-sql-injection
     if (!JwtTokenImpl(jwtToken).verify()) {
-        log("jwt token is not valid $jwtToken", Severity.WARN)
         jwtTokenIsNotValid()
         lambda()
         return
@@ -184,20 +178,17 @@ suspend inline fun DefaultWebSocketServerSession.requireValidJwtToken(lambda: ()
 suspend inline fun DefaultWebSocketServerSession.requireGameId(lambda: () -> Unit) {
     val gameId = call.parameters["gameId"]
     if (gameId == null) {
-        log("no game id parameter found", Severity.WARN)
         noGameId()
         lambda()
         return
     }
     if (gameId.toLongOrNull() == null) {
-        log("game id parameter is not a long $gameId", Severity.WARN)
         gameIdIsNotLong()
         lambda()
         return
     }
     val gameExists = gamesRepository.exists(gameId.toLong())
     if (!gameExists) {
-        log("game id parameter is not valid $gameId", Severity.WARN)
         gameIdIsNotValid()
         lambda()
         return

@@ -23,7 +23,7 @@ export let options = {
             vus: 1000,
         },
         {
-            duration: '1h',
+            duration: '30m',
             target: 1500,
             vus: 1500,
         },

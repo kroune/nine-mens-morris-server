@@ -13,6 +13,7 @@ object ConfigurationLoader {
         val webSocketConfig: WebSocketConfig,
         val encryptionToken: String,
         val fileConfig: FileConfig,
+        val grafanaConfig: GrafanaConfig,
         val gameConfig: GameConfig,
         val serviceLocator: ServiceLocator
     )
@@ -21,6 +22,11 @@ object ConfigurationLoader {
     @Serializable
     class ServiceLocator(
         val postgres: PostgresConfig
+    )
+
+    @Serializable
+    class GrafanaConfig(
+        val passwordForScrape: String,
     )
 
     @Serializable

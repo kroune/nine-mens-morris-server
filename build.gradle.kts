@@ -33,8 +33,12 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.server.cors)
 
-    // other libs
+    // logging
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
     implementation(libs.logback.classic)
+    implementation(libs.logback.loki)
+
+    // other libs
     implementation(libs.bcrypt)
 
     // serialization
@@ -52,10 +56,13 @@ dependencies {
     implementation(libs.nine.men.s.morris.shared)
     implementation(libs.nine.men.s.morris.lib)
 
-    // otlp
-    implementation(libs.opentelemetry.sdk)
-    implementation(libs.opentelemetry.exporter.otlp)
-    implementation(libs.opentelemetry.ktor)
+    // micrometer
+    implementation("io.ktor:ktor-server-metrics-micrometer:3.0.0")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.14.3")
+
+    // koin
+    implementation("io.insert-koin:koin-core:4.1.0-Beta5")
+    implementation("io.insert-koin:koin-ktor3:4.1.0-Beta5")
 
     // testing
     testImplementation(libs.junit.jupiter)

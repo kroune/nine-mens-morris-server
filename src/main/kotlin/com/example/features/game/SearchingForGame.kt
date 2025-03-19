@@ -24,8 +24,9 @@ import com.example.data.local.gamesRepository
 import com.example.data.local.queueRepository
 import com.example.data.local.usersRepository
 import com.example.features.ConfigurationLoader.currentConfig
-import com.example.features.logging.log
-import io.opentelemetry.api.logs.Severity
+import com.example.features.logging.bucketId
+import com.example.features.logging.globalLogger
+import com.example.features.logging.userId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlin.random.Random
@@ -63,7 +64,12 @@ object SearchingForGame {
                 channel.close()
                 return@launch
             }
-            log("Added user to the queue", Severity.DEBUG, userId = userId)
+            globalLogger.atDebug {
+                message = "Added user to the queue"
+                payload = buildMap {
+                    userId(userId)
+                }
+            }
             val queueToAddUser = (rating / bucketSize)
             val bucketsToSpreadBetween = currentConfig.gameConfig.maxRatingDifference / bucketSize
             val bucketsRange =
@@ -75,9 +81,19 @@ object SearchingForGame {
             val currentDelay = Random.nextLong(minPairWithBotTime, maxPairWithBotTime)
             delay(currentDelay)
             // check if we are still searching
-            log("delay before pairing with bot was waited delay = $currentDelay", Severity.DEBUG, userId = userId)
+            globalLogger.atDebug {
+                message = "delay before pairing with bot was waited delay = $currentDelay"
+                payload = buildMap {
+                    userId(userId)
+                }
+            }
             if (gamesRepository.getGameIdByUserId(userId) == null) {
-                log("game wasn't found after delay", Severity.DEBUG, userId = userId)
+                globalLogger.atDebug {
+                    message = "game wasn't found after delay"
+                    payload = buildMap {
+                        userId(userId)
+                    }
+                }
                 val botId = BotProvider.getBotFromBucket(bucketsRange.random())
                 val gameData = GameData(
                     firstPlayerId = userId,
@@ -86,7 +102,12 @@ object SearchingForGame {
                 )
                 if (!gamesRepository.create(gameData)) {
                     // race condition, such game exists
-                    log("game was already created", Severity.DEBUG, userId = userId)
+                    globalLogger.atDebug {
+                        message = "game was already created"
+                        payload = buildMap {
+                            userId(userId)
+                        }
+                    }
                     return@launch
                 }
                 val gameId = gamesRepository.getGameIdByUserId(userId)!!
@@ -114,7 +135,12 @@ object SearchingForGame {
                         delay(delayBeforeRecheckingBucket)
                         continue
                     }
-                    log("bucket.size - ${availablePlayers.size}", Severity.DEBUG)
+                    globalLogger.atDebug {
+                        message = "bucket.size - ${availablePlayers.size}"
+                        payload = buildMap {
+                            bucketId(bucketId)
+                        }
+                    }
                     if (availablePlayers.size == 1) {
                         // TODO: add average game search time updater
                         val expectedWaitingTime = (10..20L).random()

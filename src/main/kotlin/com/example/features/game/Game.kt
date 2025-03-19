@@ -23,13 +23,14 @@ import com.example.common.json
 import com.example.data.local.gamesRepository
 import com.example.data.local.usersRepository
 import com.example.features.ConfigurationLoader.currentConfig
-import com.example.features.logging.log
+import com.example.features.logging.gameId
+import com.example.features.logging.globalLogger
+import com.example.features.logging.userId
 import com.kroune.nineMensMorrisLib.GameState
 import com.kroune.nineMensMorrisLib.move.Movement
 import com.kroune.nineMensMorrisShared.GameEndReason
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import io.opentelemetry.api.logs.Severity
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.serialization.SerializationException
@@ -78,7 +79,12 @@ class Game(
     ) {
         val isFirstUserLost = reason.isFirstUser!!
         CoroutineScope(Dispatchers.Default).launch {
-            log("Game ended due to ${reason.javaClass.simpleName}, isFirstUserLost = ${reason.isFirstUser}", severity = Severity.INFO, gameId = gameId)
+            globalLogger.atInfo {
+                message = "Game ended due to ${reason.javaClass.simpleName}, isFirstUserLost = ${reason.isFirstUser}"
+                payload = buildMap {
+                    gameId(gameId)
+                }
+            }
             val firstPlayerId = gamesRepository.getFirstUserIdByGameId(gameId)!!
             val secondPlayerId = gamesRepository.getSecondUserIdByGameId(gameId)!!
             val firstUserRating = usersRepository.getRatingById(firstPlayerId)!!
@@ -94,19 +100,36 @@ class Game(
                     BotProvider.addBotToTheFreeBotsQueue(userId)
                 }
             }
-            log("starting to delete game", Severity.INFO, gameId = gameId)
+            globalLogger.atInfo {
+                message = "starting to delete game"
+                payload = buildMap {
+                    gameId(gameId)
+                }
+            }
             gamesRepository.delete(gameId)
             usersRepository.updateRatingById(firstPlayerId, if (isFirstUserLost) -delta else delta)
             usersRepository.updateRatingById(secondPlayerId, if (isFirstUserLost) delta else -delta)
             CoroutineScope(Dispatchers.Default).launch {
                 withTimeout(20.seconds) {
-                    log("sessions closed for firstPlayer", Severity.DEBUG, userId = firstPlayerId)
+                    globalLogger.atInfo {
+                        message = "sessions closed for firstPlayer"
+                        payload = buildMap {
+                            gameId(gameId)
+                            userId(firstPlayerId)
+                        }
+                    }
                     firstPlayer?.close()
                 }
             }
             CoroutineScope(Dispatchers.Default).launch {
                 withTimeout(20.seconds) {
-                    log("sessions closed for secondPlayer", Severity.DEBUG, userId = secondPlayerId)
+                    globalLogger.atInfo {
+                        message = "sessions closed for secondPlayer"
+                        payload = buildMap {
+                            gameId(gameId)
+                            userId(secondPlayerId)
+                        }
+                    }
                     secondPlayer?.close()
                 }
             }
@@ -139,11 +162,21 @@ class Game(
                     firstUserId -> {
                         val sendToFirstUser = !opposite
                         if (sendToFirstUser) {
-                            log("sent \"$data\"", Severity.DEBUG, userId = firstUserId)
                             firstPlayer?.send(data)
+                            globalLogger.atDebug {
+                                message = "sent \"$data\""
+                                payload = buildMap {
+                                    userId(firstUserId)
+                                }
+                            }
                         } else {
-                            log("sent \"$data\"", Severity.DEBUG, userId = secondUserId)
                             secondPlayer?.send(data)
+                            globalLogger.atDebug {
+                                message = "sent \"$data\""
+                                payload = buildMap {
+                                    userId(secondUserId)
+                                }
+                            }
                         }
                     }
 
@@ -151,10 +184,20 @@ class Game(
                         val sendToSecondUser = !opposite
                         if (sendToSecondUser) {
                             secondPlayer?.send(data)
-                            log("sent \"$data\"", Severity.DEBUG, userId = secondUserId)
+                            globalLogger.atDebug {
+                                message = "sent \"$data\""
+                                payload = buildMap {
+                                    userId(secondUserId)
+                                }
+                            }
                         } else {
                             firstPlayer?.send(data)
-                            log("sent \"$data\"", Severity.DEBUG, userId = firstUserId)
+                            globalLogger.atDebug {
+                                message = "sent \"$data\""
+                                payload = buildMap {
+                                    userId(firstUserId)
+                                }
+                            }
                         }
                     }
 
@@ -164,11 +207,17 @@ class Game(
                 }
             }
         } catch (e: TimeoutCancellationException) {
-            log("reached timeout for sending data", Severity.WARN)
+            globalLogger.atWarn {
+                message = "reached timeout for sending data"
+                cause = e
+            }
         } catch (_: ClosedSendChannelException) {
         } catch (_: CancellationException) {
         } catch (e: Exception) {
-            log("uncaught exception when sending data", severity = Severity.ERROR, throwable = e)
+            globalLogger.atError {
+                message = "uncaught exception when sending data"
+                cause = e
+            }
         }
     }
 
