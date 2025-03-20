@@ -17,6 +17,7 @@
     "profilePictureMaxSize": 256
   },
   "grafanaConfig": {
+    "nameForScrape": "test_scraper",
     "passwordForScrape": "some_password"
   },
   "gameConfig": {
