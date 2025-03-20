@@ -26,6 +26,7 @@ object ConfigurationLoader {
 
     @Serializable
     class GrafanaConfig(
+        val nameForScrape: String,
         val passwordForScrape: String,
     )
 
