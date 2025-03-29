@@ -51,17 +51,7 @@ fun Route.gameRoutingWS() {
         val jwtToken = call.parameters["jwtToken"]!!
         val userId = usersRepository.getIdByJwtToken(jwtToken)!!
         val expectedWaitingTime = MutableStateFlow<Long?>(null)
-        val onGameFound: suspend (Long) -> Unit = { data: Long ->
-            sendSerializedEvent(data, "game_id")
-            flush()
-            close()
-            cancel()
-        }
-        SearchingForGame.addUser(
-            userId,
-            SearchingForGameConnection(expectedWaitingTime, onGameFound)
-        )
-        launch {
+        val waitingTimeJob = launch {
             runCatching {
                 expectedWaitingTime.collect {
                     if (it != null)
@@ -74,6 +64,16 @@ fun Route.gameRoutingWS() {
                 }
             }
         }
+        val onGameFound: suspend (Long) -> Unit = { data: Long ->
+            sendSerializedEvent(data, "game_id")
+            flush()
+            waitingTimeJob.cancel()
+            close()
+        }
+        SearchingForGame.addUser(
+            userId,
+            SearchingForGameConnection(expectedWaitingTime, onGameFound)
+        )
         closeReason.await()
         SearchingForGame.removeUser(userId)
     }

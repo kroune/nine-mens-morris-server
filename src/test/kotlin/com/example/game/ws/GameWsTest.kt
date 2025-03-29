@@ -6,15 +6,11 @@ import com.example.data.local.users.InsertUserData
 import com.example.features.encryption.JwtTokenImpl
 import com.example.routing.game.ws.gameRoutingWS
 import com.example.startDI
-import io.ktor.client.plugins.websocket.*
-import io.ktor.client.request.*
-import io.ktor.serialization.kotlinx.*
+import getGameId
 import io.ktor.server.testing.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.json.Json
 import org.junit.experimental.runners.Enclosed
 import org.junit.runner.RunWith
-import org.koin.core.context.startKoin
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -25,15 +21,6 @@ class GameWsTest {
         fun `connect with real player and join`() {
             testApplication {
                 val db = TestDatabase()
-                val koin = startKoin {
-
-                }
-                val client2 = createClient {
-                    install(WebSockets) {
-                        contentConverter = KotlinxWebsocketSerializationConverter(Json)
-                        pingInterval = 3.seconds
-                    }
-                }
                 application {
                     startDI()
                     applyPlugins()
@@ -44,61 +31,19 @@ class GameWsTest {
                 db.connect()
                 val user1 = db.createDummyUser(InsertUserData("user1", "password1"))
                 val user2 = db.createDummyUser(InsertUserData("user2", "password2"))
+                var gameId1: Deferred<Long>
+                var gameId2: Deferred<Long>
                 runBlocking {
-                    withTimeoutOrNull(100.seconds) {
-                        var firstGameId: Long? = null
-                        var secondGameId: Long? = null
-                        val job1 = CoroutineScope(Dispatchers.IO).launch {
-                            client2.ws(urlString = "/search-for-game", request = {
-                                url {
-                                    parameter("jwtToken", JwtTokenImpl(user1.login, user1.password).token)
-                                }
-                            }) {
-                                while (true) {
-                                    val info = receiveDeserialized<Pair<Boolean, Long>>()
-                                    if (!info.first) {
-                                        firstGameId = info.second
-                                        println("game id = ${info.second}")
-                                        break
-                                    }
-                                }
-                            }
-                            if (secondGameId != null) {
-                                assert(secondGameId == firstGameId)
-                            }
-                        }
+                    withTimeout(100.seconds) {
+                        gameId1 = this@testApplication.getGameId(JwtTokenImpl(user1.login, user1.password).token)
                         delay(5.seconds)
-                        val job2 = CoroutineScope(Dispatchers.IO).launch {
-                            client2.ws(urlString = "/search-for-game", request = {
-                                url {
-                                    parameter("jwtToken", JwtTokenImpl(user2.login, user2.password).token)
-                                }
-                            }) {
-                                while (true) {
-                                    val info = receiveDeserialized<Pair<Boolean, Long>>()
-                                    if (!info.first) {
-                                        secondGameId = info.second
-                                        println("game id = ${info.second}")
-                                        break
-                                    }
-                                }
-                            }
-                            if (secondGameId != null) {
-                                assert(secondGameId == firstGameId)
-                            }
-                        }
-                        listOf(job1, job2).forEach { it.join() }
-                        assert(secondGameId == firstGameId)
-                        println("firstGameId = $firstGameId, secondGameId = $secondGameId")
-                        client2.ws(urlString = "/game", request = {
-                            url {
-                                parameter("jwtToken", JwtTokenImpl(user1.login, user1.password).token)
-                            }
-                        }) {
-                            closeReason.await()
-                        }
-                    }!!
+                        gameId2 = this@testApplication.getGameId(JwtTokenImpl(user2.login, user2.password).token)
+                        assert(gameId2.await() == gameId1.await())
+                        println("firstGameId = ${gameId1.await()}, secondGameId = ${gameId2.await()}")
+                    }
                 }
+                var gameId3 = this@testApplication.getGameId(JwtTokenImpl(user1.login, user1.password).token)
+                assert(gameId1.await() == gameId3.await())
             }
         }
 
@@ -106,12 +51,6 @@ class GameWsTest {
         fun `connect with real player`() {
             testApplication {
                 val db = TestDatabase()
-                val client2 = createClient {
-                    install(WebSockets) {
-                        contentConverter = KotlinxWebsocketSerializationConverter(Json)
-                        pingInterval = 3.seconds
-                    }
-                }
                 application {
                     startDI()
                     applyPlugins()
@@ -123,52 +62,13 @@ class GameWsTest {
                 val user1 = db.createDummyUser(InsertUserData("user1", "password1"))
                 val user2 = db.createDummyUser(InsertUserData("user2", "password2"))
                 runBlocking {
-                    withTimeoutOrNull(100.seconds) {
-                        var firstGameId: Long? = null
-                        var secondGameId: Long? = null
-                        val job1 = CoroutineScope(Dispatchers.IO).launch {
-                            client2.ws(urlString = "/search-for-game", request = {
-                                url {
-                                    parameter("jwtToken", JwtTokenImpl(user1.login, user1.password).token)
-                                }
-                            }) {
-                                while (true) {
-                                    val info = receiveDeserialized<Pair<Boolean, Long>>()
-                                    if (!info.first) {
-                                        firstGameId = info.second
-                                        println("game id = ${info.second}")
-                                        break
-                                    }
-                                }
-                            }
-                            if (secondGameId != null) {
-                                assert(secondGameId == firstGameId)
-                            }
-                        }
+                    withTimeout(100.seconds) {
+                        var firstGameId: Deferred<Long> = getGameId(JwtTokenImpl(user1.login, user1.password).token)
                         delay(5.seconds)
-                        val job2 = CoroutineScope(Dispatchers.IO).launch {
-                            client2.ws(urlString = "/search-for-game", request = {
-                                url {
-                                    parameter("jwtToken", JwtTokenImpl(user2.login, user2.password).token)
-                                }
-                            }) {
-                                while (true) {
-                                    val info = receiveDeserialized<Pair<Boolean, Long>>()
-                                    if (!info.first) {
-                                        secondGameId = info.second
-                                        println("game id = ${info.second}")
-                                        break
-                                    }
-                                }
-                            }
-                            if (secondGameId != null) {
-                                assert(secondGameId == firstGameId)
-                            }
-                        }
-                        listOf(job1, job2).forEach { it.join() }
-                        assert(secondGameId == firstGameId)
-                        println("firstGameId = $firstGameId, secondGameId = $secondGameId")
-                    }!!
+                        var secondGameId: Deferred<Long> = getGameId(JwtTokenImpl(user2.login, user2.password).token)
+                        assert(secondGameId.await() == firstGameId.await())
+                        println("firstGameId = ${firstGameId.await()}, secondGameId = ${secondGameId.await()}")
+                    }
                 }
             }
         }
@@ -177,12 +77,6 @@ class GameWsTest {
         fun `connect with bot`() {
             testApplication {
                 val db = TestDatabase()
-                val client2 = createClient {
-                    install(WebSockets) {
-                        contentConverter = KotlinxWebsocketSerializationConverter(Json)
-                        pingInterval = 3.seconds
-                    }
-                }
                 application {
                     startDI()
                     applyPlugins()
@@ -193,30 +87,13 @@ class GameWsTest {
                 db.connect()
                 val user1 = db.createDummyUser(InsertUserData("user1", "password1"))
                 runBlocking {
-                    withTimeoutOrNull(100.seconds) {
-                        var firstGameId: Long? = null
-                        val job1 = CoroutineScope(Dispatchers.IO).launch {
-                            client2.ws(urlString = "/search-for-game", request = {
-                                url {
-                                    parameter("jwtToken", JwtTokenImpl(user1.login, user1.password).token)
-                                }
-                            }) {
-                                while (true) {
-                                    val info = receiveDeserialized<Pair<Boolean, Long>>()
-                                    if (!info.first) {
-                                        firstGameId = info.second
-                                        println("game id = ${info.second}")
-                                        break
-                                    }
-                                }
-                            }
-                        }
-                        listOf(job1).forEach { it.join() }
+                    withTimeout(100.seconds) {
+                        var firstGameId: Deferred<Long> = getGameId(JwtTokenImpl(user1.login, user1.password).token)
                         println(
-                            "firstGameId = $firstGameId" +
+                            "firstGameId = ${firstGameId.await()}" +
                                     ""
                         )
-                    }!!
+                    }
                 }
             }
         }

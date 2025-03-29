@@ -19,6 +19,7 @@
  */
 package com.example.common
 
+import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.server.websocket.WebSocketServerSession
 import io.ktor.websocket.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -45,6 +46,10 @@ inline fun <reified A, reified B> Frame.decodeServerEvent(): Pair<A, B> {
     return data.decodeProtobuf<ServerEvent>().let { (data, metadata) ->
         data.decodeProtobuf<A>() to metadata.decodeProtobuf<B>()
     }
+}
+
+suspend inline fun <reified A, reified B> DefaultClientWebSocketSession.receiveDeserializedServerEvent(): Pair<A, B> {
+    return this.incoming.receive().decodeServerEvent<A, B>()
 }
 
 @PublishedApi
