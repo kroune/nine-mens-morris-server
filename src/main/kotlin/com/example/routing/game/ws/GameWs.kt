@@ -20,10 +20,12 @@
 package com.example.routing.game.ws
 
 import com.example.common.json
+import com.example.common.sendSerializedEvent
 import com.example.data.local.gamesRepository
 import com.example.data.local.usersRepository
 import com.example.features.game.GameDataFactory
 import com.example.features.game.SearchingForGame
+import com.example.features.game.SearchingForGameConnection
 import com.example.features.logging.gameId
 import com.example.features.logging.logger
 import com.example.features.logging.userId
@@ -36,60 +38,44 @@ import com.kroune.nineMensMorrisShared.GameEndReason
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.channels.ClosedSendChannelException
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 fun Route.gameRoutingWS() {
     webSocket("/search-for-game") {
         requireValidJwtToken {
             return@webSocket
         }
-
         val jwtToken = call.parameters["jwtToken"]!!
         val userId = usersRepository.getIdByJwtToken(jwtToken)!!
-        val channel = Channel<Pair<Boolean, Long>>(capacity = 10, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-        SearchingForGame.addUser(userId, channel)
-        try {
-            while (true) {
-                val (isWaitingTime, gameId) = channel.receive()
-                val jsonText = Json.encodeToString<Pair<Boolean, Long>>(Pair(isWaitingTime, gameId))
-                send(jsonText)
-                if (!isWaitingTime) {
-                    logger.atDebug {
-                        message = "sending game id to the user"
-                        payload = buildMap {
-                            userId(userId)
-                            gameId(gameId)
-                        }
-                    }
-                    channel.close()
-                    close(CloseReason(CloseReason.Codes.NORMAL, gameId.toString()))
-                    break
-                }
-            }
-        } catch (e: ClosedSendChannelException) {
-            logger.atDebug {
-                message = "sending game id to the user"
-                payload = buildMap {
-                    userId(userId)
-                }
-                cause = e
-            }
-            SearchingForGame.removeUser(userId)
-        } catch (e: ClosedReceiveChannelException) {
-            logger.atDebug {
-                message = "user disconnected from searching for game"
-                payload = buildMap {
-                    userId(userId)
-                }
-                cause = e
-            }
-            SearchingForGame.removeUser(userId)
+        val expectedWaitingTime = MutableStateFlow<Long?>(null)
+        val onGameFound: suspend (Long) -> Unit = { data: Long ->
+            sendSerializedEvent(data, "game_id")
+            flush()
+            close()
+            cancel()
         }
+        SearchingForGame.addUser(
+            userId,
+            SearchingForGameConnection(expectedWaitingTime, onGameFound)
+        )
+        launch {
+            runCatching {
+                expectedWaitingTime.collect {
+                    if (it != null)
+                        sendSerializedEvent(it, "waiting_time")
+                }
+            }.onFailure {
+                logger.atInfo {
+                    message = "error while sending a move"
+                    cause = it
+                }
+            }
+        }
+        closeReason.await()
+        SearchingForGame.removeUser(userId)
     }
     webSocket("/game") {
         requireValidJwtToken {

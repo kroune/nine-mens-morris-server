@@ -19,11 +19,44 @@
  */
 package com.example.common
 
+import io.ktor.server.websocket.WebSocketServerSession
+import io.ktor.websocket.*
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.protobuf.ProtoBuf
 
 @OptIn(ExperimentalSerializationApi::class)
 val json = Json {
     prettyPrint = true
     prettyPrintIndent = " "
+}
+
+
+@Serializable
+data class ServerEvent(
+    val data: ByteArray,
+    val metadata: ByteArray
+)
+
+inline fun <reified A, reified B> Frame.decodeServerEvent(): Pair<A, B> {
+    return data.decodeProtobuf<ServerEvent>().let { (data, metadata) ->
+        data.decodeProtobuf<A>() to metadata.decodeProtobuf<B>()
+    }
+}
+
+@PublishedApi
+internal inline fun <reified A> ByteArray.decodeProtobuf(): A {
+    return ProtoBuf.decodeFromByteArray(this)
+}
+
+@PublishedApi
+internal inline fun <reified A> A.encodeProtobuf(): ByteArray {
+    return ProtoBuf.encodeToByteArray(this)
+}
+
+suspend inline fun <reified A, reified B> WebSocketServerSession.sendSerializedEvent(data: A, metadata: B) {
+    send(ServerEvent(data.encodeProtobuf(), metadata.encodeProtobuf()).encodeProtobuf())
 }

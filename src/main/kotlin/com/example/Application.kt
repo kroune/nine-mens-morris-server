@@ -34,8 +34,7 @@ import com.example.routing.userInfo.userInfoRouting
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.basic
+import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
@@ -136,7 +135,7 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
         basic("prometheus") {
             realm = "Access to the '/metrics' path"
             validate { credentials ->
-                with (currentConfig.grafanaConfig) {
+                with(currentConfig.grafanaConfig) {
                     return@validate credentials.name == nameForScrape && credentials.password == passwordForScrape
                 }
             }

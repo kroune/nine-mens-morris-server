@@ -28,7 +28,8 @@ import com.example.features.logging.bucketId
 import com.example.features.logging.globalLogger
 import com.example.features.logging.userId
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlin.random.Random
 
 val minPairWithBotTime = currentConfig.gameConfig.minTimeBeforePairingWithBot
@@ -36,8 +37,13 @@ val maxPairWithBotTime = currentConfig.gameConfig.maxTimeBeforePairingWithBot
 val bucketSize = currentConfig.gameConfig.bucketSize
 val delayBeforeRecheckingBucket = currentConfig.gameConfig.delayBeforeRecheckingBucket
 
+class SearchingForGameConnection(
+    val expectedWaitingTime: MutableStateFlow<Long?>,
+    val callback: suspend (Long) -> Unit
+)
+
 object SearchingForGame {
-    private val userIdToSession = mutableMapOf<Long, Channel<Pair<Boolean, Long>>>()
+    private val userIdToSession = mutableMapOf<Long, SearchingForGameConnection>()
 
     /**
      * this data isn't synchronized between pods, but that's ok,
@@ -49,19 +55,25 @@ object SearchingForGame {
     suspend fun removeUser(userId: Long) {
         usersSearchingForGameJobsMap[userId]?.cancel()
         queueRepository.deleteUser(userId)
+        globalLogger.atDebug {
+            message = "Removed user from the queue"
+            payload = buildMap {
+                userId(userId)
+            }
+        }
     }
 
-    suspend fun addUser(userId: Long, channel: Channel<Pair<Boolean, Long>>) {
+    suspend fun addUser(userId: Long, data: SearchingForGameConnection) {
         val rating = usersRepository.getRatingById(userId)!!
         val oldJob = usersSearchingForGameJobsMap[userId]
-        userIdToSession[userId] = channel
+        userIdToSession[userId] = data
         // cancel previous searching if it exists
         oldJob?.cancel()
         val job = CoroutineScope(Dispatchers.IO).launch {
             gamesRepository.getGameIdByUserId(userId)?.let { gameId ->
                 // user is already in a game
-                channel.send(Pair(false, gameId))
-                channel.close()
+                data.callback(gameId)
+                data.expectedWaitingTime.collect()
                 return@launch
             }
             globalLogger.atDebug {
@@ -113,7 +125,7 @@ object SearchingForGame {
                 val gameId = gamesRepository.getGameIdByUserId(userId)!!
                 // make sure to initialize it, so time count starts
                 GameDataFactory.getGame(gameId)
-                channel.send(Pair(false, gameId))
+                data.callback(gameId)
             }
         }
         usersSearchingForGameJobsMap[userId] = job
@@ -144,8 +156,8 @@ object SearchingForGame {
                     if (availablePlayers.size == 1) {
                         // TODO: add average game search time updater
                         val expectedWaitingTime = (10..20L).random()
-                        userIdToSession[availablePlayers.first()]?.trySend(
-                            Pair(true, expectedWaitingTime)
+                        userIdToSession[availablePlayers.first()]?.expectedWaitingTime?.emit(
+                            expectedWaitingTime
                         )
                         delay(delayBeforeRecheckingBucket)
                         continue
@@ -163,7 +175,7 @@ object SearchingForGame {
                     }
                     val gameId = gamesRepository.getGameIdByUserId(firstUser)!!
                     listOf(firstUser, secondUser).forEach { userId ->
-                        userIdToSession[userId]?.trySend(Pair(false, gameId))
+                        userIdToSession[userId]?.callback(gameId)
                         usersSearchingForGameJobsMap[userId]?.cancel()
                     }
                     // make sure to initialize it, so time count starts

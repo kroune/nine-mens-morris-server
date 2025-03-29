@@ -40,6 +40,46 @@ suspend fun RoutingContext.noLogin() {
     globalLogger.atInfo { "no [login] parameter found" }
 }
 
+/**
+ * closes web socket connection
+ */
+suspend inline fun RoutingContext.noGameId() {
+    call.respond(HttpStatusCode.BadRequest.description("no [gameId] parameter found"))
+    globalLogger.atInfo {
+        message = "no [gameId] parameter found"
+    }
+}
+
+/**
+ * closes web socket connection
+ */
+suspend inline fun RoutingContext.gameIdIsNotLong() {
+    call.respond(HttpStatusCode.BadRequest.description("[gameId] parameter is not a valid representation of a number"))
+    globalLogger.atInfo {
+        message = "[gameId] parameter is not a valid representation of a number"
+    }
+}
+
+/**
+ * closes web socket connection
+ */
+suspend inline fun RoutingContext.gameIdIsNotValid() {
+    call.respond(HttpStatusCode.BadRequest.description("[gameId] parameter is not valid"))
+    globalLogger.atInfo {
+        message = "[gameId] parameter is not valid"
+    }
+}
+
+/**
+ * closes web socket connection
+ */
+suspend inline fun RoutingContext.jwtTokenIsNotValidForThisGame() {
+    call.respond(HttpStatusCode.BadRequest.description("this [jwtToken] isn't valid for this game"))
+    globalLogger.atInfo {
+        message = "Create new scratch file from selection"
+    }
+}
+
 suspend fun RoutingContext.invalidLogin() {
     call.respond(HttpStatusCode.BadRequest, "invalid [login] parameter found")
     globalLogger.atInfo {

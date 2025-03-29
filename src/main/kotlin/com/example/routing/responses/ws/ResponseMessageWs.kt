@@ -26,7 +26,7 @@ import io.ktor.websocket.*
 /**
  * closes web socket connection
  */
-suspend inline fun DefaultWebSocketServerSession.someThingsWentWrong(cause: String) {
+suspend inline fun WebSocketServerSession.someThingsWentWrong(cause: String) {
     close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Something went wrong $cause"))
     globalLogger.atInfo {
         message = "Something went wrong $cause"
@@ -36,7 +36,7 @@ suspend inline fun DefaultWebSocketServerSession.someThingsWentWrong(cause: Stri
 /**
  * closes web socket connection
  */
-suspend inline fun DefaultWebSocketServerSession.jwtTokenIsNotValidForThisGame() {
+suspend inline fun WebSocketServerSession.jwtTokenIsNotValidForThisGame() {
     close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "this [jwtToken] isn't valid for this game"))
     globalLogger.atInfo {
         message = "Create new scratch file from selection"
@@ -46,7 +46,7 @@ suspend inline fun DefaultWebSocketServerSession.jwtTokenIsNotValidForThisGame()
 /**
  * closes web socket connection
  */
-suspend inline fun DefaultWebSocketServerSession.noGameId() {
+suspend inline fun WebSocketServerSession.noGameId() {
     close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "no [gameId] parameter found"))
     globalLogger.atInfo {
         message = "no [gameId] parameter found"
@@ -56,7 +56,7 @@ suspend inline fun DefaultWebSocketServerSession.noGameId() {
 /**
  * closes web socket connection
  */
-suspend inline fun DefaultWebSocketServerSession.gameIdIsNotValid() {
+suspend inline fun WebSocketServerSession.gameIdIsNotValid() {
     close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "[gameId] parameter is not valid"))
     globalLogger.atInfo {
         message = "[gameId] parameter is not valid"
@@ -66,7 +66,7 @@ suspend inline fun DefaultWebSocketServerSession.gameIdIsNotValid() {
 /**
  * closes web socket connection
  */
-suspend inline fun DefaultWebSocketServerSession.gameIdIsNotLong() {
+suspend inline fun WebSocketServerSession.gameIdIsNotLong() {
     close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "[gameId] parameter is not a valid representation of a number"))
     globalLogger.atInfo {
         message = "[gameId] parameter is not a valid representation of a number"
@@ -76,7 +76,7 @@ suspend inline fun DefaultWebSocketServerSession.gameIdIsNotLong() {
 /**
  * closes web socket connection
  */
-suspend inline fun DefaultWebSocketServerSession.noJwtToken() {
+suspend inline fun WebSocketServerSession.noJwtToken() {
     close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "no [jwtToken] parameter found"))
     globalLogger.atInfo {
         message = "no [jwtToken] parameter found"
@@ -86,14 +86,14 @@ suspend inline fun DefaultWebSocketServerSession.noJwtToken() {
 /**
  * closes web socket connection
  */
-suspend inline fun DefaultWebSocketServerSession.jwtTokenIsNotValid() {
+suspend inline fun WebSocketServerSession.jwtTokenIsNotValid() {
     close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "[jwtToken] parameter is not valid"))
     globalLogger.atInfo {
         message = "[jwtToken] parameter is not valid"
     }
 }
 
-suspend inline fun DefaultWebSocketServerSession.internalServerError() {
+suspend inline fun WebSocketServerSession.internalServerError() {
     close(CloseReason(CloseReason.Codes.INTERNAL_ERROR, "Internal server error"))
     globalLogger.atInfo {
         message = "Internal server error"

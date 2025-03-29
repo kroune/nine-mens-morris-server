@@ -18,6 +18,9 @@
             <message class="com.github.loki4j.logback.JsonLayout" />
         </format>
     </appender>
+    <logger name="Exposed" level="info" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
     <root level="all">
         <appender-ref ref="LOKI" />
     </root>
