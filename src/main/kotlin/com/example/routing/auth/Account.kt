@@ -20,8 +20,10 @@
 package com.example.routing.auth
 
 import com.example.routing.auth.get.accountRoutingGET
+import com.example.routing.auth.post.accountRoutingPOST
 import io.ktor.server.routing.*
 
 fun Route.accountRouting() {
     accountRoutingGET()
+    accountRoutingPOST()
 }
