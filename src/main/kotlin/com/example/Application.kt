@@ -129,6 +129,7 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
     install(CORS) {
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
+        allowSameOrigin = true
         allowHost("github.io", listOf("http", "https"), listOf("kroune"))
     }
     install(Authentication) {
