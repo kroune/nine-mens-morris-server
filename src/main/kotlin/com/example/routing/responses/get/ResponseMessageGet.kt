@@ -124,7 +124,7 @@ suspend fun RoutingContext.userIdIsNotValid() {
 suspend inline fun RoutingContext.imageIsTooLarge() {
     with(currentConfig.fileConfig) {
         call.respond(
-            HttpStatusCode.Forbidden.description("provided image (byte array) is too large, it can be ${profilePictureMaxSize}x$profilePictureMaxSize at max"),
+            HttpStatusCode.BadRequest.description("provided image (byte array) is too large, it can be ${profilePictureMaxSize}x$profilePictureMaxSize at max"),
             "${profilePictureMaxSize}x$profilePictureMaxSize"
         )
         globalLogger.atInfo {
