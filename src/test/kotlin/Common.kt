@@ -1,4 +1,4 @@
-import com.example.common.receiveDeserializedServerEvent
+import io.github.kroune.common.receiveDeserializedServerEvent
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.pingInterval
 import io.ktor.client.plugins.websocket.ws
