@@ -129,6 +129,7 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
     install(CORS) {
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
+        allowHeader(HttpHeaders.ContentType)
         allowHost("github.io", listOf("http", "https"), listOf("kroune"))
         allowHost("nine-men-s-morris.me", listOf("http", "https"), listOf("play"))
     }
