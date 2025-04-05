@@ -90,7 +90,7 @@ class UserInfoPostTest {
                     this.parameter("jwtToken", jwtToken.token)
                     this.setBody(validImage.readBytes())
                 }
-                assertEquals(result.status, HttpStatusCode.Forbidden)
+                assertEquals(result.status, HttpStatusCode.BadRequest)
                 val id = usersRepository.getIdByJwtToken(jwtToken.token)!!
                 val pictureFromDb = usersRepository.getPictureById(id)
                 assertNotEquals(validImage.readBytes(), pictureFromDb)
