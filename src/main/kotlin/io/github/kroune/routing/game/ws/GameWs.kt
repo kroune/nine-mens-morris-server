@@ -19,6 +19,8 @@
  */
 package io.github.kroune.routing.game.ws
 
+import com.kroune.nineMensMorrisLib.move.Movement
+import com.kroune.nineMensMorrisShared.GameEndReason
 import io.github.kroune.common.json
 import io.github.kroune.common.sendSerializedEvent
 import io.github.kroune.data.local.gamesRepository
@@ -33,11 +35,10 @@ import io.github.kroune.routing.responses.requireGameId
 import io.github.kroune.routing.responses.requireValidJwtToken
 import io.github.kroune.routing.responses.ws.jwtTokenIsNotValidForThisGame
 import io.github.kroune.routing.responses.ws.someThingsWentWrong
-import com.kroune.nineMensMorrisLib.move.Movement
-import com.kroune.nineMensMorrisShared.GameEndReason
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -50,17 +51,16 @@ fun Route.gameRoutingWS() {
         val jwtToken = call.parameters["jwtToken"]!!
         val userId = usersRepository.getIdByJwtToken(jwtToken)!!
         val expectedWaitingTime = MutableStateFlow<Long?>(null)
-        val waitingTimeJob = launch {
-            runCatching {
-                expectedWaitingTime.collect {
-                    if (it != null)
-                        sendSerializedEvent(it, "waiting_time")
-                }
-            }.onFailure {
-                logger.atInfo {
-                    message = "error while sending a move"
-                    cause = it
-                }
+        val handler = CoroutineExceptionHandler { _, error ->
+            logger.atInfo {
+                message = "error while sending a move"
+                cause = error
+            }
+        }
+        val waitingTimeJob = launch(handler) {
+            expectedWaitingTime.collect {
+                if (it != null)
+                    sendSerializedEvent(it, "waiting_time")
             }
         }
         val onGameFound: suspend (Long) -> Unit = { data: Long ->

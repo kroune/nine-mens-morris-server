@@ -6,6 +6,7 @@ import io.github.kroune.data.local.queueRepository
 import io.github.kroune.data.local.users.InsertUserData
 import io.github.kroune.data.local.usersRepository
 import io.github.kroune.features.ConfigurationLoader.currentConfig
+import io.github.kroune.features.encryption.JwtTokenImpl
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Database
 import org.testcontainers.containers.PostgreSQLContainer
@@ -19,11 +20,12 @@ class TestDatabase {
         start() // Start the container
     }
 
-    fun createDummyUser(userData: InsertUserData = InsertUserData("testLogin", "testPassword")): InsertUserData {
-        runBlocking {
+    fun createDummyUser(userData: InsertUserData = InsertUserData("testLogin", "testPassword")): Pair<InsertUserData, String> {
+        val jwtToken = runBlocking {
             usersRepository.create(userData)
+            JwtTokenImpl(userData.login, userData.password).token
         }
-        return userData
+        return userData to jwtToken
     }
 
     fun connect() {

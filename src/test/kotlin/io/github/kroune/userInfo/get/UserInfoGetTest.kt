@@ -35,11 +35,11 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, jwt) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-login-by-id") {
                     parameter("id", id)
-                    parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.OK)
                 assertEquals(Json.decodeFromString<String>(request.bodyAsText()), user.login)
@@ -58,11 +58,11 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, jwt) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)!!
                 val request = client.get("/get-login-by-id") {
                     this.parameter("id", id + 100L)
-                    this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    this.parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.Forbidden)
             }
@@ -80,10 +80,9 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
-                val id = usersRepository.getIdByLogin(user.login)!!
+                val (_, jwt) = db.createDummyUser()
                 val request = client.get("/get-login-by-id") {
-                    this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    this.parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.BadRequest)
             }
@@ -101,7 +100,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, _) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-login-by-id") {
                     this.parameter("id", id)
@@ -123,7 +122,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, _) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-login-by-id") {
                     this.parameter("id", id)
@@ -144,8 +143,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
-                val id = usersRepository.getIdByLogin(user.login)
+                val (user, _) = db.createDummyUser()
                 val request = client.get("/get-login-by-id") {
                     this.parameter("id", "notLong")
                     this.parameter("jwtToken", JwtTokenImpl(user.login + "notValid", user.password).token)
@@ -168,11 +166,11 @@ class UserInfoGetTest {
                 routing {
                     userInfoRoutingGET()
                 }
-                val user = db.createDummyUser()
+                val (user, jwt) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-creation-date-by-id") {
                     parameter("id", id)
-                    parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.OK)
                 assertEquals(Json.decodeFromString<Triple<Int, Int, Int>>(request.bodyAsText()), user.date.let {
@@ -193,11 +191,11 @@ class UserInfoGetTest {
                 routing {
                     userInfoRoutingGET()
                 }
-                val user = db.createDummyUser()
+                val (user, jwt) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)!!
                 val request = client.get("/get-creation-date-by-id") {
                     this.parameter("id", id + 100L)
-                    this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    this.parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.Forbidden)
             }
@@ -215,10 +213,9 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
-                val id = usersRepository.getIdByLogin(user.login)!!
+                val (_, jwt) = db.createDummyUser()
                 val request = client.get("/get-creation-date-by-id") {
-                    this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    this.parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.BadRequest)
             }
@@ -236,8 +233,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
-                val id = usersRepository.getIdByLogin(user.login)
+                val (user, _) = db.createDummyUser()
                 val request = client.get("/get-creation-date-by-id") {
                     this.parameter("id", "notLong")
                     this.parameter("jwtToken", JwtTokenImpl(user.login + "notValid", user.password).token)
@@ -258,7 +254,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, _) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-creation-date-by-id") {
                     this.parameter("id", id)
@@ -280,7 +276,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, _) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-creation-date-by-id") {
                     this.parameter("id", id)
@@ -303,11 +299,11 @@ class UserInfoGetTest {
                 routing {
                     userInfoRoutingGET()
                 }
-                val user = db.createDummyUser(InsertUserData("exampleLogin", "examplePass", rating = 3307))
+                val (user, jwt) = db.createDummyUser(InsertUserData("exampleLogin", "examplePass", rating = 3307))
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-rating-by-id") {
                     parameter("id", id)
-                    parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.OK)
                 assertEquals(Json.decodeFromString<Int>(request.bodyAsText()), user.rating)
@@ -326,11 +322,11 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, jwt) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)!!
                 val request = client.get("/get-rating-by-id") {
                     this.parameter("id", id + 100L)
-                    this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    this.parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.Forbidden)
             }
@@ -348,10 +344,9 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
-                val id = usersRepository.getIdByLogin(user.login)!!
+                val (_, jwt) = db.createDummyUser()
                 val request = client.get("/get-rating-by-id") {
-                    this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    this.parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.BadRequest)
             }
@@ -369,8 +364,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
-                val id = usersRepository.getIdByLogin(user.login)
+                val (user, _) = db.createDummyUser()
                 val request = client.get("/get-rating-by-id") {
                     this.parameter("id", "notLong")
                     this.parameter("jwtToken", JwtTokenImpl(user.login + "notValid", user.password).token)
@@ -391,7 +385,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, _) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-rating-by-id") {
                     this.parameter("id", id)
@@ -413,7 +407,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, _) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-rating-by-id") {
                     this.parameter("id", id)
@@ -436,10 +430,10 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser(InsertUserData("exampleLogin", "examplePass", rating = 3307))
+                val (user, jwt) = db.createDummyUser(InsertUserData("exampleLogin", "examplePass", rating = 3307))
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-id-by-jwt-token") {
-                    parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.OK)
                 assertEquals(Json.decodeFromString<Long>(request.bodyAsText()), id)
@@ -458,8 +452,8 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
-                val id = usersRepository.getIdByLogin(user.login)
+                val (user, _) = db.createDummyUser()
+                usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-id-by-jwt-token") {
                     this.parameter("jwtToken", JwtTokenImpl(user.login + "notValid", user.password).token)
                 }
@@ -479,8 +473,8 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
-                val id = usersRepository.getIdByLogin(user.login)
+                val (user, _) = db.createDummyUser()
+                usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-id-by-jwt-token") {
                 }
                 assertEquals(request.status, HttpStatusCode.BadRequest)
@@ -501,11 +495,11 @@ class UserInfoGetTest {
                 routing {
                     userInfoRoutingGET()
                 }
-                val user = db.createDummyUser(InsertUserData("exampleLogin", "examplePass"))
+                val (user, jwt) = db.createDummyUser(InsertUserData("exampleLogin", "examplePass"))
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-picture-by-id") {
                     parameter("id", id)
-                    parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.OK)
                 assertContentEquals(
@@ -527,7 +521,7 @@ class UserInfoGetTest {
                 routing {
                     userInfoRoutingGET()
                 }
-                val user = db.createDummyUser(
+                val (user, jwt) = db.createDummyUser(
                     InsertUserData(
                         "exampleLogin",
                         "examplePass",
@@ -537,7 +531,7 @@ class UserInfoGetTest {
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-picture-by-id") {
                     parameter("id", id)
-                    parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.OK)
                 assertContentEquals(
@@ -559,11 +553,11 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, jwt) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)!!
                 val request = client.get("/get-picture-by-id") {
                     this.parameter("id", id + 100L)
-                    this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    this.parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.Forbidden)
             }
@@ -581,10 +575,10 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
-                val id = usersRepository.getIdByLogin(user.login)!!
+                val (user, jwt) = db.createDummyUser()
+                usersRepository.getIdByLogin(user.login)!!
                 val request = client.get("/get-picture-by-id") {
-                    this.parameter("jwtToken", JwtTokenImpl(user.login, user.password).token)
+                    this.parameter("jwtToken", jwt)
                 }
                 assertEquals(request.status, HttpStatusCode.BadRequest)
             }
@@ -602,8 +596,8 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
-                val id = usersRepository.getIdByLogin(user.login)
+                val (user, _) = db.createDummyUser()
+                usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-picture-by-id") {
                     this.parameter("id", "notLong")
                     this.parameter("jwtToken", JwtTokenImpl(user.login + "notValid", user.password).token)
@@ -624,7 +618,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, _) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-picture-by-id") {
                     this.parameter("id", id)
@@ -646,7 +640,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val user = db.createDummyUser()
+                val (user, _) = db.createDummyUser()
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-picture-by-id") {
                     this.parameter("id", id)
@@ -672,14 +666,14 @@ class UserInfoGetTest {
                 var usersInLeaderboard = mutableListOf<Pair<Int, Long>>()
                 var jwtToken: String? = null
                 for (i in 1..14) {
-                    val user = db.createDummyUser(
+                    val (user, jwt) = db.createDummyUser(
                         userData = InsertUserData(
                             "user$i",
                             password = "44444441s",
                             rating = 1000 + 2 * i
                         )
                     )
-                    jwtToken = JwtTokenImpl(user.login, user.password).token
+                    jwtToken = jwt
                     if (i > 4) {
                         usersInLeaderboard.add(Pair(user.rating, usersRepository.getIdByLogin(user.login)!!))
                     }
@@ -710,14 +704,14 @@ class UserInfoGetTest {
                 var usersInLeaderboard = mutableListOf<Pair<Int, Long>>()
                 var jwtToken: String? = null
                 for (i in 1..14) {
-                    val user = db.createDummyUser(
+                    val (user, jwt) = db.createDummyUser(
                         userData = InsertUserData(
                             "user$i",
                             password = "44444441s",
                             rating = 1000 + 2 * i
                         )
                     )
-                    jwtToken = JwtTokenImpl(user.login, user.password).token
+                    jwtToken = jwt
                     if (i > 4) {
                         usersInLeaderboard.add(Pair(user.rating, usersRepository.getIdByLogin(user.login)!!))
                     }
@@ -744,14 +738,14 @@ class UserInfoGetTest {
                 var usersInLeaderboard = mutableListOf<Pair<Int, Long>>()
                 var jwtToken: String? = null
                 for (i in 1..4) {
-                    val user = db.createDummyUser(
+                    val (user, jwt) = db.createDummyUser(
                         userData = InsertUserData(
                             "user$i",
                             password = "44444441s",
                             rating = 1000 + 2 * i
                         )
                     )
-                    jwtToken = JwtTokenImpl(user.login, user.password).token
+                    jwtToken = jwt
                     usersInLeaderboard.add(Pair(user.rating, usersRepository.getIdByLogin(user.login)!!))
                 }
                 usersInLeaderboard = usersInLeaderboard.sortedByDescending { it.first }.toMutableList()

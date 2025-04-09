@@ -3,7 +3,6 @@ package io.github.kroune.userInfo.post
 import io.github.kroune.TestDatabase
 import io.github.kroune.applyPlugins
 import io.github.kroune.data.local.usersRepository
-import io.github.kroune.features.encryption.JwtTokenImpl
 import io.github.kroune.routing.userInfo.post.userInfoRoutingPOST
 import io.github.kroune.startDI
 import io.ktor.client.request.*
@@ -31,15 +30,14 @@ class UserInfoPostTest {
                 routing {
                     userInfoRoutingPOST()
                 }
-                val user = db.createDummyUser()
-                val jwtToken = JwtTokenImpl(user.login, user.password)
+                val (_, jwt) = db.createDummyUser()
                 val validImage = this.javaClass.getResource("/valid.png")!!
                 val result = client.post("/upload-picture") {
-                    this.parameter("jwtToken", jwtToken.token)
+                    this.parameter("jwtToken", jwt)
                     this.setBody(validImage.readBytes())
                 }
                 assertEquals(result.status, HttpStatusCode.OK)
-                val id = usersRepository.getIdByJwtToken(jwtToken.token)!!
+                val id = usersRepository.getIdByJwtToken(jwt)!!
                 val pictureFromDb = usersRepository.getPictureById(id)
                 assertContentEquals(validImage.readBytes(), pictureFromDb)
             }
@@ -57,15 +55,14 @@ class UserInfoPostTest {
                 routing {
                     userInfoRoutingPOST()
                 }
-                val user = db.createDummyUser()
-                val jwtToken = JwtTokenImpl(user.login, user.password)
+                val (_, jwt) = db.createDummyUser()
                 val validImage = this.javaClass.getResource("/corrupted.png")!!
                 val result = client.post("/upload-picture") {
-                    this.parameter("jwtToken", jwtToken.token)
+                    this.parameter("jwtToken", jwt)
                     this.setBody(validImage.readBytes())
                 }
                 assertEquals(result.status, HttpStatusCode.Forbidden)
-                val id = usersRepository.getIdByJwtToken(jwtToken.token)!!
+                val id = usersRepository.getIdByJwtToken(jwt)!!
                 val pictureFromDb = usersRepository.getPictureById(id)
                 assertNotEquals(validImage.readBytes(), pictureFromDb)
             }
@@ -83,15 +80,14 @@ class UserInfoPostTest {
                 routing {
                     userInfoRoutingPOST()
                 }
-                val user = db.createDummyUser()
-                val jwtToken = JwtTokenImpl(user.login, user.password)
+                val (_, jwt) = db.createDummyUser()
                 val validImage = this.javaClass.getResource("/tooBig.png")!!
                 val result = client.post("/upload-picture") {
-                    this.parameter("jwtToken", jwtToken.token)
+                    this.parameter("jwtToken", jwt)
                     this.setBody(validImage.readBytes())
                 }
                 assertEquals(result.status, HttpStatusCode.BadRequest)
-                val id = usersRepository.getIdByJwtToken(jwtToken.token)!!
+                val id = usersRepository.getIdByJwtToken(jwt)!!
                 val pictureFromDb = usersRepository.getPictureById(id)
                 assertNotEquals(validImage.readBytes(), pictureFromDb)
             }
@@ -109,15 +105,14 @@ class UserInfoPostTest {
                 routing {
                     userInfoRoutingPOST()
                 }
-                val user = db.createDummyUser()
-                val jwtToken = JwtTokenImpl(user.login, user.password)
+                val (_, jwt) = db.createDummyUser()
                 val validImage = this.javaClass.getResource("/valid.png")!!
                 val result = client.post("/upload-picture") {
-                    this.parameter("jwtToken", "acxzczx" + jwtToken.token)
+                    this.parameter("jwtToken", "acxzczx$jwt")
                     this.setBody(validImage.readBytes())
                 }
                 assertEquals(result.status, HttpStatusCode.Forbidden)
-                val id = usersRepository.getIdByJwtToken(jwtToken.token)!!
+                val id = usersRepository.getIdByJwtToken(jwt)!!
                 val pictureFromDb = usersRepository.getPictureById(id)
                 assertNotEquals(validImage.readBytes(), pictureFromDb)
             }
@@ -135,14 +130,13 @@ class UserInfoPostTest {
                 routing {
                     userInfoRoutingPOST()
                 }
-                val user = db.createDummyUser()
-                val jwtToken = JwtTokenImpl(user.login, user.password)
+                val (_, jwt) = db.createDummyUser()
                 val validImage = this.javaClass.getResource("/valid.png")!!
                 val result = client.post("/upload-picture") {
                     this.setBody(validImage.readBytes())
                 }
                 assertEquals(result.status, HttpStatusCode.BadRequest)
-                val id = usersRepository.getIdByJwtToken(jwtToken.token)!!
+                val id = usersRepository.getIdByJwtToken(jwt)!!
                 val pictureFromDb = usersRepository.getPictureById(id)
                 assertNotEquals(validImage.readBytes(), pictureFromDb)
             }
@@ -160,11 +154,9 @@ class UserInfoPostTest {
                 routing {
                     userInfoRoutingPOST()
                 }
-                val user = db.createDummyUser()
-                val jwtToken = JwtTokenImpl(user.login, user.password)
-                val validImage = this.javaClass.getResource("/valid.png")!!
+                val (_, jwt) = db.createDummyUser()
                 val result = client.post("/upload-picture") {
-                    this.parameter("jwtToken", jwtToken.token)
+                    this.parameter("jwtToken", jwt)
                     this.setBody("not an image")
                 }
                 assertEquals(result.status, HttpStatusCode.Forbidden)
