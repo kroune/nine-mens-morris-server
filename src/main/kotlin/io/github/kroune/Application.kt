@@ -131,7 +131,7 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
         allowMethod(HttpMethod.Post)
         allowHeader(HttpHeaders.ContentType)
         allowHost("github.io", listOf("http", "https"), listOf("kroune"))
-        allowHost("nine-men-s-morris.me", listOf("http", "https"), listOf("play"))
+        allowHost("nine-men-s-morris.me", listOf("http", "https"), listOf("play", "dev"))
     }
     install(Authentication) {
         basic("prometheus") {
