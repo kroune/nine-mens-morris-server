@@ -67,6 +67,7 @@ fun main() {
         },
         module = {
             startDI()
+            GlobalContext.get().declare(currentConfig)
             logger.info { "starting server" }
             applyPlugins()
             installMonitoring()

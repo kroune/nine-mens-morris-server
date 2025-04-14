@@ -150,18 +150,17 @@ suspend inline fun RoutingContext.requireValidUserId(lambda: () -> Unit) {
  *
  * [Nothing]
  */
-suspend inline fun WebSocketServerSession.requireValidJwtToken(lambda: () -> Unit) {
+suspend inline fun WebSocketServerSession.requireValidJwtToken(): String? {
     val jwtToken = call.parameters["jwtToken"]
     if (jwtToken == null) {
         noJwtToken()
-        lambda()
-        return
+        return null
     }
     if (!JwtTokenImpl(jwtToken).verify()) {
         jwtTokenIsNotValid()
-        lambda()
-        return
+        return null
     }
+    return jwtToken
 }
 
 /**
@@ -175,25 +174,25 @@ suspend inline fun WebSocketServerSession.requireValidJwtToken(lambda: () -> Uni
  *
  * [Nothing]
  */
-suspend inline fun DefaultWebSocketServerSession.requireGameId(lambda: () -> Unit) {
+suspend inline fun DefaultWebSocketServerSession.requireGameId(): Long? {
     val gameId = call.parameters["gameId"]
     if (gameId == null) {
         noGameId()
-        lambda()
-        return
+        return null
     }
-    if (gameId.toLongOrNull() == null) {
+    val gameIdToLong = gameId.toLongOrNull()
+    if (gameIdToLong == null) {
         gameIdIsNotLong()
-        lambda()
-        return
+        return null
     }
-    val gameExists = gamesRepository.exists(gameId.toLong())
+    val gameExists = gamesRepository.exists(gameIdToLong)
     if (!gameExists) {
         gameIdIsNotValid()
-        lambda()
-        return
+        return null
     }
+    return gameIdToLong
 }
+
 /**
  * possible responses:
  *

@@ -20,12 +20,25 @@
 package io.github.kroune.data.local.queue.dao
 
 import io.github.kroune.data.local.queue.QueueTable
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.koin.core.context.GlobalContext
+import java.util.Properties
+
+
+private val producer by lazy {
+    val props by GlobalContext.get().inject<Properties>()
+    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+    props.put("value.serializer", "org.apache.kafka.common.serialization.VoidSerializer")
+
+    KafkaProducer<String, Long>(props)
+}
 
 class QueueServiceImpl : QueueServiceI {
     init {
@@ -44,6 +57,9 @@ class QueueServiceImpl : QueueServiceI {
                     it[QueueTable.userId] = userId
                 }
             }
+        }
+        bucketRange.forEach { bucket ->
+            producer.send(ProducerRecord("searching-for-game-$bucket", null))
         }
     }
 

@@ -43,6 +43,7 @@ nine-men-s-morris-shared = { group = "com.github.kroune", name = "9-men-s-morris
 nine-men-s-morris-lib = { group = "io.github.kroune", name = "nineMensMorris", version.ref = "lib" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 test-container-postgresql = { group = "org.testcontainers", name = "postgresql", version.ref = "test_container" }
+test-container-kafka = { group = "org.testcontainers", name = "kafka", version.ref = "test_container" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 
 [plugins]

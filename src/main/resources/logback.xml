@@ -25,6 +25,7 @@
         <appender-ref ref="LOKI" />
     </root>
     <root level="trace">
+    <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
     <logger name="org.eclipse.jetty" level="INFO"/>

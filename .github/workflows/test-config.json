@@ -20,6 +20,9 @@
     "nameForScrape": "test_scraper",
     "passwordForScrape": "some_password"
   },
+  "kafkaConfig": {
+    "url": "localhost:9092"
+  },
   "gameConfig": {
     "timeForMove": 30000,
     "bucketSize": 100,

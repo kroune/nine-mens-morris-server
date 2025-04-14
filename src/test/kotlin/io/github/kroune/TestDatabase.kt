@@ -13,7 +13,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import kotlin.reflect.full.createInstance
 
 class TestDatabase {
-    private var mySQLContainer: PostgreSQLContainer<Nothing> = PostgreSQLContainer<Nothing>("postgres:17").apply {
+    var mySQLContainer: PostgreSQLContainer<Nothing> = PostgreSQLContainer<Nothing>("postgres:17").apply {
         withDatabaseName("test-db")
         withUsername("test-user")
         withPassword("test-password")

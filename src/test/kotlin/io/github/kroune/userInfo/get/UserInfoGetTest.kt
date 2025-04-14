@@ -430,7 +430,7 @@ class UserInfoGetTest {
                     userInfoRoutingGET()
                 }
                 db.connect()
-                val (user, jwt) = db.createDummyUser(InsertUserData("exampleLogin", "examplePass", rating = 3307))
+                val (user, jwt) = db.createDummyUser(InsertUserData("exampleLogin1", "examplePass1", rating = 3307))
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-id-by-jwt-token") {
                     parameter("jwtToken", jwt)
@@ -495,7 +495,7 @@ class UserInfoGetTest {
                 routing {
                     userInfoRoutingGET()
                 }
-                val (user, jwt) = db.createDummyUser(InsertUserData("exampleLogin", "examplePass"))
+                val (user, jwt) = db.createDummyUser(InsertUserData("exampleLogin2", "examplePass2"))
                 val id = usersRepository.getIdByLogin(user.login)
                 val request = client.get("/get-picture-by-id") {
                     parameter("id", id)
@@ -523,8 +523,8 @@ class UserInfoGetTest {
                 }
                 val (user, jwt) = db.createDummyUser(
                     InsertUserData(
-                        "exampleLogin",
-                        "examplePass",
+                        "exampleLogin3",
+                        "examplePass3",
                         profilePicture = this.javaClass.getResource("/valid.png")!!.readBytes()
                     )
                 )

@@ -34,6 +34,9 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.server.cors)
 
+    // kafka
+    implementation("org.apache.kafka:kafka-clients:4.0.0")
+
     // logging
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
     implementation(libs.logback.classic)
@@ -69,6 +72,7 @@ dependencies {
     // testing
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.test.container.postgresql)
+    testImplementation(libs.test.container.kafka)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.ktor.server.test)
     testImplementation(libs.kotlin.test.junit)

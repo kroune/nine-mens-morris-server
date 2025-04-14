@@ -30,7 +30,26 @@ import io.github.kroune.features.logging.userId
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
+import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.consumer.KafkaConsumer
+import org.koin.core.context.GlobalContext
+import java.util.*
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
+
+
+private val consumer by lazy {
+    val props by GlobalContext.get().inject<Properties>()
+    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+    props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
+    props.put("value.serializer", "org.apache.kafka.common.serialization.VoidSerializer")
+    props.put("value.deserializer", "org.apache.kafka.common.serialization.VoidDeserializer")
+    props.put(CommonClientConfigs.METADATA_MAX_AGE_CONFIG, 1.seconds.inWholeMilliseconds)
+    props.put("group.id", "server")
+
+    KafkaConsumer<String, Long>(props)
+}
 
 val minPairWithBotTime = currentConfig.gameConfig.minTimeBeforePairingWithBot
 val maxPairWithBotTime = currentConfig.gameConfig.maxTimeBeforePairingWithBot
@@ -134,18 +153,20 @@ object SearchingForGame {
     private val searchingForGameScope = CoroutineScope(Dispatchers.IO)
 
     init {
-        for (bucketId in 0..currentConfig.gameConfig.maxBucketNumber) {
-            searchingForGameScope.launch {
-                while (true) {
-                    // if bucket number has changed
-                    if (bucketId !in 0..currentConfig.gameConfig.maxBucketNumber) {
-                        delay(delayBeforeRecheckingBucket)
-                        continue
-                    }
+        consumer.subscribe(Regex("searching-for-game-\\d*").toPattern())
+        searchingForGameScope.launch {
+            while (true) {
+                val records = consumer.poll(5.seconds.toJavaDuration())
+                    .map {
+                        val topicName = it.topic()!!
+                        topicName
+                            .substringAfter("searching-for-game-")
+                            .toInt()
+                    }.toSet()
+                records.forEach { bucketId ->
                     val availablePlayers = queueRepository.getUsers(bucketId).shuffled()
                     if (availablePlayers.isEmpty()) {
-                        delay(delayBeforeRecheckingBucket)
-                        continue
+                        return@forEach
                     }
                     globalLogger.atDebug {
                         message = "bucket.size - ${availablePlayers.size}"
@@ -159,8 +180,7 @@ object SearchingForGame {
                         userIdToSession[availablePlayers.first()]?.expectedWaitingTime?.emit(
                             expectedWaitingTime
                         )
-                        delay(delayBeforeRecheckingBucket)
-                        continue
+                        return@forEach
                     }
                     val firstUser = availablePlayers[0]
                     val secondUser = availablePlayers[1]
@@ -171,7 +191,7 @@ object SearchingForGame {
                     )
                     if (!gamesRepository.create(gameData)) {
                         // race condition
-                        continue
+                        return@forEach
                     }
                     val gameId = gamesRepository.getGameIdByUserId(firstUser)!!
                     listOf(firstUser, secondUser).forEach { userId ->

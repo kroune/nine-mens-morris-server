@@ -45,10 +45,8 @@ import kotlinx.coroutines.launch
 
 fun Route.gameRoutingWS() {
     webSocket("/search-for-game") {
-        requireValidJwtToken {
-            return@webSocket
-        }
-        val jwtToken = call.parameters["jwtToken"]!!
+        val jwtToken = requireValidJwtToken() ?: return@webSocket
+
         val userId = usersRepository.getIdByJwtToken(jwtToken)!!
         val expectedWaitingTime = MutableStateFlow<Long?>(null)
         val handler = CoroutineExceptionHandler { _, error ->
@@ -60,11 +58,11 @@ fun Route.gameRoutingWS() {
         val waitingTimeJob = launch(handler) {
             expectedWaitingTime.collect {
                 if (it != null)
-                    sendSerializedEvent(it, "waiting_time")
+                    sendSerializedEvent(data = it, metadata = "waiting_time")
             }
         }
         val onGameFound: suspend (Long) -> Unit = { data: Long ->
-            sendSerializedEvent(data, "game_id")
+            sendSerializedEvent(data = data, metadata = "game_id")
             flush()
             waitingTimeJob.cancel()
             close()
@@ -77,15 +75,9 @@ fun Route.gameRoutingWS() {
         SearchingForGame.removeUser(userId)
     }
     webSocket("/game") {
-        requireValidJwtToken {
-            return@webSocket
-        }
-        requireGameId {
-            return@webSocket
-        }
+        val jwtToken = requireValidJwtToken() ?: return@webSocket
+        val gameId = requireGameId() ?:return@webSocket
 
-        val gameId = call.parameters["gameId"]!!.toLong()
-        val jwtToken = call.parameters["jwtToken"]!!
         val userId = usersRepository.getIdByJwtToken(jwtToken)!!
         if (!gamesRepository.participates(userId)) {
             jwtTokenIsNotValidForThisGame()

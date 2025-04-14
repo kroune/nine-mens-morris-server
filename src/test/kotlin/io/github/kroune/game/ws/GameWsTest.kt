@@ -5,7 +5,6 @@ import io.github.kroune.TestDatabase
 import io.github.kroune.applyPlugins
 import io.github.kroune.data.local.users.InsertUserData
 import io.github.kroune.routing.game.ws.gameRoutingWS
-import io.github.kroune.startDI
 import io.ktor.server.testing.*
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.delay
@@ -13,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.experimental.runners.Enclosed
 import org.junit.runner.RunWith
+import startTestDI
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -24,7 +24,7 @@ class GameWsTest {
             testApplication {
                 val db = TestDatabase()
                 application {
-                    startDI()
+                    startTestDI()
                     applyPlugins()
                 }
                 routing {
@@ -54,7 +54,7 @@ class GameWsTest {
             testApplication {
                 val db = TestDatabase()
                 application {
-                    startDI()
+                    startTestDI()
                     applyPlugins()
                 }
                 routing {
@@ -80,7 +80,7 @@ class GameWsTest {
             testApplication {
                 val db = TestDatabase()
                 application {
-                    startDI()
+                    startTestDI()
                     applyPlugins()
                 }
                 routing {
@@ -105,7 +105,7 @@ class GameWsTest {
             testApplication {
                 val db = TestDatabase()
                 application {
-                    startDI()
+                    startTestDI()
                     applyPlugins()
                 }
                 routing {
