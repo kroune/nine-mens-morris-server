@@ -1,3 +1,7 @@
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+}
+
 rootProject.name = "NineMensMorris-backend"
 
 dependencyResolutionManagement {
@@ -15,3 +19,13 @@ dependencyResolutionManagement {
         google()
     }
 }
+
+include(":common")
+include("server")
+include("database")
+include("common-ktor")
+include("game-queue")
+include("user")
+include("game-server")
+include("game-main")
+include("bots")
