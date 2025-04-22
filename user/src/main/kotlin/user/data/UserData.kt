@@ -17,11 +17,25 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package bots
+package user.data
 
-import user.data.UsersDataTable
-import org.jetbrains.exposed.sql.Table
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
-object BotsDataTable: Table("bot_data") {
-    val userId = reference("user_id", UsersDataTable.id).uniqueIndex()
-}
+data class UserData(
+    val login: String,
+    val passwordHash: String,
+    val date: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.UTC).date,
+    var rating: Int = 1000,
+    var profilePicture: ByteArray? = null
+)
+
+data class InsertUserPayload(
+    val login: String,
+    val password: String,
+    val date: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.UTC).date,
+    var rating: Int = 1000,
+    var profilePicture: ByteArray? = null
+)

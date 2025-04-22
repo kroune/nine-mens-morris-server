@@ -17,11 +17,18 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package bots
+package gameMain.data.dao
 
-import user.data.UsersDataTable
-import org.jetbrains.exposed.sql.Table
+import com.kroune.nineMensMorrisLib.Position
+import com.kroune.nineMensMorrisLib.gameStartPosition
+import com.kroune.nineMensMorrisLib.move.Movement
+import kotlin.random.Random
 
-object BotsDataTable: Table("bot_data") {
-    val userId = reference("user_id", UsersDataTable.id).uniqueIndex()
-}
+class GameData(
+    val firstPlayerId: Long,
+    val secondPlayerId: Long,
+    val botId: Long?,
+    val movesHistory: List<Movement> = listOf(),
+    val position: Position = gameStartPosition,
+    val firstPlayerMovesFirst: Boolean = Random.nextBoolean(),
+)

@@ -5,10 +5,6 @@ plugins {
 group = "io.github.kroune"
 version = "unspecified"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     // db
     implementation(libs.exposed.core)
@@ -23,13 +19,14 @@ dependencies {
     implementation(libs.ktor.server.core.jvm)
     implementation(libs.ktor.server.websockets)
 
-    testImplementation(libs.test.container.kafka)
-
     implementation(libs.nine.men.s.morris.lib)
 
     api(project(":common"))
     api(project(":user"))
     api(project(":game-main"))
+
+    testApi(project(":common-tests"))
+    testApi(project(":user-tests"))
 
     testImplementation(libs.test.container.postgresql)
     testImplementation(kotlin("test"))

@@ -17,11 +17,14 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package bots
+package gameQueue.data.queue.dao
 
-import user.data.UsersDataTable
-import org.jetbrains.exposed.sql.Table
+interface QueueServiceI {
+    suspend fun addUser(userId: Long, bucketRange: IntRange)
+    suspend fun getUsers(bucket: Int): List<Long>
 
-object BotsDataTable: Table("bot_data") {
-    val userId = reference("user_id", UsersDataTable.id).uniqueIndex()
+    /**
+     * @return amount of deleted rows
+     */
+    suspend fun deleteUser(userId: Long): Int
 }

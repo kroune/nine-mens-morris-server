@@ -18,12 +18,12 @@
  * Contact: kr0ne@tuta.io
  */
 
-import ConfigurationLoader.currentConfig
+import common.ConfigurationLoader.currentConfig
 import bots.dao.BotsServiceI
-import data.dao.UsersDataServiceI
-import io.github.kroune.logging.bucketId
-import io.github.kroune.logging.globalLogger
-import io.github.kroune.logging.userId
+import user.data.dao.UsersDataServiceI
+import common.logging.bucketId
+import common.logging.globalLogger
+import common.logging.userId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    kotlin("jvm") version "2.1.0"
 }
 
 group = "io.github.kroune"
@@ -13,23 +13,15 @@ dependencies {
     // db
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
-    api(libs.exposed.kotlin.datetime)
+    implementation(libs.exposed.kotlin.datetime)
     implementation(libs.exposed.json)
     implementation(libs.postgresql)
 
-    implementation(libs.ktor.server.websockets)
-
-    // other libs
-    implementation(libs.bcrypt)
-
-    implementation(project(":common"))
-
-    implementation(libs.ktor.server.core.jvm)
-
-    testImplementation(project(":common-tests"))
-    testImplementation(project(":user-tests"))
-
+    api(libs.test.container.kafka)
+    api(libs.test.container.postgresql)
+    api(project(":common"))
     testImplementation(kotlin("test"))
+    api(libs.ktor.server.test)
 }
 
 tasks.test {

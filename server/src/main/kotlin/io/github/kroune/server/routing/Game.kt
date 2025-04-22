@@ -17,11 +17,15 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package bots
+package io.github.kroune.server.routing
 
-import user.data.UsersDataTable
-import org.jetbrains.exposed.sql.Table
+import gameMain.routing.gameRoutingGET
+import io.ktor.server.routing.*
+import gameMain.routing.gameMainRouting
+import gameQueue.routing.gameQueueRouting
 
-object BotsDataTable: Table("bot_data") {
-    val userId = reference("user_id", UsersDataTable.id).uniqueIndex()
+fun Route.gameRouting() {
+    gameRoutingGET()
+    gameMainRouting()
+    gameQueueRouting()
 }

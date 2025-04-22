@@ -17,11 +17,11 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package bots
+package gameQueue.data.queue
 
-import user.data.UsersDataTable
 import org.jetbrains.exposed.sql.Table
 
-object BotsDataTable: Table("bot_data") {
-    val userId = reference("user_id", UsersDataTable.id).uniqueIndex()
+object QueueTable: Table("queue") {
+    val bucketId = integer("bucketId").index()
+    val userId = long("userId")
 }

@@ -17,11 +17,21 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package bots
+package io.github.kroune.server.routing.misc.get
 
-import user.data.UsersDataTable
-import org.jetbrains.exposed.sql.Table
+import io.ktor.http.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import java.text.SimpleDateFormat
+import java.util.*
 
-object BotsDataTable: Table("bot_data") {
-    val userId = reference("user_id", UsersDataTable.id).uniqueIndex()
+fun Route.miscRoutingGET() {
+    get("/") {
+        call.respondText("Hello, world, this is nine mens morris server!")
+    }
+    get("/healthz") {
+        val sdf = SimpleDateFormat("hh:mm:ss dd/M/yyyy")
+        val currentDate = sdf.format(Date())
+        call.respond(HttpStatusCode.OK, "I am fine at $currentDate")
+    }
 }

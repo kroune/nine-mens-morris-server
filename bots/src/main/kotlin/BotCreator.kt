@@ -19,13 +19,14 @@
  */
 
 import bots.dao.BotsServiceI
-import controller.Bcrypter
-import data.dao.UsersDataServiceI
-import io.github.kroune.logging.globalLogger
+import common.getRandomString
+import user.data.dao.UsersDataServiceI
+import common.logging.globalLogger
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import randomUser.RandomUserRepositoryI
-import data.InsertUserData
+import user.controller.UsersController
+import user.data.InsertUserPayload
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -56,17 +57,16 @@ object BotCreator: KoinComponent {
         }
 
         val password = getRandomString(16)
-        val passwordHash = Bcrypter.hash(password)
+        val usersController by inject<UsersController>()
         val rating = Random.nextInt(ratingRange)
-        val data = InsertUserData(
+        usersController.register(InsertUserPayload(
             login = login,
-            passwordHash = passwordHash,
+            password = password,
             profilePicture = picture,
             rating = rating
-        )
+        ))
 
         val usersRepository by inject<UsersDataServiceI>()
-        usersRepository.create(data)
         val id = usersRepository.getIdByLogin(login)!!
 
         val botsRepository by inject<BotsServiceI>()

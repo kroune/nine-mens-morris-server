@@ -17,11 +17,20 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package bots
+package user.controller
 
-import user.data.UsersDataTable
-import org.jetbrains.exposed.sql.Table
+import at.favre.lib.crypto.bcrypt.BCrypt
 
-object BotsDataTable: Table("bot_data") {
-    val userId = reference("user_id", UsersDataTable.id).uniqueIndex()
+object Bcrypter {
+    private const val COMPLEXITY = 6
+    fun hash(value: String): String {
+        return BCrypt.withDefaults().hashToString(COMPLEXITY, value.toCharArray())!!
+    }
+
+    fun verify(value: String?, hash: String?): Boolean {
+        if (value == null || hash == null) {
+            return false
+        }
+        return BCrypt.verifyer().verify(value.toCharArray(), hash).verified
+    }
 }

@@ -27,6 +27,9 @@ dependencies {
     api(project(":user"))
     api(project(":bots"))
 
+    testApi(project(":common-tests"))
+    testApi(project(":user-tests"))
+
     // my own dependencies
     implementation(libs.nine.men.s.morris.shared)
 
