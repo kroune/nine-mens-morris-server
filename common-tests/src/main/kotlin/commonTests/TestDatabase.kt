@@ -23,22 +23,19 @@ object TestDatabase : KoinComponent {
             withPassword("test-password")
             start() // Start the container
         }
-        println("starting to delete db")
-        database?.let {
-            TransactionManager.closeAndUnregister(it)
-        }
-        println("stopping db")
-        pgContainer.stop()
-        println("creating new db")
-        pgContainer = newPgContainer
         println("connecting to db")
-        database = Database.connect(
+        val newDatabase = Database.connect(
             newPgContainer.jdbcUrl,
             driver = "org.postgresql.Driver",
             user = newPgContainer.username,
             password = newPgContainer.password
         )
-        println("declaring koin")
-        GlobalContext.get().declare(database)
+        database?.let {
+            TransactionManager.closeAndUnregister(it)
+        }
+        pgContainer.stop()
+        pgContainer = newPgContainer
+        database = newDatabase
+        GlobalContext.get().declare(newPgContainer)
     }
 }

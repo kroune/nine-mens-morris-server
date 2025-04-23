@@ -49,7 +49,7 @@ class GameWsTest {
     }
 
     @Test
-    fun `connect with real player`() {
+    fun `connect with real player after delay`() {
         testApplication {
             application {
                 startTestDI()
