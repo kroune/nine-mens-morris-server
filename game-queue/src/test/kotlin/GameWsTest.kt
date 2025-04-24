@@ -166,6 +166,7 @@ class GameWsTest {
                 repeat(5) {
                     var firstGameIdSecondAttempt: Deferred<Long> = getGameId(jwt1).first
                     assert(firstGameId.await() == firstGameIdSecondAttempt.await())
+                    println("check passed")
                 }
             }
         }

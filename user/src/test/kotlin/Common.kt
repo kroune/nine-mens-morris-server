@@ -1,65 +1,13 @@
 import common.ConfigurationLoader
 import common.ConfigurationLoader.ConfigMember
 import common.commonPlugins
-import common.receiveDeserializedServerEvent
 import commonTests.TestDatabase
 import commonTests.TestKafka
 import user.di.usersModules
-import io.ktor.client.plugins.websocket.*
-import io.ktor.client.request.*
-import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
-import io.ktor.server.testing.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.Channel
-import kotlinx.serialization.json.Json
 import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
 import kotlin.time.Duration.Companion.seconds
-
-fun ApplicationTestBuilder.getGameId(jwtToken: String): Pair<Deferred<Long>, Channel<Long>> {
-    val channel = Channel<Long>(1000)
-    return CoroutineScope(Dispatchers.IO).async {
-        val client2 = createClient {
-            install(WebSockets) {
-                contentConverter = KotlinxWebsocketSerializationConverter(Json)
-                pingInterval = 3.seconds
-            }
-        }
-
-        var gameId: Long? = null
-        client2.ws(urlString = "/search-for-game", request = {
-            url {
-                parameter("jwtToken", jwtToken)
-            }
-        }) {
-            while (true) {
-                val info = receiveDeserializedServerEvent<Long, String>()
-                when (info.second) {
-                    "game_id" -> {
-                        gameId = info.first
-                        channel.close()
-                        println("game id = ${info.first}")
-                        break
-                    }
-
-                    "waiting_time" -> {
-                        channel.send(info.first)
-                    }
-
-                    else -> {
-                        info.second
-                        info.first
-                    }
-                }
-            }
-        }
-        return@async gameId!!
-    } to channel
-}
 
 fun Application.startTestDI() {
     install(Koin) {

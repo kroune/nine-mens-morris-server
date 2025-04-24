@@ -52,20 +52,23 @@ fun ApplicationTestBuilder.getGameId(jwtToken: String): Pair<Deferred<Long>, Cha
         }
 
         var gameId: Long? = null
+        println("starting ws")
         client2.ws(urlString = "/search-for-game", request = {
             url {
                 parameter("jwtToken", jwtToken)
             }
         }) {
             while (true) {
+                println("waiting for info")
                 val info = receiveDeserializedServerEvent<Long, String>()
+                println(info)
                 when (info.second) {
                     "game_id" -> {
                         gameId = info.first
                         channel.close()
-                        println("game id = ${info.first}")
                         close()
-                        break
+                        println("game id = ${info.first}")
+                        return@ws
                     }
 
                     "waiting_time" -> {

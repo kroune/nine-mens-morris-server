@@ -20,8 +20,6 @@
 package user.data.dao
 
 import common.JwtTokenImpl
-import user.data.UserData
-import user.data.UsersDataTable
 import common.logging.globalLogger
 import common.logging.userId
 import kotlinx.datetime.LocalDate
@@ -31,6 +29,8 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import user.data.UserData
+import user.data.UsersDataTable
 
 class UsersDataServiceImpl : UsersDataServiceI {
     init {
