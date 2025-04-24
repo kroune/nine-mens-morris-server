@@ -23,16 +23,15 @@ import common.JwtTokenImpl
 import common.logging.globalLogger
 import common.logging.userId
 import kotlinx.datetime.LocalDate
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import user.data.UserData
 import user.data.UsersDataTable
 
-class UsersDataServiceImpl : UsersDataServiceI {
+class UsersDataServiceImpl(
+    private val database: Database
+) : UsersDataServiceI {
     init {
         transaction {
             SchemaUtils.create(UsersDataTable)
@@ -40,7 +39,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun create(data: UserData) {
-        newSuspendedTransaction {
+        newSuspendedTransaction(db = database) {
             UsersDataTable.insert {
                 it[login] = data.login
                 it[passwordHash] = data.passwordHash
@@ -52,7 +51,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun getIdByLogin(login: String): Long? {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             UsersDataTable.select(UsersDataTable.id)
                 .where {
                     UsersDataTable.login eq login
@@ -63,7 +62,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun getLoginById(id: Long): String? {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             UsersDataTable.select(UsersDataTable.login)
                 .where {
                     UsersDataTable.id eq id
@@ -74,7 +73,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun updatePictureByLogin(login: String, newPicture: ByteArray) {
-        newSuspendedTransaction {
+        newSuspendedTransaction(db = database) {
             UsersDataTable.update(
                 { UsersDataTable.login eq login }
             ) {
@@ -84,7 +83,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun updatePictureById(id: Long, newPicture: ByteArray) {
-        newSuspendedTransaction {
+        newSuspendedTransaction(db = database) {
             UsersDataTable.update(
                 { UsersDataTable.id eq id }
             ) {
@@ -94,7 +93,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun getPictureById(id: Long): ByteArray? {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             UsersDataTable.select(UsersDataTable.profilePicture)
                 .where {
                     UsersDataTable.id eq id
@@ -105,7 +104,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun getRatingByLogin(login: String): Int? {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             UsersDataTable.select(UsersDataTable.rating)
                 .where {
                     UsersDataTable.login eq login
@@ -116,7 +115,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun getRatingById(id: Long): Int? {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             UsersDataTable.select(UsersDataTable.rating)
                 .where {
                     UsersDataTable.id eq id
@@ -127,7 +126,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun getCreationDateById(id: Long): LocalDate? {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             UsersDataTable.select(UsersDataTable.creationDate)
                 .where {
                     UsersDataTable.id eq id
@@ -138,7 +137,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun updateRatingByLogin(login: String, newRating: Int) {
-        newSuspendedTransaction {
+        newSuspendedTransaction(db = database) {
             UsersDataTable.update(
                 { UsersDataTable.login eq login }
             ) {
@@ -148,7 +147,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun updateRatingById(id: Long, delta: Int) {
-        newSuspendedTransaction {
+        newSuspendedTransaction(db = database) {
             val oldRating = getRatingById(id)!!
             UsersDataTable.update(
                 { UsersDataTable.id eq id }
@@ -170,7 +169,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun isLoginPresent(login: String): Boolean {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             UsersDataTable.select(UsersDataTable.login)
                 .where {
                     UsersDataTable.login eq login
@@ -181,7 +180,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun getPasswordHash(login: String, password: String): String? {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             UsersDataTable.select(UsersDataTable.passwordHash)
                 .where {
                     UsersDataTable.login eq login
@@ -192,7 +191,7 @@ class UsersDataServiceImpl : UsersDataServiceI {
     }
 
     override suspend fun getLeaderboard(size: Int): List<Long> {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             UsersDataTable.select(UsersDataTable.id)
                 .orderBy(UsersDataTable.rating, SortOrder.DESC)
                 .limit(size).map {

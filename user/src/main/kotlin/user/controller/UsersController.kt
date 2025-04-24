@@ -1,14 +1,14 @@
 package user.controller
 
 import common.JwtTokenImpl
-import user.data.UserData
-import user.data.InsertUserPayload
-import user.data.dao.UsersDataServiceI
 import io.ktor.http.*
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import user.data.InsertUserPayload
+import user.data.UserData
+import user.data.dao.UsersDataServiceI
 
-class UsersController : KoinComponent {
+class UsersController: KoinComponent {
     val usersDataService by inject<UsersDataServiceI>()
 
     suspend fun getIdByJwtToken(jwtToken: String): Long? {

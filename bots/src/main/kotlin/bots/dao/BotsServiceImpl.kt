@@ -20,12 +20,15 @@
 package bots.dao
 
 import bots.BotsDataTable
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class BotsServiceImpl: BotsServiceI {
+class BotsServiceImpl(
+    private val database: Database
+) : BotsServiceI {
     init {
         transaction {
             SchemaUtils.create(BotsDataTable)
@@ -33,7 +36,7 @@ class BotsServiceImpl: BotsServiceI {
     }
 
     override suspend fun add(id: Long) {
-        newSuspendedTransaction {
+        newSuspendedTransaction(db = database) {
             BotsDataTable.insert {
                 it[userId] = id
             }
@@ -41,7 +44,7 @@ class BotsServiceImpl: BotsServiceI {
     }
 
     override suspend fun exists(id: Long): Boolean {
-        return newSuspendedTransaction {
+        return newSuspendedTransaction(db = database) {
             BotsDataTable.select(BotsDataTable.userId).where {
                 BotsDataTable.userId eq id
             }.limit(1).map {

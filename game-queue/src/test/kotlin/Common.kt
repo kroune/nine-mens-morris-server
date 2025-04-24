@@ -1,29 +1,24 @@
-import common.ConfigurationLoader
-import common.ConfigurationLoader.ConfigMember
-import common.commonPlugins
+import common.commonModule
 import common.receiveDeserializedServerEvent
+import commonTests.di.commonTestModule
+import database.di.databaseModule
 import gameMain.di.gameMainModules
 import gameQueue.di.queueModules
-import commonTests.TestDatabase
-import commonTests.TestKafka
-import user.di.usersModules
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpRequestTimeoutException
-import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
-import io.ktor.websocket.close
+import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.serialization.json.Json
-import org.koin.dsl.module
 import org.koin.ktor.plugin.Koin
+import user.di.usersModules
 import kotlin.time.Duration.Companion.seconds
 
 fun ApplicationTestBuilder.getGameId(jwtToken: String): Pair<Deferred<Long>, Channel<Long>> {
@@ -89,38 +84,12 @@ fun ApplicationTestBuilder.getGameId(jwtToken: String): Pair<Deferred<Long>, Cha
 fun Application.startTestDI() {
     install(Koin) {
         modules(
-            containersModules,
+            commonModule,
+            commonTestModule,
+            databaseModule,
             gameMainModules,
-            commonPlugins,
             usersModules,
             queueModules
         )
     }
-}
-
-val testConfig = ConfigMember(
-    serverConfig = ConfigurationLoader.ServerConfig("0.0.0.0", 8080),
-    rateLimitConfig = ConfigurationLoader.RateLimitConfig(1000, 10.seconds, 1000),
-    webSocketConfig = ConfigurationLoader.WebSocketConfig(3.seconds, 10.seconds),
-    encryptionToken = "thisIsEncryptionTokenI_WILL_FUCKING_KILL_YOU_IF_YOU_USE_THIS_IN_PROD",
-    fileConfig = ConfigurationLoader.FileConfig(256),
-    kafkaConfig = ConfigurationLoader.KafkaConfig(TestKafka.kafka.bootstrapServers),
-    grafanaConfig = ConfigurationLoader.GrafanaConfig("", ""),
-    gameConfig = ConfigurationLoader.GameConfig(
-        timeForMove = 30_000,
-        maxBucketNumber = 100,
-        maxRatingDifference = 50,
-        bucketSize = Int.MAX_VALUE,
-        maxRating = 1000,
-        delayBeforeRecheckingBucket = 5_000,
-        minTimeBeforePairingWithBot = 30_000,
-        maxTimeBeforePairingWithBot = 35_000
-    ),
-    serviceLocator = with (TestDatabase.pgContainer) {
-        ConfigurationLoader.ServiceLocator(ConfigurationLoader.PostgresConfig(this.jdbcUrl, this.username, this.password))
-    }
-)
-
-val containersModules = module {
-    single { testConfig }
 }

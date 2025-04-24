@@ -1,7 +1,7 @@
 package userInfo.post
 
 import user.data.dao.UsersDataServiceI
-import commonTests.TestDatabase
+
 import user.applyUserPlugins
 import io.github.kroune.createDummyUser
 import user.routing.userinfo.post.userInfoRoutingPOST
@@ -27,10 +27,7 @@ class UserInfoPostTest {
                 userInfoRoutingPOST()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (_, jwt) = db.createDummyUser()
+            val (_, jwt) = createDummyUser()
             val validImage = this.javaClass.getResource("/valid.png")!!
             val result = client.post("/upload-picture") {
                 this.parameter("jwtToken", jwt)
@@ -56,10 +53,7 @@ class UserInfoPostTest {
                 userInfoRoutingPOST()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (_, jwt) = db.createDummyUser()
+            val (_, jwt) = createDummyUser()
             val validImage = this.javaClass.getResource("/corrupted.png")!!
             val result = client.post("/upload-picture") {
                 this.parameter("jwtToken", jwt)
@@ -85,10 +79,7 @@ class UserInfoPostTest {
                 userInfoRoutingPOST()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (_, jwt) = db.createDummyUser()
+            val (_, jwt) = createDummyUser()
             val validImage = this.javaClass.getResource("/tooBig.png")!!
             val result = client.post("/upload-picture") {
                 this.parameter("jwtToken", jwt)
@@ -114,10 +105,7 @@ class UserInfoPostTest {
                 userInfoRoutingPOST()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (_, jwt) = db.createDummyUser()
+            val (_, jwt) = createDummyUser()
             val validImage = this.javaClass.getResource("/valid.png")!!
             val result = client.post("/upload-picture") {
                 this.parameter("jwtToken", "acxzczx$jwt")
@@ -143,10 +131,7 @@ class UserInfoPostTest {
                 userInfoRoutingPOST()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (_, jwt) = db.createDummyUser()
+            val (_, jwt) = createDummyUser()
             val validImage = this.javaClass.getResource("/valid.png")!!
             val result = client.post("/upload-picture") {
                 this.setBody(validImage.readBytes())
@@ -171,10 +156,7 @@ class UserInfoPostTest {
                 userInfoRoutingPOST()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (_, jwt) = db.createDummyUser()
+            val (_, jwt) = createDummyUser()
             val result = client.post("/upload-picture") {
                 this.parameter("jwtToken", jwt)
                 this.setBody("not an image")

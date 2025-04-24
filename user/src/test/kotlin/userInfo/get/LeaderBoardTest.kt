@@ -4,7 +4,6 @@ package userInfo.get
 
 import user.data.InsertUserPayload
 import user.data.dao.UsersDataServiceI
-import commonTests.TestDatabase
 import user.applyUserPlugins
 import io.github.kroune.createDummyUser
 import user.routing.userinfo.get.userInfoRoutingGET
@@ -30,15 +29,12 @@ class LeaderBoardTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             var usersInLeaderboard = mutableListOf<Pair<Int, Long>>()
             var jwtToken: String? = null
             for (i in 1..14) {
-                val (user, jwt) = db.createDummyUser(
+                val (user, jwt) = createDummyUser(
                     InsertUserPayload(
                         "user$i",
                         password = "44444441s",
@@ -72,15 +68,12 @@ class LeaderBoardTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             var usersInLeaderboard = mutableListOf<Pair<Int, Long>>()
             var jwtToken: String? = null
             for (i in 1..14) {
-                val (user, jwt) = db.createDummyUser(
+                val (user, jwt) = createDummyUser(
                     InsertUserPayload(
                         "user$i",
                         password = "44444441s",
@@ -110,15 +103,12 @@ class LeaderBoardTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             var usersInLeaderboard = mutableListOf<Pair<Int, Long>>()
             var jwtToken: String? = null
             for (i in 1..4) {
-                val (user, jwt) = db.createDummyUser(
+                val (user, jwt) = createDummyUser(
                     InsertUserPayload(
                         "user$i",
                         password = "44444441s",

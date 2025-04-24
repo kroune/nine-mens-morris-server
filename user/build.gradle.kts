@@ -2,14 +2,8 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
 }
 
-group = "io.github.kroune"
-version = "unspecified"
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
+    api(project(":database"))
     // db
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
@@ -34,7 +28,4 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-}
-kotlin {
-    jvmToolchain(21)
 }

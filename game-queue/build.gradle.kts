@@ -2,17 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
 }
 
-group = "io.github.kroune"
-version = "unspecified"
-
 dependencies {
-    // db
-    implementation(libs.exposed.core)
-    implementation(libs.exposed.jdbc)
-    implementation(libs.exposed.kotlin.datetime)
-    implementation(libs.exposed.json)
-    implementation(libs.postgresql)
-
     // kafka
     implementation("org.apache.kafka:kafka-clients:4.0.0")
 
@@ -21,6 +11,7 @@ dependencies {
 
     implementation(libs.nine.men.s.morris.lib)
 
+    api(project(":database"))
     api(project(":common"))
     api(project(":user"))
     api(project(":game-main"))
@@ -30,11 +21,4 @@ dependencies {
 
     testImplementation(libs.test.container.postgresql)
     testImplementation(kotlin("test"))
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-kotlin {
-    jvmToolchain(21)
 }

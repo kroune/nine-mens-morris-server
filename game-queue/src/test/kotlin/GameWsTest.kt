@@ -1,5 +1,4 @@
 import user.data.InsertUserPayload
-import commonTests.TestDatabase
 import commonTests.TestKafka
 import gameMain.applyGamePlugins
 import io.github.kroune.createDummyUser
@@ -27,14 +26,10 @@ class GameWsTest {
                 gameQueueRouting()
             }
             startApplication()
-
             TestKafka
-            val db = TestDatabase.apply {
-                create()
-            }
 
-            val (_, jwt1) = db.createDummyUser(InsertUserPayload("user1", "password1"))
-            val (_, jwt2) = db.createDummyUser(InsertUserPayload("user2", "password2"))
+            val (_, jwt1) = createDummyUser(InsertUserPayload("user1", "password1"))
+            val (_, jwt2) = createDummyUser(InsertUserPayload("user2", "password2"))
 
             runBlocking {
                 var gameId1: Deferred<Long> = this@testApplication.getGameId(jwt1).first
@@ -62,13 +57,10 @@ class GameWsTest {
             startApplication()
 
             TestKafka
-            val db = TestDatabase.apply {
-                create()
-            }
 
             runBlocking {
-                val (_, jwt1) = db.createDummyUser(InsertUserPayload("user1", "password1"))
-                val (_, jwt2) = db.createDummyUser(InsertUserPayload("user2", "password2"))
+                val (_, jwt1) = createDummyUser(InsertUserPayload("user1", "password1"))
+                val (_, jwt2) = createDummyUser(InsertUserPayload("user2", "password2"))
                 var firstGameId: Deferred<Long> = getGameId(jwt1).first
                 delay(5.seconds)
                 var secondGameId: Deferred<Long> = getGameId(jwt2).first
@@ -92,12 +84,9 @@ class GameWsTest {
             startApplication()
 
             TestKafka
-            val db = TestDatabase.apply {
-                create()
-            }
 
             runBlocking {
-                val (_, jwt1) = db.createDummyUser(InsertUserPayload("user1", "password1"))
+                val (_, jwt1) = createDummyUser(InsertUserPayload("user1", "password1"))
                 var firstGameId: Deferred<Long> = getGameId(jwt1).first
                 println(
                     "firstGameId = ${firstGameId.await()}" +
@@ -121,12 +110,9 @@ class GameWsTest {
             startApplication()
 
             TestKafka
-            val db = TestDatabase.apply {
-                create()
-            }
 
             runBlocking {
-                val (_, jwt1) = db.createDummyUser(InsertUserPayload("user1", "password1"))
+                val (_, jwt1) = createDummyUser(InsertUserPayload("user1", "password1"))
                 var (firstGameId, channel) = getGameId(jwt1)
                 println(
                     "firstGameId = ${firstGameId.await()}" +
@@ -151,13 +137,10 @@ class GameWsTest {
             startApplication()
 
             TestKafka
-            val db = TestDatabase.apply {
-                create()
-            }
 
             runBlocking {
-                val (_, jwt1) = db.createDummyUser(InsertUserPayload("user1", "password1"))
-                val (_, jwt2) = db.createDummyUser(InsertUserPayload("user2", "password2"))
+                val (_, jwt1) = createDummyUser(InsertUserPayload("user1", "password1"))
+                val (_, jwt2) = createDummyUser(InsertUserPayload("user2", "password2"))
                 var firstGameId: Deferred<Long> = getGameId(jwt1).first
                 delay(5.seconds)
                 var secondGameId: Deferred<Long> = getGameId(jwt2).first

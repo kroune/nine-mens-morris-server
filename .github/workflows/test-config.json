@@ -30,8 +30,13 @@
     "minTimeBeforePairingWithBot": 20000,
     "maxTimeBeforePairingWithBot": 30000
   },
-  "serviceLocator": {
-    "postgres": {
+  "databasesConfig": {
+    "userData": {
+      "url": "jdbc:postgresql://postgres-game-service.default.svc.cluster.local/postgres",
+      "username": "postgres",
+      "password": "1234"
+    },
+    "botsData": {
       "url": "jdbc:postgresql://postgres-game-service.default.svc.cluster.local/postgres",
       "username": "postgres",
       "password": "1234"

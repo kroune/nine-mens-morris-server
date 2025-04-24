@@ -3,7 +3,6 @@ package userInfo.get
 import common.JwtTokenImpl
 import user.data.InsertUserPayload
 import user.data.dao.UsersDataServiceI
-import commonTests.TestDatabase
 import user.applyUserPlugins
 import io.github.kroune.createDummyUser
 import user.routing.userinfo.get.userInfoRoutingGET
@@ -30,10 +29,7 @@ class GetPictureByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, jwt) = db.createDummyUser(InsertUserPayload("exampleLogin2", "examplePass2"))
+            val (user, jwt) = createDummyUser(InsertUserPayload("exampleLogin2", "examplePass2"))
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             val id = usersRepository.getIdByLogin(user.login)
@@ -60,10 +56,7 @@ class GetPictureByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, jwt) = db.createDummyUser(
+            val (user, jwt) = createDummyUser(
                 InsertUserPayload(
                     "exampleLogin3",
                     "examplePass3",
@@ -96,10 +89,7 @@ class GetPictureByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, jwt) = db.createDummyUser()
+            val (user, jwt) = createDummyUser()
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             val id = usersRepository.getIdByLogin(user.login)!!
@@ -122,10 +112,7 @@ class GetPictureByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, jwt) = db.createDummyUser()
+            val (user, jwt) = createDummyUser()
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             usersRepository.getIdByLogin(user.login)!!
@@ -147,10 +134,7 @@ class GetPictureByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, _) = db.createDummyUser()
+            val (user, _) = createDummyUser()
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             usersRepository.getIdByLogin(user.login)
@@ -173,10 +157,7 @@ class GetPictureByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, _) = db.createDummyUser()
+            val (user, _) = createDummyUser()
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             val id = usersRepository.getIdByLogin(user.login)
@@ -199,10 +180,7 @@ class GetPictureByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, _) = db.createDummyUser()
+            val (user, _) = createDummyUser()
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             val id = usersRepository.getIdByLogin(user.login)

@@ -3,13 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-group = "io.github.kroune"
-version = "0.0.1"
-
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     // logging
     api(libs.logback.classic)
@@ -37,13 +30,9 @@ dependencies {
 
     api(libs.ktor.server.rate.limit)
 
-
     testImplementation(kotlin("test"))
 }
 
 tasks.test {
     useJUnitPlatform()
-}
-kotlin {
-    jvmToolchain(21)
 }

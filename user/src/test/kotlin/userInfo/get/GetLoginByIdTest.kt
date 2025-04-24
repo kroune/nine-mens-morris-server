@@ -2,7 +2,6 @@ package userInfo.get
 
 import common.JwtTokenImpl
 import user.data.dao.UsersDataServiceI
-import commonTests.TestDatabase
 import user.applyUserPlugins
 import io.github.kroune.createDummyUser
 import user.routing.userinfo.get.userInfoRoutingGET
@@ -29,10 +28,7 @@ class GetLoginByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, jwt) = db.createDummyUser()
+            val (user, jwt) = createDummyUser()
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             val id = usersRepository.getIdByLogin(user.login)
@@ -56,10 +52,7 @@ class GetLoginByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, jwt) = db.createDummyUser()
+            val (user, jwt) = createDummyUser()
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             val id = usersRepository.getIdByLogin(user.login)!!
@@ -82,10 +75,7 @@ class GetLoginByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (_, jwt) = db.createDummyUser()
+            val (_, jwt) = createDummyUser()
             val request = client.get("/get-login-by-id") {
                 this.parameter("jwtToken", jwt)
             }
@@ -104,10 +94,7 @@ class GetLoginByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, _) = db.createDummyUser()
+            val (user, _) = createDummyUser()
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             val id = usersRepository.getIdByLogin(user.login)
@@ -130,10 +117,7 @@ class GetLoginByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (user, _) = db.createDummyUser()
+            val (user, _) = createDummyUser()
             val koin = GlobalContext.get()
             val usersRepository by koin.inject<UsersDataServiceI>()
             val id = usersRepository.getIdByLogin(user.login)
@@ -155,10 +139,7 @@ class GetLoginByIdTest {
                 userInfoRoutingGET()
             }
             startApplication()
-            val db = TestDatabase.apply {
-                create()
-            }
-            val (_, jwt) = db.createDummyUser()
+            val (_, jwt) = createDummyUser()
             val request = client.get("/get-login-by-id") {
                 this.parameter("id", "notLong")
                 this.parameter("jwtToken", jwt)

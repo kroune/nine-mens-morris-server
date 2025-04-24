@@ -1,17 +1,17 @@
 package io.github.kroune
 
-import commonTests.TestDatabase
-import user.data.InsertUserPayload
-import user.controller.UsersController
-import io.ktor.http.isSuccess
+import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
-import org.koin.core.component.inject
+import org.koin.core.context.GlobalContext
+import user.controller.UsersController
+import user.data.InsertUserPayload
 
-fun TestDatabase.createDummyUser(
+fun createDummyUser(
     insertUserPayload: InsertUserPayload = InsertUserPayload("testLogin", "testLogin")
 ): Pair<InsertUserPayload, String> {
+    val koin = GlobalContext.get()
     val (status, jwt) = runBlocking {
-        val usersController by inject<UsersController>()
+        val usersController by koin.inject<UsersController>()
         usersController.register(insertUserPayload)
     }
     assert(status.isSuccess())

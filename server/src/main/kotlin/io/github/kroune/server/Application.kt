@@ -21,13 +21,14 @@ package io.github.kroune.server
 
 import common.ConfigurationLoader.currentConfig
 import bots.dao.BotsServiceI
-import common.commonPlugins
+import common.commonModule
 import gameMain.data.dao.GamesDataServiceI
 import user.data.dao.UsersDataServiceI
 import gameMain.di.gameMainModules
 import gameQueue.di.queueModules
 import user.di.usersModules
 import common.logging.logger
+import database.di.databaseModule
 import io.github.kroune.server.routing.accountRouting
 import io.github.kroune.server.routing.gameRouting
 import io.github.kroune.server.routing.misc.miscRouting
@@ -50,7 +51,6 @@ import io.micrometer.core.instrument.binder.system.UptimeMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.sql.Database
 import org.koin.core.context.GlobalContext
 import org.koin.ktor.ext.get
 import org.koin.ktor.plugin.Koin
@@ -71,7 +71,6 @@ fun main() {
         },
         module = {
             startDI()
-            GlobalContext.get().declare(currentConfig)
             logger.info { "starting server" }
             applyPlugins()
             installMonitoring()
@@ -84,23 +83,16 @@ fun main() {
 fun Application.startDI() {
     install(Koin) {
         modules(
+            databaseModule,
             gameMainModules,
             usersModules,
-            commonPlugins,
+            commonModule,
             queueModules
         )
     }
 }
 
 fun Application.database() {
-    currentConfig.serviceLocator.postgres.let {
-        Database.connect(
-            it.url,
-            driver = "org.postgresql.Driver",
-            user = it.username,
-            password = it.password
-        )
-    }
     logger.debug { "initializing users repository" }
     get<UsersDataServiceI>()
     logger.debug { "initializing games repository" }
