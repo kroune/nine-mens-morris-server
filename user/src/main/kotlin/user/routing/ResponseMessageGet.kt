@@ -25,6 +25,11 @@ import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
+suspend fun RoutingContext.noAmountParameter() {
+    call.respond(HttpStatusCode.BadRequest.description("no [amount] parameter found"))
+    globalLogger.atInfo { "[amount] parameter is not found" }
+}
+
 suspend fun RoutingContext.noJwtToken() {
     call.respond(HttpStatusCode.BadRequest.description("no [jwtToken] parameter found"))
     globalLogger.atInfo { "no [jwtToken] parameter found" }

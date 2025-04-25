@@ -19,14 +19,15 @@
  */
 package user.routing.userinfo.get
 
-import common.respondSerialized
-import user.data.dao.UsersDataServiceI
 import common.logging.globalLogger
-import user.routing.internalServerError
-import user.routing.requireValidJwtToken
-import user.routing.requireValidUserId
+import common.respondSerialized
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
+import user.data.dao.UsersDataServiceI
+import user.routing.internalServerError
+import user.routing.noAmountParameter
+import user.routing.requireValidJwtToken
+import user.routing.requireValidUserId
 
 /**
  * Tests - [UserInfoGetTest]
@@ -194,8 +195,13 @@ fun Route.userInfoRoutingGET() {
             return@get
         }
 
+        val amount = ((call.parameters["amount"] ?: 10.toString()).toIntOrNull() ?: run {
+            noAmountParameter()
+            return@get
+        }).coerceIn(0..100)
+
         val usersRepository by inject<UsersDataServiceI>()
-        val leaderboard = usersRepository.getLeaderboard(10)
+        val leaderboard = usersRepository.getLeaderboard(amount)
         respondSerialized<List<Long>>(leaderboard)
     }
 }
