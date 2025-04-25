@@ -10,7 +10,7 @@ group = "io.github.kroune"
 version = "0.0.1"
 
 application {
-    mainClass.set("io.github.kroune.ApplicationKt")
+    mainClass.set("io.github.kroune.server.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
