@@ -1,4 +1,4 @@
 FROM amazoncorretto:21-alpine
-COPY ./build/libs/server/server-all.jar /tmp/server.jar
+COPY ./server/build/libs/server-all.jar /tmp/server.jar
 WORKDIR /tmp
 ENTRYPOINT ["java","-jar","server.jar"]
