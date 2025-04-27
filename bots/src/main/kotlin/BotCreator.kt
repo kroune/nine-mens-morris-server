@@ -33,9 +33,9 @@ import kotlin.random.nextInt
 object BotCreator: KoinComponent {
     suspend fun createBot(ratingRange: IntRange = 0..1000): Long {
         val login: String
-        val picture: ByteArray
+        val picture: ByteArray?
         run {
-            repeat(10) {
+            repeat(3) {
                 val randomUserRepository by inject<RandomUserRepositoryI>()
                 val (loginVariant, pictureVariant) = randomUserRepository.getLoginAndPicture().getOrElse {
                     globalLogger.atError {
@@ -53,7 +53,8 @@ object BotCreator: KoinComponent {
                 picture = pictureVariant
                 return@run
             }
-            error("no valid login + picture found")
+            login = getRandomString(7)
+            picture = null
         }
 
         val password = getRandomString(16)
