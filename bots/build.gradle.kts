@@ -11,12 +11,7 @@ repositories {
 }
 
 dependencies {
-    // db
-    implementation(libs.exposed.core)
-    implementation(libs.exposed.jdbc)
-    implementation(libs.exposed.kotlin.datetime)
-    implementation(libs.exposed.json)
-    implementation(libs.postgresql)
+    implementation(project(":database"))
 
     // kafka
     implementation("org.apache.kafka:kafka-clients:4.0.0")

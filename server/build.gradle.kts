@@ -21,12 +21,7 @@ tasks.dokkaHtml {
 }
 
 dependencies {
-    // db
-    implementation(libs.exposed.core)
-    implementation(libs.exposed.jdbc)
-    implementation(libs.exposed.kotlin.datetime)
-    implementation(libs.exposed.json)
-    implementation(libs.postgresql)
+    implementation(project(":database"))
 
     // ktor
     implementation(libs.ktor.server.ohhttp)
@@ -41,18 +36,9 @@ dependencies {
 
     implementation(libs.ktor.client.okhttp)
 
-    // other libs
-    implementation(libs.bcrypt)
-
     // logging
     implementation(libs.logback.classic)
     implementation(libs.logback.loki)
-
-    // serialization
-    implementation(libs.ktor.serialization.kotlinx.json.jvm)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.serialization.protobuf)
-    implementation(libs.kaml)
 
     // my own dependencies
     implementation(libs.nine.men.s.morris.shared)
@@ -60,13 +46,6 @@ dependencies {
     // micrometer
     implementation("io.ktor:ktor-server-metrics-micrometer:3.0.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.14.3")
-
-    // datetime
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
-
-    // koin
-    implementation(libs.insert.koin.core)
-    implementation(libs.insert.koin.ktor3)
 
     api(project(":common"))
     implementation(project(":game-queue"))
