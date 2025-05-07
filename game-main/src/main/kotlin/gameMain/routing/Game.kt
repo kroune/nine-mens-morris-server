@@ -3,7 +3,6 @@ package gameMain.routing
 import com.kroune.nineMensMorrisLib.move.Movement
 import com.kroune.nineMensMorrisShared.GameEndReason
 import gameMain.Game
-import gameMain.GameDataFactory
 import gameMain.controller.GameController
 import user.controller.UsersController
 import common.logging.gameId
@@ -35,7 +34,8 @@ fun Route.gameMainRouting() {
             jwtTokenIsNotValidForThisGame()
             return@webSocket
         }
-        val game = GameDataFactory.getGame(gameId)
+        val game = Game(gameId)
+        game.initializeGame()
         try {
             val isFirstUser = game.isFirstPlayer(userId)
             sendInitialInfo(game, userId)

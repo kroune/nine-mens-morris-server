@@ -44,7 +44,7 @@ dependencies {
     implementation(libs.nine.men.s.morris.shared)
 
     // micrometer
-    implementation("io.ktor:ktor-server-metrics-micrometer:3.0.0")
+    implementation(libs.ktor.micrometer)
     implementation("io.micrometer:micrometer-registry-prometheus:1.14.3")
 
     api(project(":common"))

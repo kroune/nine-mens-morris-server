@@ -5,7 +5,7 @@ import common.ConfigurationLoader.currentConfig
 import common.logging.bucketId
 import common.logging.globalLogger
 import common.logging.userId
-import gameMain.GameDataFactory
+import gameMain.Game
 import gameMain.controller.GameController
 import gameMain.data.dao.GameData
 import gameMain.data.dao.GamesDataServiceI
@@ -60,9 +60,9 @@ class QueueController(
         KafkaProducer<String, Long>(props)
     }
 
-    val minPairWithBotTime = currentConfig.gameConfig.minTimeBeforePairingWithBot
-    val maxPairWithBotTime = currentConfig.gameConfig.maxTimeBeforePairingWithBot
-    val bucketSize = currentConfig.gameConfig.bucketSize
+    private val minPairWithBotTime = currentConfig.gameConfig.minTimeBeforePairingWithBot
+    private val maxPairWithBotTime = currentConfig.gameConfig.maxTimeBeforePairingWithBot
+    private val bucketSize = currentConfig.gameConfig.bucketSize
 
     companion object {
         private val userIdToSession = mutableMapOf<Long, SearchingForGameConnection>()
@@ -150,7 +150,7 @@ class QueueController(
         }
         val gameId = gamesRepository.getGameIdByUserId(userId)!!
         // make sure to initialize it, so time count starts
-        GameDataFactory.getGame(gameId)
+        Game(gameId).initializeGame()
         data.callback(gameId)
     }
 
@@ -241,7 +241,7 @@ class QueueController(
                         }
                     }
                     // make sure to initialize it, so time count starts
-                    GameDataFactory.getGame(gameId)
+                    Game(gameId).initializeGame()
                 }
             }
         }
