@@ -24,9 +24,30 @@ class VersionPostTest {
                 parameters.append("version", "5")
                 parameters.append("distribution", "Android")
                 parameters.append("breaking_changes", "true")
+                parameters.append("token", "someSecretToken")
             }
         }
         assertEquals(HttpStatusCode.OK, response.status)
+    }
+
+    @Test
+    fun `invalid token`() = testApplication {
+        application {
+            startTestDI()
+        }
+        routing {
+            versionRoutingPOST()
+        }
+        startApplication()
+        val response = client.post("/update-version") {
+            url {
+                parameters.append("version", "5")
+                parameters.append("distribution", "Android")
+                parameters.append("breaking_changes", "true")
+                parameters.append("token", "someNOTSecretToken")
+            }
+        }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
 
     @Test

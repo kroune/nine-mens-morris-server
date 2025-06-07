@@ -34,6 +34,26 @@ class VersionGetTest {
         val version = Json.decodeFromString<Int>(response.bodyAsText())
         assertEquals(10, version)
     }
+    @Test
+    fun `get last-version valid request with multiple versions`() = testApplication {
+        application {
+            startTestDI()
+        }
+        routing {
+            versionRoutingGET()
+        }
+        startApplication()
+        // Add test data
+        val koin = GlobalContext.get()
+        val versionService = koin.get<VersionDataServiceI>()
+        versionService.addVersion(10, Distribution.WasmJs, false)
+        versionService.addVersion(21, Distribution.WasmJs, false)
+
+        val response = client.get("/last-version?distribution=WasmJs")
+        assertEquals(HttpStatusCode.OK, response.status)
+        val version = Json.decodeFromString<Int>(response.bodyAsText())
+        assertEquals(21, version)
+    }
 
     @Test
     fun `get last-version missing distribution`() = testApplication {

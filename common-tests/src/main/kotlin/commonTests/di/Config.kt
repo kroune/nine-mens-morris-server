@@ -53,7 +53,10 @@ val testConfig
                     ),
                 )
             }
-        }
+        },
+        versionUpdateConfig = ConfigurationLoader.VersionUpdateConfig(
+            hashMapOf("someSecretToken" to true),
+        )
     )
 
 val commonTestModule = module {

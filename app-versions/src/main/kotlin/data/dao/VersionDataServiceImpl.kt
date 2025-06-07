@@ -4,6 +4,7 @@ import data.VersionDataTable
 import model.Distribution
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
@@ -26,7 +27,7 @@ class VersionDataServiceImpl(
                 .where {
                     (VersionDataTable.distribution eq distribution)
                 }
-                .orderBy(VersionDataTable.version)
+                .orderBy(VersionDataTable.version, SortOrder.DESC)
                 .limit(1)
                 .map { it[VersionDataTable.version] }
                 .singleOrNull()
@@ -42,7 +43,7 @@ class VersionDataServiceImpl(
                             (VersionDataTable.version greater version) and
                             (VersionDataTable.breakingChanges eq true)
                 }
-                .orderBy(VersionDataTable.version)
+                .orderBy(VersionDataTable.version, SortOrder.DESC)
                 .limit(1)
                 .map {
                     it[VersionDataTable.version]

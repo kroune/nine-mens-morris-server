@@ -1,5 +1,6 @@
 package routing.version.post
 
+import common.ConfigurationLoader
 import data.dao.VersionDataServiceI
 import io.ktor.http.*
 import io.ktor.server.response.*
@@ -9,6 +10,18 @@ import org.koin.ktor.ext.get
 
 fun Route.versionRoutingPOST() {
     post("update-version") {
+        call.queryParameters["token"].let {
+            if (it == null) {
+                call.respond(HttpStatusCode.BadRequest, "no [token] parameter found")
+                return@post
+            }
+            val config = get<ConfigurationLoader.ConfigMember>()
+            val isTokenActivated = config.versionUpdateConfig.tokens[it]
+            if (isTokenActivated != true) {
+                call.respond(HttpStatusCode.Unauthorized, "[token] parameter is not valid")
+                return@post
+            }
+        }
         val version = call.queryParameters["version"].let {
             if (it == null) {
                 call.respond(HttpStatusCode.BadRequest, "no [version] parameter found")

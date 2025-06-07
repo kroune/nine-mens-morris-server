@@ -16,9 +16,14 @@ object ConfigurationLoader {
         val kafkaConfig: KafkaConfig,
         val grafanaConfig: GrafanaConfig,
         val gameConfig: GameConfig,
-        val databasesConfig: DatabasesConfig
+        val databasesConfig: DatabasesConfig,
+        val versionUpdateConfig: VersionUpdateConfig
     )
 
+    @Serializable
+    data class VersionUpdateConfig(
+        val tokens: HashMap<String, Boolean>
+    )
 
     @Serializable
     class DatabasesConfig(
