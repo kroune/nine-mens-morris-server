@@ -12,5 +12,5 @@ val usersModules = module {
     single<UsersDataServiceI> {
         UsersDataServiceImpl(get<Database>(named(DatabaseConfiguration.USER_DATA)))
     }
-    single<UsersController> { UsersController() }
+    single<UsersController> { UsersController(get()) }
 }

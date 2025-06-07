@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.1.0"
+kotlin = "2.2.0-RC2"
 ktor = "3.0.0"
 logback_version = "1.5.13"
 logback_loki_version = "1.6.0"

@@ -40,6 +40,16 @@
       "url": "jdbc:postgresql://postgres-game-service.default.svc.cluster.local/postgres",
       "username": "postgres",
       "password": "1234"
+    },
+    "versionData": {
+      "url": "jdbc:postgresql://postgres-game-service.default.svc.cluster.local/postgres",
+      "username": "postgres",
+      "password": "1234"
+    }
+  },
+  "versionUpdateConfig": {
+    "tokens": {
+      "someSecretToken": true
     }
   }
 }

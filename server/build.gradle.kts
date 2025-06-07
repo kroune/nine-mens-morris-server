@@ -50,6 +50,7 @@ dependencies {
     api(project(":common"))
     implementation(project(":game-queue"))
     implementation(project(":user"))
+    implementation(project(":app-versions"))
 
     // testing
     testImplementation(libs.junit.jupiter)

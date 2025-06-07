@@ -16,7 +16,7 @@ dependencies {
     // other libs
     implementation(libs.bcrypt)
 
-    implementation(project(":common"))
+    api(project(":common"))
 
     implementation(libs.ktor.server.core.jvm)
 

@@ -45,10 +45,18 @@ val testConfig
                         this.jdbcUrl,
                         this.username,
                         this.password
-                    )
+                    ),
+                    versionData = ConfigurationLoader.PostgresConfig(
+                        this.jdbcUrl,
+                        this.username,
+                        this.password
+                    ),
                 )
             }
-        }
+        },
+        versionUpdateConfig = ConfigurationLoader.VersionUpdateConfig(
+            hashMapOf("someSecretToken" to true),
+        )
     )
 
 val commonTestModule = module {
