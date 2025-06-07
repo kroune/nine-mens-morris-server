@@ -5,6 +5,8 @@ import appVersions.version.get.versionRoutingGET
 import appVersions.version.post.versionRoutingPOST
 
 fun Route.versionRouting() {
-    versionRoutingGET()
-    versionRoutingPOST()
+    route("/version") {
+        versionRoutingGET()
+        versionRoutingPOST()
+    }
 }
