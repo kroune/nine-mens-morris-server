@@ -18,6 +18,4 @@ val koinModules = listOf(
     versionModule,
     commonModule,
     commonTestModule,
-//    databaseModule,
-//    usersModules,
 )
