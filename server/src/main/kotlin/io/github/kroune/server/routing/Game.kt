@@ -25,7 +25,9 @@ import gameMain.routing.gameMainRouting
 import gameQueue.routing.gameQueueRouting
 
 fun Route.gameRouting() {
-    gameRoutingGET()
-    gameMainRouting()
-    gameQueueRouting()
+    route("game") {
+        gameRoutingGET()
+        gameMainRouting()
+        gameQueueRouting()
+    }
 }

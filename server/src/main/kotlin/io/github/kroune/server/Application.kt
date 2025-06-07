@@ -173,9 +173,9 @@ fun Application.routing() {
         logger.debug { "initializing routing" }
         miscRouting()
         monitoringRouting()
-        route("/api/v1/user/") {
-            userInfoRouting()
+        route("/api/v1/") {
             versionRouting()
+            userInfoRouting()
             gameRouting()
             accountRouting()
         }
