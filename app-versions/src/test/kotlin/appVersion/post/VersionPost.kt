@@ -51,6 +51,26 @@ class VersionPostTest {
     }
 
     @Test
+    fun `missing token parameter`() = testApplication {
+        application {
+            startTestDI()
+        }
+        routing {
+            versionRoutingPOST()
+        }
+        startApplication()
+        val response = client.post("/update-version") {
+            url {
+                parameters.append("version", "5")
+                parameters.append("distribution", "Android")
+                parameters.append("breaking_changes", "true")
+            }
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        assertEquals("no [token] parameter found", response.bodyAsText())
+    }
+
+    @Test
     fun `missing version parameter`() = testApplication {
         application {
             startTestDI()
