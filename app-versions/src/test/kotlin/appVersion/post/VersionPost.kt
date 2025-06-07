@@ -83,6 +83,7 @@ class VersionPostTest {
             url {
                 parameters.append("distribution", "Android")
                 parameters.append("breaking_changes", "true")
+                parameters.append("token", "someSecretToken")
             }
         }
         assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -103,6 +104,7 @@ class VersionPostTest {
                 parameters.append("version", "not_a_number")
                 parameters.append("distribution", "Android")
                 parameters.append("breaking_changes", "true")
+                parameters.append("token", "someSecretToken")
             }
         }
         assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -122,6 +124,7 @@ class VersionPostTest {
             url {
                 parameters.append("version", "5")
                 parameters.append("breaking_changes", "true")
+                parameters.append("token", "someSecretToken")
             }
         }
         assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -142,6 +145,7 @@ class VersionPostTest {
                 parameters.append("version", "5")
                 parameters.append("distribution", "InvalidOS")
                 parameters.append("breaking_changes", "true")
+                parameters.append("token", "someSecretToken")
             }
         }
         assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -161,6 +165,7 @@ class VersionPostTest {
             url {
                 parameters.append("version", "5")
                 parameters.append("distribution", "Ios")
+                parameters.append("token", "someSecretToken")
             }
         }
         assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -181,6 +186,7 @@ class VersionPostTest {
                 parameters.append("version", "5")
                 parameters.append("distribution", "Desktop")
                 parameters.append("breaking_changes", "not_a_boolean")
+                parameters.append("token", "someSecretToken")
             }
         }
         assertEquals(HttpStatusCode.BadRequest, response.status)
