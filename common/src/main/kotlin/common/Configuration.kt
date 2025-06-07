@@ -22,7 +22,7 @@ object ConfigurationLoader {
 
     @Serializable
     data class VersionUpdateConfig(
-        val tokens: HashMap<String, Boolean>
+        val tokens: Map<String, Boolean>
     )
 
     @Serializable
