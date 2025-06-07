@@ -24,7 +24,7 @@ import common.ConfigurationLoader.currentConfig
 import common.commonModule
 import common.logging.logger
 import database.di.databaseModule
-import di.versionModule
+import appVersions.di.versionModule
 import gameMain.data.dao.GamesDataServiceI
 import gameMain.di.gameMainModules
 import gameQueue.data.queue.dao.QueueServiceI

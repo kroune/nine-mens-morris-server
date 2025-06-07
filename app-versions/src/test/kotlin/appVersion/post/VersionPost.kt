@@ -1,11 +1,11 @@
 package appVersion.post
 
+import appVersion.startTestDI
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import routing.version.post.versionRoutingPOST
-import startTestDI
+import appVersions.version.post.versionRoutingPOST
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

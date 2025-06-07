@@ -1,16 +1,16 @@
 package appVersion.get
 
-import data.dao.VersionDataServiceI
+import appVersion.startTestDI
+import appVersions.data.dao.VersionDataServiceI
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
-import model.Distribution
+import appVersions.model.Distribution
 import org.koin.core.context.GlobalContext
-import routing.version.get.versionRoutingGET
-import startTestDI
+import appVersions.version.get.versionRoutingGET
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

@@ -1,7 +1,7 @@
-package data.dao
+package appVersions.data.dao
 
-import data.VersionDataTable
-import model.Distribution
+import appVersions.data.VersionDataTable
+import appVersions.model.Distribution
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SortOrder

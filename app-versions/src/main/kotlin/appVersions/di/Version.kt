@@ -1,7 +1,7 @@
-package di
+package appVersions.di
 
-import data.dao.VersionDataServiceI
-import data.dao.VersionDataServiceImpl
+import appVersions.data.dao.VersionDataServiceI
+import appVersions.data.dao.VersionDataServiceImpl
 import database.DatabaseConfiguration
 import org.jetbrains.exposed.sql.Database
 import org.koin.core.qualifier.named

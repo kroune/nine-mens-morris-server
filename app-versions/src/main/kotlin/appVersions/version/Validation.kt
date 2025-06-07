@@ -1,9 +1,9 @@
-package routing.version
+package appVersions.version
 
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import model.Distribution
+import appVersions.model.Distribution
 
 suspend fun RoutingContext.validateDistribution(): Distribution? {
     call.queryParameters["distribution"].let {

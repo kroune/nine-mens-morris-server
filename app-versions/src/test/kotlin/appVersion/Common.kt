@@ -1,7 +1,9 @@
+package appVersion
+
 import common.commonModule
 import commonTests.di.commonTestModule
 import database.di.databaseModule
-import di.versionModule
+import appVersions.di.versionModule
 import io.ktor.server.application.*
 import org.koin.ktor.plugin.Koin
 

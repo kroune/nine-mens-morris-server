@@ -1,4 +1,4 @@
-package model
+package appVersions.model
 
 enum class Distribution {
     Android,

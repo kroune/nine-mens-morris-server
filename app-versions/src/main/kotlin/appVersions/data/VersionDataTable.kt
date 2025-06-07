@@ -1,6 +1,6 @@
-package data
+package appVersions.data
 
-import model.Distribution
+import appVersions.model.Distribution
 import org.jetbrains.exposed.sql.Table
 
 /**

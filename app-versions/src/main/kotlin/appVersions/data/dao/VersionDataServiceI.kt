@@ -1,6 +1,6 @@
-package data.dao
+package appVersions.data.dao
 
-import model.Distribution
+import appVersions.model.Distribution
 
 interface VersionDataServiceI {
     suspend fun lastVersion(distribution: Distribution): Int?
