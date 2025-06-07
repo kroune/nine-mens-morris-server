@@ -23,7 +23,8 @@ object ConfigurationLoader {
     @Serializable
     class DatabasesConfig(
         val userData: PostgresConfig,
-        val botsData: PostgresConfig
+        val botsData: PostgresConfig,
+        val versionData: PostgresConfig
     )
 
     @Serializable

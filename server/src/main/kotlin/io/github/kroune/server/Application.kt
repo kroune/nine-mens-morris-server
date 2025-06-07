@@ -19,21 +19,22 @@
  */
 package io.github.kroune.server
 
-import common.ConfigurationLoader.currentConfig
 import bots.dao.BotsServiceI
+import common.ConfigurationLoader.currentConfig
 import common.commonModule
-import gameMain.data.dao.GamesDataServiceI
-import user.data.dao.UsersDataServiceI
-import gameMain.di.gameMainModules
-import gameQueue.di.queueModules
-import user.di.usersModules
 import common.logging.logger
 import database.di.databaseModule
+import di.versionModule
+import gameMain.data.dao.GamesDataServiceI
+import gameMain.di.gameMainModules
+import gameQueue.data.queue.dao.QueueServiceI
+import gameQueue.di.queueModules
 import io.github.kroune.server.routing.accountRouting
 import io.github.kroune.server.routing.gameRouting
 import io.github.kroune.server.routing.misc.miscRouting
 import io.github.kroune.server.routing.monitoring.monitoringRouting
 import io.github.kroune.server.routing.userInfoRouting
+import io.github.kroune.server.routing.versionRouting
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.server.application.*
@@ -54,7 +55,8 @@ import kotlinx.serialization.json.Json
 import org.koin.core.context.GlobalContext
 import org.koin.ktor.ext.get
 import org.koin.ktor.plugin.Koin
-import gameQueue.data.queue.dao.QueueServiceI
+import user.data.dao.UsersDataServiceI
+import user.di.usersModules
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
@@ -84,6 +86,7 @@ fun Application.startDI() {
     install(Koin) {
         modules(
             databaseModule,
+            versionModule,
             gameMainModules,
             usersModules,
             commonModule,
@@ -172,6 +175,7 @@ fun Application.routing() {
         monitoringRouting()
         route("/api/v1/user/") {
             userInfoRouting()
+            versionRouting()
             gameRouting()
             accountRouting()
         }

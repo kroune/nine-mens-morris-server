@@ -27,4 +27,14 @@ val databaseModule = module {
             password = userDataConfig.password
         )
     }
+    single(named(DatabaseConfiguration.VERSION_DATA)) {
+        val config = get<ConfigurationLoader.ConfigMember>()
+        val userDataConfig = config.databasesConfig.versionData
+        Database.connect(
+            url = userDataConfig.url,
+            driver = "org.postgresql.Driver",
+            user = userDataConfig.username,
+            password = userDataConfig.password
+        )
+    }
 }

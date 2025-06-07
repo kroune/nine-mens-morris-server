@@ -32,3 +32,5 @@ include("bots")
 include("common-tests")
 include("user-tests")
 include("database")
+
+include("app-versions")

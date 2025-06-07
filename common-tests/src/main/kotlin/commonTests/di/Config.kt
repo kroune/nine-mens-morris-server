@@ -45,7 +45,12 @@ val testConfig
                         this.jdbcUrl,
                         this.username,
                         this.password
-                    )
+                    ),
+                    versionData = ConfigurationLoader.PostgresConfig(
+                        this.jdbcUrl,
+                        this.username,
+                        this.password
+                    ),
                 )
             }
         }
