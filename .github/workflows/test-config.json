@@ -46,5 +46,10 @@
       "username": "postgres",
       "password": "1234"
     }
+  },
+  "versionUpdateConfig": {
+    "tokens": {
+      "someSecretToken": true
+    }
   }
 }
