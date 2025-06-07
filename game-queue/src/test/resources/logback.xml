@@ -21,9 +21,9 @@
     <logger name="Exposed" level="info" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
-<!--    <root level="all">-->
-<!--        <appender-ref ref="LOKI" />-->
-<!--    </root>-->
+    <root level="all">
+        <appender-ref ref="LOKI" />
+    </root>
     <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
