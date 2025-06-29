@@ -1,6 +1,7 @@
+package gameQueue
+
 import commonTests.TestKafka
 import gameMain.controller.gameMainRouting
-import gameQueue.applyGamePlugins
 import gameQueue.routing.gameQueueRouting
 import io.github.kroune.createDummyUser
 import io.ktor.server.testing.*

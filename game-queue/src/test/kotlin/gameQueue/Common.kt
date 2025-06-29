@@ -1,3 +1,5 @@
+package gameQueue
+
 import common.commonModule
 import common.receiveDeserializedServerEvent
 import commonTests.di.commonTestModule
