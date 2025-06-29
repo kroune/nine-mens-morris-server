@@ -37,11 +37,14 @@ import io.github.kroune.server.routing.userInfoRouting
 import io.github.kroune.server.routing.versionRouting
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.*
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.metrics.micrometer.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.ratelimit.*
 import io.ktor.server.routing.*
@@ -51,6 +54,7 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.core.instrument.binder.system.UptimeMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import org.koin.core.context.GlobalContext
 import org.koin.ktor.ext.get
@@ -128,7 +132,14 @@ fun Application.installMonitoring() {
     GlobalContext.getKoinApplicationOrNull()!!.koin.declare(appMicrometerRegistry)
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
+    install(ContentNegotiation) {
+        removeIgnoredType<ByteArray>()
+        removeIgnoredType<String>()
+        json()
+        protobuf()
+    }
     install(CORS) {
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)

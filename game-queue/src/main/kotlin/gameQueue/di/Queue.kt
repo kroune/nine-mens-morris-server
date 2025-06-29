@@ -4,7 +4,7 @@ import bots.dao.BotsServiceI
 import bots.dao.BotsServiceImpl
 import common.ConfigurationLoader.ConfigMember
 import database.DatabaseConfiguration
-import gameQueue.controller.QueueController
+import gameQueue.service.QueueService
 import gameQueue.data.queue.dao.QueueServiceI
 import gameQueue.data.queue.dao.QueueServiceImpl
 import org.jetbrains.exposed.sql.Database
@@ -22,7 +22,7 @@ val queueModules = module {
     }
     single<RandomUserRepositoryI> { RandomUserRepositoryImpl() }
     single<QueueServiceI> { QueueServiceImpl() }
-    single { QueueController(get()) }
+    single { QueueService(get()) }
     factory {
         val config = get<ConfigMember>()
         val props = Properties()

@@ -1,16 +1,16 @@
 package appVersion.get
 
+import appVersion.applyPlugins
 import appVersion.startTestDI
 import appVersions.data.dao.VersionDataServiceI
+import appVersions.model.Distribution
+import appVersions.version.get.versionRoutingGET
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.Json
-import appVersions.model.Distribution
 import org.koin.core.context.GlobalContext
-import appVersions.version.get.versionRoutingGET
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -18,6 +18,7 @@ class VersionGetTest {
     @Test
     fun `get last-version valid request`() = testApplication {
         application {
+            applyPlugins()
             startTestDI()
         }
         routing {
@@ -29,14 +30,18 @@ class VersionGetTest {
         val versionService = koin.get<VersionDataServiceI>()
         versionService.addVersion(10, Distribution.WasmJs, false)
 
-        val response = client.get("/last-version?distribution=WasmJs")
+        val response = client.get("/last-version?distribution=WasmJs") {
+            accept(ContentType.Application.Json)
+        }
         assertEquals(HttpStatusCode.OK, response.status)
         val version = Json.decodeFromString<Int>(response.bodyAsText())
         assertEquals(10, version)
     }
+
     @Test
     fun `get last-version valid request with multiple versions`() = testApplication {
         application {
+            applyPlugins()
             startTestDI()
         }
         routing {
@@ -49,7 +54,9 @@ class VersionGetTest {
         versionService.addVersion(10, Distribution.WasmJs, false)
         versionService.addVersion(21, Distribution.WasmJs, false)
 
-        val response = client.get("/last-version?distribution=WasmJs")
+        val response = client.get("/last-version?distribution=WasmJs") {
+            accept(ContentType.Application.Json)
+        }
         assertEquals(HttpStatusCode.OK, response.status)
         val version = Json.decodeFromString<Int>(response.bodyAsText())
         assertEquals(21, version)
@@ -59,9 +66,10 @@ class VersionGetTest {
     fun `get last-version missing distribution`() = testApplication {
         application {
             startTestDI()
-            routing {
-                versionRoutingGET()
-            }
+            applyPlugins()
+        }
+        routing {
+            versionRoutingGET()
         }
         val response = client.get("/last-version")
         assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -72,6 +80,7 @@ class VersionGetTest {
     fun `get last-version invalid distribution`() = testApplication {
         application {
             startTestDI()
+            applyPlugins()
         }
         routing {
             versionRoutingGET()
@@ -86,6 +95,7 @@ class VersionGetTest {
     fun `get required-version valid request`() = testApplication {
         application {
             startTestDI()
+            applyPlugins()
         }
         routing {
             versionRoutingGET()
@@ -107,6 +117,7 @@ class VersionGetTest {
     fun `get required-version returns null`() = testApplication {
         application {
             startTestDI()
+            applyPlugins()
         }
         routing {
             versionRoutingGET()
@@ -127,6 +138,7 @@ class VersionGetTest {
     fun `get required-version missing version`() = testApplication {
         application {
             startTestDI()
+            applyPlugins()
         }
         routing {
             versionRoutingGET()
@@ -141,6 +153,7 @@ class VersionGetTest {
     fun `get required-version invalid version format`() = testApplication {
         application {
             startTestDI()
+            applyPlugins()
         }
         routing {
             versionRoutingGET()
@@ -155,6 +168,7 @@ class VersionGetTest {
     fun `get required-version missing distribution`() = testApplication {
         application {
             startTestDI()
+            applyPlugins()
         }
         routing {
             versionRoutingGET()
@@ -169,6 +183,7 @@ class VersionGetTest {
     fun `get required-version invalid distribution`() = testApplication {
         application {
             startTestDI()
+            applyPlugins()
         }
         routing {
             versionRoutingGET()

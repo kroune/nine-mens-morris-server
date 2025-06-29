@@ -16,7 +16,6 @@ dependencies {
     // kafka
     implementation("org.apache.kafka:kafka-clients:4.0.0")
 
-    implementation(libs.ktor.server.core.jvm)
     implementation(libs.ktor.server.websockets)
 
     testImplementation(libs.test.container.kafka)
@@ -36,5 +35,5 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(23)
 }

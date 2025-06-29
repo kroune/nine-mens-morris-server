@@ -20,17 +20,17 @@
 
 import bots.dao.BotsServiceI
 import common.getRandomString
-import user.data.dao.UsersDataServiceI
 import common.logging.globalLogger
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import randomUser.RandomUserRepositoryI
-import user.controller.UsersController
-import user.data.InsertUserPayload
+import user.data.dao.UsersDataServiceI
+import user.domain.UsersService
+import user.model.InsertUserPayload
 import kotlin.random.Random
 import kotlin.random.nextInt
 
-object BotCreator: KoinComponent {
+object BotCreator : KoinComponent {
     suspend fun createBot(ratingRange: IntRange = 0..1000): Long {
         val login: String
         val picture: ByteArray?
@@ -58,14 +58,16 @@ object BotCreator: KoinComponent {
         }
 
         val password = getRandomString(16)
-        val usersController by inject<UsersController>()
+        val usersService by inject<UsersService>()
         val rating = Random.nextInt(ratingRange)
-        usersController.register(InsertUserPayload(
-            login = login,
-            password = password,
-            profilePicture = picture,
-            rating = rating
-        ))
+        usersService.register(
+            InsertUserPayload(
+                login = login,
+                password = password,
+                profilePicture = picture,
+                rating = rating
+            )
+        )
 
         val usersRepository by inject<UsersDataServiceI>()
         val id = usersRepository.getIdByLogin(login)!!

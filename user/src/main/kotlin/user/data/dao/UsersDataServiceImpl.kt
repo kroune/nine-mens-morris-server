@@ -22,11 +22,13 @@ package user.data.dao
 import common.JwtTokenImpl
 import common.logging.globalLogger
 import common.logging.userId
+import kotlinx.coroutines.Deferred
 import kotlinx.datetime.LocalDate
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
-import user.data.UserData
+import user.model.UserData
 import user.data.UsersDataTable
 
 class UsersDataServiceImpl(
@@ -146,8 +148,8 @@ class UsersDataServiceImpl(
         }
     }
 
-    override suspend fun updateRatingById(id: Long, delta: Int) {
-        newSuspendedTransaction(db = database) {
+    override suspend fun updateRatingById(id: Long, delta: Int): Deferred<Unit> {
+        return suspendedTransactionAsync(db = database) {
             val oldRating = getRatingById(id)!!
             UsersDataTable.update(
                 { UsersDataTable.id eq id }

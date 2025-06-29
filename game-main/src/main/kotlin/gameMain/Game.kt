@@ -24,7 +24,9 @@ import BotProvider
 import com.kroune.nineMensMorrisLib.GameState
 import com.kroune.nineMensMorrisLib.move.Movement
 import com.kroune.nineMensMorrisShared.GameEndReason
+import common.BlockingFetchRequest
 import common.ConfigurationLoader.currentConfig
+import common.closeWithTimeout
 import common.logging.gameId
 import common.logging.globalLogger
 import common.logging.userId
@@ -34,7 +36,6 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -50,32 +51,30 @@ class Game(
     private var firstPlayer: DefaultWebSocketServerSession? = null,
     private var secondPlayer: DefaultWebSocketServerSession? = null,
 ) : KoinComponent {
+    private val gameScope = CoroutineScope(Dispatchers.IO)
+    private val fireAndForgetScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val gamesRepository by inject<GamesDataServiceI>()
     private val usersRepository by inject<UsersDataServiceI>()
 
-    private var firstUserId: Long
-    private var secondUserId: Long
-    var botUserId: Long?
-
-    init {
-        runBlocking {
-            firstUserId = gamesRepository.getFirstUserIdByGameId(gameId)!!
-            secondUserId = gamesRepository.getSecondUserIdByGameId(gameId)!!
-            botUserId = gamesRepository.getBotIdByGameId(gameId)
-        }
+    private val firstUserId: Long by BlockingFetchRequest(gameScope) {
+        gamesRepository.getFirstUserIdByGameId(gameId)!!
+    }
+    private val secondUserId: Long by BlockingFetchRequest(gameScope) {
+        gamesRepository.getSecondUserIdByGameId(gameId)!!
+    }
+    private val botUserId: Long? by BlockingFetchRequest(gameScope) {
+        gamesRepository.getBotIdByGameId(gameId)
     }
 
 
-    fun initializeGame() {
+    suspend fun initializeGame() {
         timeoutCheck(0)
-        runBlocking {
-            botMove()
-        }
+        botMove()
     }
 
     fun timeoutCheck(previousMoveCount: Int?) {
-        CoroutineScope(Dispatchers.IO).launch {
+        gameScope.launch {
             delay(timeForMove)
             val currentMoveCount = gamesRepository.getMovesCountByGameId(gameId)
             // if no moves were performed
@@ -96,9 +95,33 @@ class Game(
         reason: GameEndReason
     ) {
         val isFirstUserLost = reason.isFirstUser!!
-        CoroutineScope(Dispatchers.Default).launch {
+        globalLogger.atInfo {
+            message = "Game ended due to ${reason.javaClass.simpleName}, isFirstUserLost = ${reason.isFirstUser}"
+            payload = buildMap {
+                gameId(gameId)
+            }
+        }
+
+        listOf(firstUserId to firstPlayer, secondUserId to secondPlayer).map { (playerId, playerSession) ->
+            fireAndForgetScope.launch {
+                sendMove(playerId, Movement(null, null), false)
+                sendDataTo(playerId, false, reason.javaClass.simpleName)
+                if (BotProvider.isBot(playerId)) {
+                    BotProvider.addBotToTheFreeBotsQueue(playerId)
+                }
+                globalLogger.atInfo {
+                    message = "sessions closing"
+                    payload = buildMap {
+                        gameId(gameId)
+                        userId(playerId)
+                    }
+                }
+                playerSession?.closeWithTimeout()
+            }
+        }
+        fireAndForgetScope.launch {
             globalLogger.atInfo {
-                message = "Game ended due to ${reason.javaClass.simpleName}, isFirstUserLost = ${reason.isFirstUser}"
+                message = "starting to delete game"
                 payload = buildMap {
                     gameId(gameId)
                 }
@@ -106,50 +129,13 @@ class Game(
             val firstUserRating = usersRepository.getRatingById(firstUserId)!!
             val secondUserRating = usersRepository.getRatingById(secondUserId)!!
             val delta =
-                (10 + (if (isFirstUserLost) secondUserRating - firstUserRating else firstUserRating - secondUserRating) / 100).coerceIn(
-                    -50..50
-                )
-            listOf(firstUserId, secondUserId).forEach { userId ->
-                sendMove(userId, Movement(null, null), false)
-                sendDataTo(userId, false, reason.javaClass.simpleName)
-                if (BotProvider.isBot(userId)) {
-                    BotProvider.addBotToTheFreeBotsQueue(userId)
-                }
-            }
-            globalLogger.atInfo {
-                message = "starting to delete game"
-                payload = buildMap {
-                    gameId(gameId)
-                }
-            }
+                (10 + (if (isFirstUserLost) secondUserRating - firstUserRating else firstUserRating - secondUserRating) / 100)
+                    .coerceIn(-50..50)
             gamesRepository.delete(gameId)
             usersRepository.updateRatingById(firstUserId, if (isFirstUserLost) -delta else delta)
             usersRepository.updateRatingById(secondUserId, if (isFirstUserLost) delta else -delta)
-            CoroutineScope(Dispatchers.Default).launch {
-                withTimeout(20.seconds) {
-                    globalLogger.atInfo {
-                        message = "sessions closed for firstPlayer"
-                        payload = buildMap {
-                            gameId(gameId)
-                            userId(firstUserId)
-                        }
-                    }
-                    firstPlayer?.close()
-                }
-            }
-            CoroutineScope(Dispatchers.Default).launch {
-                withTimeout(20.seconds) {
-                    globalLogger.atInfo {
-                        message = "sessions closed for secondPlayer"
-                        payload = buildMap {
-                            gameId(gameId)
-                            userId(secondUserId)
-                        }
-                    }
-                    secondPlayer?.close()
-                }
-            }
         }
+        gameScope.cancel()
     }
 
 
@@ -169,54 +155,41 @@ class Game(
      *
      * @throws IllegalStateException if jwt token doesn't much either of player
      */
-    private suspend fun sendDataTo(userId: Long, opposite: Boolean, data: String) {
+    private suspend fun sendDataTo(
+        userId: Long,
+        opposite: Boolean,
+        data: String
+    ) {
         try {
             withTimeout(15.seconds) {
-                when (userId) {
+                val (playerSession, playerId) = when (userId) {
                     firstUserId -> {
                         val sendToFirstUser = !opposite
                         if (sendToFirstUser) {
-                            firstPlayer?.send(data)
-                            globalLogger.atDebug {
-                                message = "sent \"$data\""
-                                payload = buildMap {
-                                    userId(firstUserId)
-                                }
-                            }
+                            firstPlayer to firstUserId
                         } else {
-                            secondPlayer?.send(data)
-                            globalLogger.atDebug {
-                                message = "sent \"$data\""
-                                payload = buildMap {
-                                    userId(secondUserId)
-                                }
-                            }
+                            secondPlayer to secondUserId
                         }
                     }
 
                     secondUserId -> {
                         val sendToSecondUser = !opposite
                         if (sendToSecondUser) {
-                            secondPlayer?.send(data)
-                            globalLogger.atDebug {
-                                message = "sent \"$data\""
-                                payload = buildMap {
-                                    userId(secondUserId)
-                                }
-                            }
+                            secondPlayer to secondUserId
                         } else {
-                            firstPlayer?.send(data)
-                            globalLogger.atDebug {
-                                message = "sent \"$data\""
-                                payload = buildMap {
-                                    userId(firstUserId)
-                                }
-                            }
+                            firstPlayer to firstUserId
                         }
                     }
 
                     else -> {
                         error("jwt token must either belong to the first user or to second one")
+                    }
+                }
+                playerSession?.send(data)
+                globalLogger.atDebug {
+                    message = "sent \"$data\""
+                    payload = buildMap {
+                        playerId
                     }
                 }
             }
@@ -274,14 +247,17 @@ class Game(
         val firstPlayerMoves = position.pieceToMove == firstPlayerMovesFirst
         val botExistsAndCanMakeMove = (firstPlayerMoves && isFirstPlayerBot) || (!firstPlayerMoves && isSecondPlayerBot)
         if (botExistsAndCanMakeMove) {
-            CoroutineScope(Dispatchers.Default).launch {
-                val newMove = position.findBestMove(Random.nextInt(2, 4).toUByte()) ?: error("no move found")
-                // this shouldn't cause stackoverflow, since you can move at max 3 times in a row
-                applyMove(newMove, isFirstPlayerBot)
-                // in one of those cases move won't be sent (since one user is bot)
-                sendMove(firstUserId, newMove, false)
-                sendMove(secondUserId, newMove, false)
+            val newMove = position.findBestMove(Random.nextInt(2, 4).toUByte()) ?: error("no move found")
+            // in one of those cases move won't be sent (since one user is bot)
+            when (isFirstPlayerBot) {
+                true -> {
+                    sendMove(secondUserId, newMove, false)
+                }
+                false -> {
+                    sendMove(firstUserId, newMove, false)
+                }
             }
+            applyMove(newMove, isFirstPlayerBot)
         }
     }
 
@@ -291,7 +267,8 @@ class Game(
         gamesRepository.applyMove(gameId, move)
         val previousMoveCount = gamesRepository.getMovesCountByGameId(gameId)
         val position = gamesRepository.getPositionByGameId(gameId)!!
-        if (position.gameState() == GameState.End || position.generateMoves().isEmpty()) {/*
+        if (position.gameState() == GameState.End) {
+            /*
              * if game has ended after players move it means, that other player lost
              * because game ends when user can't make a move | has less than 3 pieces
              *

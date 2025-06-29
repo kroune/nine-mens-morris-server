@@ -1,8 +1,8 @@
 package gameQueue.routing
 
 import common.sendSerializedEvent
-import gameQueue.controller.QueueController
-import gameQueue.controller.SearchingForGameConnection
+import gameQueue.service.QueueService
+import gameQueue.service.SearchingForGameConnection
 import common.logging.logger
 import io.ktor.server.routing.Route
 import io.ktor.server.websocket.webSocket
@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.koin.ktor.ext.inject
 import user.data.dao.UsersDataServiceI
-import user.routing.requireValidJwtToken
+import user.controller.requireValidJwtToken
 
 fun Route.gameQueueRouting() {
     webSocket("/search-for-game") {
@@ -20,31 +20,30 @@ fun Route.gameQueueRouting() {
 
         val usersRepository by inject<UsersDataServiceI>()
         val userId = usersRepository.getIdByJwtToken(jwtToken)!!
-        val expectedWaitingTime = MutableStateFlow<Long?>(null)
         val handler = CoroutineExceptionHandler { _, error ->
             logger.atInfo {
-                message = "error while sending a move"
+                message = "error while sending a waiting time"
                 cause = error
             }
         }
+        val expectedWaitingTime = MutableStateFlow<Long?>(null)
         val waitingTimeJob = launch(handler) {
             expectedWaitingTime.collect {
                 if (it != null)
                     sendSerializedEvent(data = it, metadata = "waiting_time")
             }
         }
-        val onGameFound: suspend (Long) -> Unit = { data: Long ->
-            sendSerializedEvent(data = data, metadata = "game_id")
-            flush()
-            waitingTimeJob.cancel()
-            close()
-        }
-        val queueController by inject<QueueController>()
-        queueController.addUser(
+        val queueService by inject<QueueService>()
+        queueService.addUser(
             userId,
-            SearchingForGameConnection(expectedWaitingTime, onGameFound)
+            SearchingForGameConnection(expectedWaitingTime) { data ->
+                sendSerializedEvent(data = data, metadata = "game_id")
+                flush()
+                waitingTimeJob.cancel()
+                close()
+            }
         )
         closeReason.await()
-        queueController.removeUser(userId)
+        queueService.removeUser(userId)
     }
 }
