@@ -1,7 +1,7 @@
 package user
 
 import common.JwtTokenImpl
-import user.controller.UsersController
+import user.domain.UsersService
 import org.koin.core.component.inject
 
 
@@ -12,6 +12,6 @@ suspend inline fun JwtTokenImpl.verify(): Boolean {
     val password = getPassword().getOrElse {
         return false
     }
-    val usersController by inject<UsersController>()
-    return usersController.exists(login, password)
+    val usersService by inject<UsersService>()
+    return usersService.exists(login, password)
 }

@@ -19,7 +19,8 @@
  */
 package user.data.dao
 
-import user.data.UserData
+import kotlinx.coroutines.Deferred
+import user.model.UserData
 import kotlinx.datetime.LocalDate
 
 interface UsersDataServiceI {
@@ -34,7 +35,7 @@ interface UsersDataServiceI {
     suspend fun getRatingById(id: Long): Int?
     suspend fun getCreationDateById(id: Long): LocalDate?
     suspend fun updateRatingByLogin(login: String, newRating: Int)
-    suspend fun updateRatingById(id: Long, delta: Int)
+    suspend fun updateRatingById(id: Long, delta: Int): Deferred<Unit>
     suspend fun getIdByJwtToken(jwtToken: String): Long?
     suspend fun isLoginPresent(login: String): Boolean
     suspend fun getLeaderboard(size: Int): List<Long>

@@ -19,8 +19,8 @@
  */
 package io.github.kroune.server.routing
 
-import user.routing.auth.get.accountRoutingGET
-import user.routing.auth.post.accountRoutingPOST
+import user.controller.auth.get.accountRoutingGET
+import user.controller.auth.post.accountRoutingPOST
 import io.ktor.server.routing.*
 
 fun Route.accountRouting() {

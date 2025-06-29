@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.0-RC2"
+kotlin = "2.2.0"
 ktor = "3.0.0"
 logback_version = "1.5.13"
 logback_loki_version = "1.6.0"
@@ -9,7 +9,7 @@ kaml = "0.65.0"
 exposed_version = "0.56.0"
 postgresql = "42.7.4"
 nine_mens_morris_shared = "d8439fe65f"
-nine_mens_morris_lib = "1.0.3"
+nine_mens_morris_lib = "1.0.4"
 junit = "5.10.2"
 test_container = "1.20.3"
 dokka = "1.9.20"
@@ -17,9 +17,10 @@ koin = "4.1.0-Beta5"
 
 [libraries]
 ktor-server-ohhttp = { group = "io.ktor", name = "ktor-server-cors", version.ref = "ktor" }
-ktor-server-core-jvm = { group = "io.ktor", name = "ktor-server-core-jvm", version.ref = "ktor" }
-ktor-server-content-negotiation-jvm = { group = "io.ktor", name = "ktor-server-content-negotiation-jvm", version.ref = "ktor" }
-ktor-serialization-kotlinx-json-jvm = { group = "io.ktor", name = "ktor-serialization-kotlinx-json-jvm", version.ref = "ktor" }
+ktor-server-core = { group = "io.ktor", name = "ktor-server-core", version.ref = "ktor" }
+ktor-server-content-negotiation = { group = "io.ktor", name = "ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-serialization-kotlinx-protobuf = { group = "io.ktor", name = "ktor-serialization-kotlinx-protobuf", version.ref = "ktor" }
 ktor-server-netty-jvm = { group = "io.ktor", name = "ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-server-websockets = { group = "io.ktor", name = "ktor-server-websockets", version.ref = "ktor" }
 ktor-server-auth-jwt = { group = "io.ktor", name = "ktor-server-auth-jwt", version.ref = "ktor" }

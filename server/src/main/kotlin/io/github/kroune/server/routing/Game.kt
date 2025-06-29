@@ -19,9 +19,9 @@
  */
 package io.github.kroune.server.routing
 
-import gameMain.routing.gameRoutingGET
+import gameMain.controller.gameRoutingGET
 import io.ktor.server.routing.*
-import gameMain.routing.gameMainRouting
+import gameMain.controller.gameMainRouting
 import gameQueue.routing.gameQueueRouting
 
 fun Route.gameRouting() {

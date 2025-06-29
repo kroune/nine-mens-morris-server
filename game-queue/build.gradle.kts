@@ -6,7 +6,6 @@ dependencies {
     // kafka
     implementation("org.apache.kafka:kafka-clients:4.0.0")
 
-    implementation(libs.ktor.server.core.jvm)
     implementation(libs.ktor.server.websockets)
 
     implementation(libs.nine.men.s.morris.lib)

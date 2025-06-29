@@ -19,8 +19,8 @@
  */
 package io.github.kroune.server.routing
 
-import user.routing.userinfo.get.userInfoRoutingGET
-import user.routing.userinfo.post.userInfoRoutingPOST
+import user.controller.userinfo.get.userInfoRoutingGET
+import user.controller.userinfo.post.userInfoRoutingPOST
 import io.ktor.server.routing.*
 
 fun Route.userInfoRouting() {

@@ -18,8 +18,6 @@ dependencies {
 
     api(project(":common"))
 
-    implementation(libs.ktor.server.core.jvm)
-
     testImplementation(project(":common-tests"))
     testImplementation(project(":user-tests"))
 

@@ -25,8 +25,6 @@ dependencies {
 
     // ktor
     implementation(libs.ktor.server.ohhttp)
-    implementation(libs.ktor.server.core.jvm)
-    implementation(libs.ktor.server.content.negotiation.jvm)
     implementation(libs.ktor.server.netty.jvm)
     implementation(libs.ktor.server.websockets)
     implementation(libs.ktor.server.auth)

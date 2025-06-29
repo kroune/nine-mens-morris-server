@@ -10,7 +10,7 @@ dependencies {
     api("io.github.oshai:kotlin-logging-jvm:7.0.3")
 
     implementation(libs.ktor.server.websockets)
-    implementation(libs.ktor.server.core.jvm)
+    implementation(libs.ktor.server.core)
 
     // koin
     api(libs.insert.koin.core)
@@ -20,13 +20,15 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 
     // serialization
-    api(libs.ktor.serialization.kotlinx.json.jvm)
+    api(libs.ktor.serialization.kotlinx.json)
+    api(libs.ktor.serialization.kotlinx.protobuf)
     api(libs.kotlinx.serialization.json)
     api(libs.kotlinx.serialization.protobuf)
     api(libs.kaml)
 
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.auth.jwt)
+    api(libs.ktor.server.content.negotiation)
 
     api(libs.ktor.server.rate.limit)
 
