@@ -35,11 +35,6 @@ jobs:
       uses: docker/metadata-action@v5
       with:
         images: kroune/nine-mens-morris-server
-        tags: |
-          type=sha
-          type=semver,pattern={{version}}
-          type=ref,event=branch
-          type=ref,event=pr
     - name: Build and push Docker image
       id: push
       uses: docker/build-push-action@v6
