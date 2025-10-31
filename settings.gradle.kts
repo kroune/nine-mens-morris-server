@@ -23,7 +23,7 @@ dependencyResolutionManagement {
 include(":common")
 include("server")
 include("database")
-include("common-ktor")
+//include("common-ktor")
 include("game-queue")
 include("user")
 include("game-server")
