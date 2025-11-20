@@ -1,5 +1,6 @@
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+    id("ru.tinkoff.include-subprojects") version "1.0.0"
 }
 
 rootProject.name = "NineMensMorris-backend"
@@ -19,16 +20,3 @@ dependencyResolutionManagement {
         google()
     }
 }
-
-include(":common")
-include("server")
-include("database")
-include("game-queue")
-include("user")
-include("game-main")
-include("bots")
-include("common-tests")
-include("user-tests")
-include("database")
-
-include("app-versions")
