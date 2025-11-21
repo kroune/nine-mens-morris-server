@@ -48,10 +48,13 @@ dependencies {
     api(project(":common"))
     implementation(project(":game-queue"))
     implementation(project(":game-main"))
+
     implementation(project(":user-api"))
-    implementation(project(":user"))
+    implementation(project(":user-impl"))
+
     implementation(project(":bots-api"))
     implementation(project(":bots-impl"))
+
     implementation(project(":app-versions"))
 
     // testing

@@ -20,7 +20,7 @@ dependencies {
 
     testImplementation(project(":common-tests"))
     testImplementation(project(":user-tests"))
-    testImplementation(project(":user"))
+    testImplementation(project(":user-impl"))
 
     testImplementation(kotlin("test"))
 }
