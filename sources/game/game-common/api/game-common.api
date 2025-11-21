@@ -1,0 +1,58 @@
+public abstract class gameCommon/GameI {
+	public fun <init> ()V
+	public abstract fun applyMove (Lcom/kroune/nineMensMorrisLib/move/Movement;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun enemyId (J)J
+	public abstract fun getFirstPlayer ()Lio/ktor/server/websocket/DefaultWebSocketServerSession;
+	public abstract fun getGameId ()J
+	public abstract fun getSecondPlayer ()Lio/ktor/server/websocket/DefaultWebSocketServerSession;
+	public abstract fun handleGameEnd (Lcom/kroune/nineMensMorrisShared/GameEndReason;)V
+	public abstract fun initializeGame (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun isFirstPlayer (J)Z
+	public abstract fun isFirstPlayerMovesFirst (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun isMovePossible (Lcom/kroune/nineMensMorrisLib/move/Movement;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun sendMove (JLcom/kroune/nineMensMorrisLib/move/Movement;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun sendPosition (Lio/ktor/server/websocket/DefaultWebSocketServerSession;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun setFirstPlayer (Lio/ktor/server/websocket/DefaultWebSocketServerSession;)V
+	public abstract fun setSecondPlayer (Lio/ktor/server/websocket/DefaultWebSocketServerSession;)V
+	public abstract fun timeoutCheck (Ljava/lang/Integer;)V
+	public abstract fun updateSession (JLio/ktor/server/websocket/DefaultWebSocketServerSession;)V
+}
+
+public final class gameCommon/data/dao/GameData {
+	public fun <init> (JJLjava/lang/Long;Ljava/util/List;Lcom/kroune/nineMensMorrisLib/Position;Z)V
+	public synthetic fun <init> (JJLjava/lang/Long;Ljava/util/List;Lcom/kroune/nineMensMorrisLib/Position;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()J
+	public final fun component2 ()J
+	public final fun component3 ()Ljava/lang/Long;
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Lcom/kroune/nineMensMorrisLib/Position;
+	public final fun component6 ()Z
+	public final fun copy (JJLjava/lang/Long;Ljava/util/List;Lcom/kroune/nineMensMorrisLib/Position;Z)LgameCommon/data/dao/GameData;
+	public static synthetic fun copy$default (LgameCommon/data/dao/GameData;JJLjava/lang/Long;Ljava/util/List;Lcom/kroune/nineMensMorrisLib/Position;ZILjava/lang/Object;)LgameCommon/data/dao/GameData;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBotId ()Ljava/lang/Long;
+	public final fun getFirstPlayerId ()J
+	public final fun getFirstPlayerMovesFirst ()Z
+	public final fun getMovesHistory ()Ljava/util/List;
+	public final fun getPosition ()Lcom/kroune/nineMensMorrisLib/Position;
+	public final fun getSecondPlayerId ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class gameCommon/data/dao/GamesDataServiceI {
+	public abstract fun applyMove (JLcom/kroune/nineMensMorrisLib/move/Movement;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun create (LgameCommon/data/dao/GameData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun delete (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun exists (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getBotIdByGameId (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getFirstPlayerMovesFirstByGameId (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getFirstUserIdByGameId (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getGameIdByUserId (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getGameMoveHistory (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getMovesCountByGameId (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getPositionByGameId (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getSecondUserIdByGameId (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun participates (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

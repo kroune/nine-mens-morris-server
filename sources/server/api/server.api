@@ -1,0 +1,43 @@
+public final class io/github/kroune/server/ApplicationKt {
+	public static final fun applyPlugins (Lio/ktor/server/application/Application;Z)V
+	public static synthetic fun applyPlugins$default (Lio/ktor/server/application/Application;ZILjava/lang/Object;)V
+	public static final fun database (Lio/ktor/server/application/Application;)V
+	public static final fun installMonitoring (Lio/ktor/server/application/Application;)V
+	public static final fun main ()V
+	public static synthetic fun main ([Ljava/lang/String;)V
+	public static final fun routing (Lio/ktor/server/application/Application;)V
+	public static final fun startDI (Lio/ktor/server/application/Application;)V
+}
+
+public final class io/github/kroune/server/routing/AccountKt {
+	public static final fun accountRouting (Lio/ktor/server/routing/Route;)V
+}
+
+public final class io/github/kroune/server/routing/GameKt {
+	public static final fun gameRouting (Lio/ktor/server/routing/Route;)V
+}
+
+public final class io/github/kroune/server/routing/UserInfoKt {
+	public static final fun userInfoRouting (Lio/ktor/server/routing/Route;)V
+}
+
+public final class io/github/kroune/server/routing/VersionKt {
+	public static final fun versionRouting (Lio/ktor/server/routing/Route;)V
+}
+
+public final class io/github/kroune/server/routing/misc/MiscKt {
+	public static final fun miscRouting (Lio/ktor/server/routing/Route;)V
+}
+
+public final class io/github/kroune/server/routing/misc/get/MiscGetKt {
+	public static final fun miscRoutingGET (Lio/ktor/server/routing/Route;)V
+}
+
+public final class io/github/kroune/server/routing/monitoring/MonitoringKt {
+	public static final fun monitoringRouting (Lio/ktor/server/routing/Route;)V
+}
+
+public final class io/github/kroune/server/routing/monitoring/get/MonitoringGETKt {
+	public static final fun monitoringRoutingGET (Lio/ktor/server/routing/Route;)V
+}
+

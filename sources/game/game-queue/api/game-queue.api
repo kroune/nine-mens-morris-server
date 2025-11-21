@@ -1,0 +1,20 @@
+public final class gameQueue/data/queue/QueueTable : org/jetbrains/exposed/sql/Table {
+	public static final field INSTANCE LgameQueue/data/queue/QueueTable;
+	public final fun getBucketId ()Lorg/jetbrains/exposed/sql/Column;
+	public final fun getUserId ()Lorg/jetbrains/exposed/sql/Column;
+}
+
+public abstract interface class gameQueue/data/queue/dao/QueueServiceI {
+	public abstract fun addUser (JLkotlin/ranges/IntRange;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun deleteUser (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun getUsers (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class gameQueue/di/QueueKt {
+	public static final fun getQueueModules ()Lorg/koin/core/module/Module;
+}
+
+public final class gameQueue/routing/GameQueueKt {
+	public static final fun gameQueueRouting (Lio/ktor/server/routing/Route;)V
+}
+

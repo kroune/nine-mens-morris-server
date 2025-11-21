@@ -1,0 +1,15 @@
+public final class database/DatabaseConfiguration {
+	public static final field BOTS_DATA Ljava/lang/String;
+	public static final field Companion Ldatabase/DatabaseConfiguration$Companion;
+	public static final field USER_DATA Ljava/lang/String;
+	public static final field VERSION_DATA Ljava/lang/String;
+	public fun <init> ()V
+}
+
+public final class database/DatabaseConfiguration$Companion {
+}
+
+public final class database/di/DatabasesKt {
+	public static final fun getDatabaseModule ()Lorg/koin/core/module/Module;
+}
+
