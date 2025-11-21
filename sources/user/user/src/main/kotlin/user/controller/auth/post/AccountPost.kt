@@ -1,14 +1,15 @@
 package user.controller.auth.post
 
 import common.logging.logger
-import userApi.model.InsertUserPayload
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
+import org.koin.ktor.ext.inject
 import userApi.controller.requireLogin
 import userApi.controller.requirePassword
-import io.ktor.http.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import org.koin.ktor.ext.inject
 import userApi.domain.UsersServiceI
+import userApi.model.InsertUserPayload
 import userApi.view.internalServerError
 
 fun Route.accountRoutingPOST() {
@@ -41,9 +42,11 @@ fun Route.accountRoutingPOST() {
                 logger.error(registrationResult.throwable) { "Internal Server Error at ${call.route}" }
                 internalServerError()
             }
+
             UsersServiceI.RegistrationResult.LoginAlreadyTaken -> {
                 call.respond(HttpStatusCode.Conflict, "login already taken")
             }
+
             is UsersServiceI.RegistrationResult.Success -> {
                 call.respond(HttpStatusCode.OK, registrationResult.jwtToken)
             }

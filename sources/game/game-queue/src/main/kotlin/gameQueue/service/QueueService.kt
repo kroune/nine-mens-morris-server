@@ -9,8 +9,12 @@ import gameCommon.GameI
 import gameCommon.data.dao.GameData
 import gameCommon.data.dao.GamesDataServiceI
 import gameQueue.data.queue.dao.QueueServiceI
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
@@ -28,7 +32,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 internal class QueueService(
-    private val datasource: QueueServiceI,
     private val gamesRepository: GamesDataServiceI,
     private val usersRepository: UsersDataServiceI,
     private val botProvider: BotProviderI,
@@ -76,7 +79,7 @@ internal class QueueService(
             val bucketsToSpreadBetween = currentConfig.gameConfig.maxRatingDifference / bucketSize
             val bucketsRange = (queueToAddUser - bucketsToSpreadBetween / 2)
                 .coerceAtLeast(0)..(queueToAddUser + bucketsToSpreadBetween / 2)
-            datasource.addUser(userId, bucketsRange)
+            queueRepository.addUser(userId, bucketsRange)
             bucketsRange.forEach { bucket ->
                 producer.send(ProducerRecord("searching-for-game-$bucket", null))
             }
@@ -166,7 +169,7 @@ internal class QueueService(
                 userId(userId)
             }
         }
-        return datasource.deleteUser(userId)
+        return queueRepository.deleteUser(userId)
     }
 
 

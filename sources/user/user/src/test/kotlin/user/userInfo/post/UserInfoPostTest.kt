@@ -1,14 +1,16 @@
 package user.userInfo.post
 
 import io.github.kroune.createDummyUser
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.server.testing.*
+import io.ktor.client.request.parameter
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.testApplication
 import org.koin.core.context.GlobalContext
 import user.applyUserPlugins
 import user.controller.userinfo.post.userInfoRoutingPOST
-import userApi.data.dao.UsersDataServiceI
 import user.startTestDI
+import userApi.data.dao.UsersDataServiceI
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals

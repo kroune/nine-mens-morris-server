@@ -20,8 +20,9 @@
 package userApi.view
 
 import common.logging.globalLogger
-import io.ktor.server.websocket.*
-import io.ktor.websocket.*
+import io.ktor.server.websocket.WebSocketServerSession
+import io.ktor.websocket.CloseReason
+import io.ktor.websocket.close
 
 /**
  * closes web socket connection

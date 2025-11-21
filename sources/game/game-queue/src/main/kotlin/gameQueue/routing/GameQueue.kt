@@ -3,9 +3,9 @@ package gameQueue.routing
 import common.fireAndForgetScope
 import common.sendSerializedEvent
 import gameQueue.service.QueueService
-import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
-import io.ktor.websocket.*
+import io.ktor.server.routing.Route
+import io.ktor.server.websocket.webSocket
+import io.ktor.websocket.close
 import kotlinx.coroutines.launch
 import org.koin.ktor.ext.inject
 import userApi.controller.requireValidJwtToken

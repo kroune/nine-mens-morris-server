@@ -22,7 +22,7 @@ package gameCommon
 
 import com.kroune.nineMensMorrisLib.move.Movement
 import com.kroune.nineMensMorrisShared.GameEndReason
-import io.ktor.server.websocket.*
+import io.ktor.server.websocket.DefaultWebSocketServerSession
 import kotlinx.serialization.SerializationException
 
 abstract class GameI {

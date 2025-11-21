@@ -1,13 +1,14 @@
 package appVersions.version.post
 
-import common.ConfigurationLoader
 import appVersions.data.dao.VersionDataServiceI
-import io.ktor.http.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import org.koin.ktor.ext.get
 import appVersions.version.validateDistribution
 import appVersions.version.validateVersion
+import common.ConfigurationLoader
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
+import org.koin.ktor.ext.get
 
 fun Route.versionRoutingPOST() {
     post("update-version") {

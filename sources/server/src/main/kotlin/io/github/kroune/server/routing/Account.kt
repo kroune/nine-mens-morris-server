@@ -19,9 +19,10 @@
  */
 package io.github.kroune.server.routing
 
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.route
 import user.controller.auth.get.accountRoutingGET
 import user.controller.auth.post.accountRoutingPOST
-import io.ktor.server.routing.*
 
 fun Route.accountRouting() {
     route("auth") {

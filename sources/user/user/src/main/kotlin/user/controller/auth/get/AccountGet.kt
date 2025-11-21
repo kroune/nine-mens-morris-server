@@ -20,13 +20,14 @@
 package user.controller.auth.get
 
 import common.JwtTokenImpl
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import userApi.controller.requireLogin
 import userApi.controller.requirePassword
 import userApi.controller.requireValidJwtToken
 import userApi.verify
-import io.ktor.http.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
 
 fun Route.accountRoutingGET() {
     /**

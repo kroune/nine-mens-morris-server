@@ -1,12 +1,21 @@
 package userApi.controller
 
 import common.JwtTokenImpl
-import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
+import io.ktor.server.routing.RoutingContext
+import io.ktor.server.websocket.WebSocketServerSession
 import org.koin.core.context.GlobalContext
 import userApi.data.dao.UsersDataServiceI
 import userApi.verify
-import userApi.view.*
+import userApi.view.invalidLogin
+import userApi.view.invalidPassword
+import userApi.view.jwtTokenIsNotValid
+import userApi.view.noJwtToken
+import userApi.view.noLogin
+import userApi.view.noPassword
+import userApi.view.noUserId
+import userApi.view.noValidLogin
+import userApi.view.userIdIsNotLong
+import userApi.view.userIdIsNotValid
 
 /**
  * possible responses:

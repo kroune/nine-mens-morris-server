@@ -3,17 +3,18 @@
 package user.userInfo.get
 
 import io.github.kroune.createDummyUser
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.server.testing.*
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.testApplication
 import kotlinx.serialization.json.Json
 import org.koin.core.context.GlobalContext
 import user.applyUserPlugins
 import user.controller.userinfo.get.userInfoRoutingGET
+import user.startTestDI
 import userApi.data.dao.UsersDataServiceI
 import userApi.model.InsertUserPayload
-import user.startTestDI
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

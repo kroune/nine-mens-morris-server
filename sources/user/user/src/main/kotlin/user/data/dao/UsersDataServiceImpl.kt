@@ -24,13 +24,17 @@ import common.logging.globalLogger
 import common.logging.userId
 import kotlinx.coroutines.Deferred
 import kotlinx.datetime.LocalDate
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.experimental.suspendedTransactionAsync
 import org.jetbrains.exposed.sql.transactions.transaction
-import userApi.model.UserData
+import org.jetbrains.exposed.sql.update
 import userApi.data.UsersDataTable
 import userApi.data.dao.UsersDataServiceI
+import userApi.model.UserData
 
 class UsersDataServiceImpl(
     private val database: Database

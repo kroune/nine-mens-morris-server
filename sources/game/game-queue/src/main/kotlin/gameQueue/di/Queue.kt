@@ -16,7 +16,6 @@ val queueModules = module {
             get(),
             get(),
             get(),
-            get(),
         )
     }
     factory {
