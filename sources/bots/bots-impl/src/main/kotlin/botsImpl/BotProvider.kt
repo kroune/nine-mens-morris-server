@@ -1,4 +1,4 @@
-package bots
+package botsImpl
 /*
  * This file is part of nine-mens-morris-server (https://github.com/kroune/nine-mens-morris-server)
  * Copyright (C) 2024-2024  kroune

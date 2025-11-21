@@ -1,9 +1,9 @@
-package bots.di
+package botsImpl.di
 
-import bots.BotCreator
-import bots.BotProvider
-import bots.dao.BotsServiceImpl
-import bots.randomUser.RandomUserRepositoryImpl
+import botsImpl.BotCreator
+import botsImpl.BotProvider
+import botsImpl.dao.BotsServiceImpl
+import botsImpl.randomUser.RandomUserRepositoryImpl
 import botsApi.BotCreatorI
 import botsApi.BotProviderI
 import botsApi.dao.BotsServiceI

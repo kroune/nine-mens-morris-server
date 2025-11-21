@@ -17,7 +17,7 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package bots.dao
+package botsImpl.dao
 
 import botsApi.dao.BotsServiceI
 import botsApi.BotsDataTable

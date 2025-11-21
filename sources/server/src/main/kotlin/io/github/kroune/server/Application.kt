@@ -20,7 +20,7 @@
 package io.github.kroune.server
 
 import appVersions.di.versionModule
-import bots.di.botsModules
+import botsImpl.di.botsModules
 import botsApi.dao.BotsServiceI
 import common.ConfigurationLoader.currentConfig
 import common.commonModule
@@ -121,7 +121,7 @@ fun Application.database() {
     get<UsersDataServiceI>()
     logger.debug { "initializing games repository" }
     get<GamesDataServiceI>()
-    logger.debug { "initializing bots repository" }
+    logger.debug { "initializing botsImpl repository" }
     get<BotsServiceI>()
     logger.debug { "initializing queue repository" }
     get<QueueServiceI>()

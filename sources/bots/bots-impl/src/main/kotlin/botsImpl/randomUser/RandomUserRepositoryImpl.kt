@@ -17,7 +17,7 @@
  *
  * Contact: kr0ne@tuta.io
  */
-package bots.randomUser
+package botsImpl.randomUser
 
 import botsApi.randomUser.RandomUserRepositoryI
 import io.ktor.client.HttpClient
