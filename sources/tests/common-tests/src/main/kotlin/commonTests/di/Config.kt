@@ -7,7 +7,6 @@ import org.koin.dsl.module
 import org.testcontainers.containers.PostgreSQLContainer
 import kotlin.time.Duration.Companion.seconds
 
-
 val testConfig
     get() = ConfigMember(
         serverConfig = ConfigurationLoader.ServerConfig("0.0.0.0", 8080),

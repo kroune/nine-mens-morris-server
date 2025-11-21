@@ -16,6 +16,9 @@ val gameMainModules = module {
             gameId,
             firstPlayer,
             secondPlayer,
+            get(),
+            get(),
+            get(),
         )
     }
 }

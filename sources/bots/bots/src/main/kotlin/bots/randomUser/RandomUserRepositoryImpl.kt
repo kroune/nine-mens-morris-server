@@ -27,7 +27,7 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-class RandomUserRepositoryImpl : RandomUserRepositoryI {
+internal class RandomUserRepositoryImpl : RandomUserRepositoryI {
     private val network = HttpClient()
     private val jsonClient = Json {
         prettyPrint = true

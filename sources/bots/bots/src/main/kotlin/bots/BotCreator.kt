@@ -25,20 +25,23 @@ import botsApi.randomUser.RandomUserRepositoryI
 import common.getRandomString
 import common.logging.globalLogger
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import userApi.data.dao.UsersDataServiceI
 import userApi.domain.UsersServiceI
 import userApi.model.InsertUserPayload
 import kotlin.random.Random
 import kotlin.random.nextInt
 
-class BotCreator : BotCreatorI, KoinComponent {
+internal class BotCreator(
+    private val randomUserRepository: RandomUserRepositoryI,
+    private val usersRepository: UsersDataServiceI,
+    private val usersService: UsersServiceI,
+    private val botsRepository: BotsServiceI,
+) : BotCreatorI, KoinComponent {
     override suspend fun createBot(ratingRange: IntRange): Long {
         val login: String
         val picture: ByteArray?
         run {
             repeat(3) {
-                val randomUserRepository by inject<RandomUserRepositoryI>()
                 val (loginVariant, pictureVariant) = randomUserRepository.getLoginAndPicture().getOrElse {
                     globalLogger.atError {
                         message = "Failed creating bot"
@@ -46,8 +49,6 @@ class BotCreator : BotCreatorI, KoinComponent {
                     }
                     return@repeat
                 }
-
-                val usersRepository by inject<UsersDataServiceI>()
                 if (usersRepository.isLoginPresent(loginVariant)) {
                     return@repeat
                 }
@@ -60,7 +61,6 @@ class BotCreator : BotCreatorI, KoinComponent {
         }
 
         val password = getRandomString(16)
-        val usersService by inject<UsersServiceI>()
         val rating = Random.nextInt(ratingRange)
         usersService.register(
             InsertUserPayload(
@@ -71,10 +71,8 @@ class BotCreator : BotCreatorI, KoinComponent {
             )
         )
 
-        val usersRepository by inject<UsersDataServiceI>()
         val id = usersRepository.getIdByLogin(login)!!
 
-        val botsRepository by inject<BotsServiceI>()
         botsRepository.add(id)
         globalLogger.debug { "created bot with $login $password" }
         return id

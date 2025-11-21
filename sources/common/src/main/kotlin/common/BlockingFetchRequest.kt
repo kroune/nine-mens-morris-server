@@ -1,8 +1,6 @@
 package common
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import kotlin.reflect.KProperty
 
 class BlockingFetchRequest<T>(
@@ -19,3 +17,5 @@ class BlockingFetchRequest<T>(
         }
     }
 }
+
+val fireAndForgetScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

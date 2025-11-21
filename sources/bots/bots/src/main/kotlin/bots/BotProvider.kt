@@ -30,14 +30,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import userApi.data.dao.UsersDataServiceI
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
-val bucketSize = currentConfig.gameConfig.bucketSize
+private val bucketSize = currentConfig.gameConfig.bucketSize
 
-class BotProvider : BotProviderI, KoinComponent {
+internal class BotProvider(
+    private val usersRepository: UsersDataServiceI,
+    private val botsCreator: BotCreatorI,
+    private val botsRepository: BotsServiceI,
+) : BotProviderI, KoinComponent {
 
     /**
      * array of buckets, represented by queue of user ids
@@ -48,7 +51,6 @@ class BotProvider : BotProviderI, KoinComponent {
 
     override fun addBotToTheFreeBotsQueue(id: Long) {
         CoroutineScope(Dispatchers.IO).launch {
-            val usersRepository by inject<UsersDataServiceI>()
             val botRating = usersRepository.getRatingById(id)!!
             val queueToAddBot = (botRating / bucketSize)
             availableBotsBuckets[queueToAddBot].add(id)
@@ -62,7 +64,6 @@ class BotProvider : BotProviderI, KoinComponent {
     }
 
     override suspend fun isBot(id: Long): Boolean {
-        val botsRepository by inject<BotsServiceI>()
         return botsRepository.exists(id)
     }
 
@@ -77,7 +78,6 @@ class BotProvider : BotProviderI, KoinComponent {
             }
         }
         return availableBotsBuckets[bucket].poll() ?: run {
-            val botsCreator by inject<BotCreatorI>()
             val id = botsCreator.createBot(bucket * bucketSize..bucket * (bucketSize + 1))
             id
         }

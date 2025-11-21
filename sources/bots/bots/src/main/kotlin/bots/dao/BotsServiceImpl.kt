@@ -27,7 +27,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class BotsServiceImpl(
+internal class BotsServiceImpl(
     private val database: Database
 ) : BotsServiceI {
     init {

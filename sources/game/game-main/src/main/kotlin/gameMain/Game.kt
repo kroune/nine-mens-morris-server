@@ -27,6 +27,7 @@ import com.kroune.nineMensMorrisShared.GameEndReason
 import common.BlockingFetchRequest
 import common.ConfigurationLoader.currentConfig
 import common.closeWithTimeout
+import common.fireAndForgetScope
 import common.logging.gameId
 import common.logging.globalLogger
 import common.logging.userId
@@ -39,7 +40,6 @@ import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import userApi.data.dao.UsersDataServiceI
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
@@ -47,16 +47,15 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * if a bot exists in game - it is [secondPlayer]
  */
-class Game(
+internal class Game(
     override val gameId: Long,
     override var firstPlayer: DefaultWebSocketServerSession?,
     override var secondPlayer: DefaultWebSocketServerSession?,
+    private val gamesRepository: GamesDataServiceI,
+    private val usersRepository: UsersDataServiceI,
+    private val botProvider: BotProviderI,
 ) : KoinComponent, GameI() {
     private val gameScope = CoroutineScope(Dispatchers.IO)
-    private val fireAndForgetScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    private val gamesRepository by inject<GamesDataServiceI>()
-    private val usersRepository by inject<UsersDataServiceI>()
 
     private val firstUserId: Long by BlockingFetchRequest(gameScope) {
         gamesRepository.getFirstUserIdByGameId(gameId)!!
@@ -93,7 +92,7 @@ class Game(
      * @param reason - reason why the game has ended
      */
     override fun handleGameEnd(
-        reason: GameEndReason
+        reason: GameEndReason,
     ) {
         val isFirstUserLost = reason.isFirstUser!!
         globalLogger.atInfo {
@@ -107,7 +106,6 @@ class Game(
             fireAndForgetScope.launch {
                 sendMove(playerId, Movement(null, null), false)
                 sendDataTo(playerId, false, reason.javaClass.simpleName)
-                val botProvider by inject<BotProviderI>()
                 if (botProvider.isBot(playerId)) {
                     botProvider.addBotToTheFreeBotsQueue(playerId)
                 }
@@ -145,7 +143,7 @@ class Game(
         val move = Json.encodeToString<Movement>(movement)
         // TODO: make it wait for end of sending position
         sendDataTo(
-            userId = userId, opposite = opposite, data = move
+            userId = userId, opposite = opposite, data = move,
         )
     }
 
@@ -163,36 +161,36 @@ class Game(
         data: String
     ) {
         try {
-            withTimeout(15.seconds) {
-                val (playerSession, playerId) = when (userId) {
-                    firstUserId -> {
-                        val sendToFirstUser = !opposite
-                        if (sendToFirstUser) {
-                            firstPlayer to firstUserId
-                        } else {
-                            secondPlayer to secondUserId
-                        }
-                    }
-
-                    secondUserId -> {
-                        val sendToSecondUser = !opposite
-                        if (sendToSecondUser) {
-                            secondPlayer to secondUserId
-                        } else {
-                            firstPlayer to firstUserId
-                        }
-                    }
-
-                    else -> {
-                        error("jwt token must either belong to the first user or to second one")
+            val (playerSession, playerId) = when (userId) {
+                firstUserId -> {
+                    val sendToFirstUser = !opposite
+                    if (sendToFirstUser) {
+                        firstPlayer to firstUserId
+                    } else {
+                        secondPlayer to secondUserId
                     }
                 }
-                playerSession?.send(data)
-                globalLogger.atDebug {
-                    message = "sent \"$data\""
-                    payload = buildMap {
-                        userId(playerId)
+
+                secondUserId -> {
+                    val sendToSecondUser = !opposite
+                    if (sendToSecondUser) {
+                        secondPlayer to secondUserId
+                    } else {
+                        firstPlayer to firstUserId
                     }
+                }
+
+                else -> {
+                    error("jwt token must either belong to the first user or to second one")
+                }
+            }
+            withTimeout(15.seconds) {
+                playerSession?.send(data)
+            }
+            globalLogger.atDebug {
+                message = "sent \"$data\""
+                payload = buildMap {
+                    userId(playerId)
                 }
             }
         } catch (e: TimeoutCancellationException) {
