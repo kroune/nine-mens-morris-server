@@ -8,7 +8,5 @@ plugins {
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xnon-local-break-continue")
-        freeCompilerArgs.add("-Xexpect-actual-classes")
-        freeCompilerArgs.add("-opt-in=androidx.compose.animation.ExperimentalSharedTransitionApi")
     }
 }
