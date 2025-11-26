@@ -24,6 +24,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.isActive
 import kotlinx.serialization.json.Json
 import org.koin.ktor.plugin.Koin
 import user.di.usersModules
@@ -61,27 +62,31 @@ fun ApplicationTestBuilder.getGameId(jwtToken: String): Pair<Deferred<Long>, Cha
                 parameter("jwtToken", jwtToken)
             }
         }) {
-            while (true) {
-                println("waiting for info")
-                val info = receiveDeserializedServerEvent<Long, String>()
-                println(info)
-                when (info.second) {
-                    "game_id" -> {
-                        gameId = info.first
-                        channel.close()
-                        close()
-                        println("game id = ${info.first}")
-                        return@ws
-                    }
+            runCatching {
+                while (this@async.isActive) {
+                    println("waiting for info")
+                    val info = receiveDeserializedServerEvent<Long, String>()
+                    println(info)
+                    when (info.second) {
+                        "game_id" -> {
+                            gameId = info.first
+                            channel.close()
+                            close()
+                            println("game id = ${info.first}")
+                            return@ws
+                        }
 
-                    "waiting_time" -> {
-                        channel.send(info.first)
-                    }
+                        "waiting_time" -> {
+                            channel.send(info.first)
+                        }
 
-                    else -> {
-                        println("WTF HAPPENED $info")
+                        else -> {
+                            println("WTF HAPPENED $info")
+                        }
                     }
                 }
+            }.onFailure {
+                throw it
             }
         }
         client2.close()

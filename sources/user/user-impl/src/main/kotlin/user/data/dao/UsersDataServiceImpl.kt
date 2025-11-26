@@ -36,11 +36,11 @@ import userApi.data.UsersDataTable
 import userApi.data.dao.UsersDataServiceI
 import userApi.model.UserData
 
-class UsersDataServiceImpl(
+internal class UsersDataServiceImpl(
     private val database: Database
 ) : UsersDataServiceI {
     init {
-        transaction {
+        transaction(db = database) {
             SchemaUtils.create(UsersDataTable)
         }
     }

@@ -21,7 +21,7 @@ package user.domain
 
 import at.favre.lib.crypto.bcrypt.BCrypt
 
-object Bcrypter {
+internal object Bcrypter {
     private const val COMPLEXITY = 6
     fun hash(value: String): String {
         return BCrypt.withDefaults().hashToString(COMPLEXITY, value.toCharArray())!!

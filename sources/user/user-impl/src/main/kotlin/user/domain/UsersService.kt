@@ -8,7 +8,7 @@ import userApi.domain.UsersServiceI
 import userApi.model.InsertUserPayload
 import userApi.model.UserData
 
-class UsersService(
+internal class UsersService(
     private val usersDataService: UsersDataServiceI
 ) : UsersServiceI, KoinComponent {
 
