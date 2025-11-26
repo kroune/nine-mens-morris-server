@@ -46,7 +46,7 @@ internal class UsersDataServiceImpl(
     }
 
     override suspend fun create(data: UserData) {
-        newSuspendedTransaction(db = database) {
+        newSuspendedTransaction(db = database, transactionIsolation = 2) {
             UsersDataTable.insert {
                 it[login] = data.login
                 it[passwordHash] = data.passwordHash
