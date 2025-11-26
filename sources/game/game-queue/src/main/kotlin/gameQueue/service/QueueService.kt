@@ -11,9 +11,9 @@ import gameCommon.data.dao.GamesDataServiceI
 import gameQueue.data.queue.dao.QueueServiceI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -31,67 +31,38 @@ import kotlin.random.Random
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
-
-class SearchingForGameConnection(
-    val expectedWaitingTime: MutableStateFlow<Long?>,
-    val callback: suspend (Long) -> Unit
-)
-
-class QueueService(
-    val datasource: QueueServiceI
+internal class QueueService(
+    private val gamesRepository: GamesDataServiceI,
+    private val usersRepository: UsersDataServiceI,
+    private val botProvider: BotProviderI,
+    private val queueRepository: QueueServiceI,
+    private val gamesDataService: GamesDataServiceI,
 ) : KoinComponent {
-    private val consumer by lazy {
-        val props by GlobalContext.get().inject<Properties>()
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-        props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
-        props.put("value.serializer", "org.apache.kafka.common.serialization.VoidSerializer")
-        props.put("value.deserializer", "org.apache.kafka.common.serialization.VoidDeserializer")
-        props.put(CommonClientConfigs.METADATA_MAX_AGE_CONFIG, 1.seconds.inWholeMilliseconds)
-        props.put("group.id", "server")
-
-        KafkaConsumer<String, Long>(props)
-    }
-
-    private val producer by lazy {
-        val props by GlobalContext.get().inject<Properties>()
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-        props.put("value.serializer", "org.apache.kafka.common.serialization.VoidSerializer")
-
-        KafkaProducer<String, Long>(props)
-    }
-
     private val minPairWithBotTime = currentConfig.gameConfig.minTimeBeforePairingWithBot
     private val maxPairWithBotTime = currentConfig.gameConfig.maxTimeBeforePairingWithBot
     private val bucketSize = currentConfig.gameConfig.bucketSize
 
-    companion object {
-        private val userIdToSession = mutableMapOf<Long, SearchingForGameConnection>()
-    }
-
-    private val gamesRepository by inject<GamesDataServiceI>()
-
-    private suspend fun streamExpectedWaitingTime(expectedWaitingTimeChannel: MutableStateFlow<Long?>) {
-        while (true) {
-            // TODO: add average game search time updater
-            val expectedWaitingTime = (15..22L).random()
-            expectedWaitingTimeChannel.emit(expectedWaitingTime)
-            delay(2.seconds)
+    private suspend fun streamExpectedWaitingTime(expectedWaitingTimeChannel: Channel<Long>) {
+        CoroutineScope(currentCoroutineContext()).launch {
+            while (true) {
+                // TODO: add average game search time updater
+                val expectedWaitingTime = (15..22L).random()
+                expectedWaitingTimeChannel.send(expectedWaitingTime)
+                delay(2.seconds)
+            }
         }
     }
 
-    suspend fun addUser(userId: Long, data: SearchingForGameConnection) {
-        val usersRepository by inject<UsersDataServiceI>()
-        val rating = usersRepository.getRatingById(userId)!!
-        val scope = CoroutineScope(currentCoroutineContext())
-        userIdToSession[userId] = data
-        scope.launch {
-            streamExpectedWaitingTime(data.expectedWaitingTime)
-        }
-        scope.launch {
-            val gamesRepository by inject<GamesDataServiceI>()
+    suspend fun addUser(userId: Long, onGameFound: suspend (Long) -> Unit): Channel<Long> {
+        val expectedWaitingTime = Channel<Long>(capacity = 50)
+        CoroutineScope(currentCoroutineContext()).launch {
+            val onGameFoundAndCleanup: suspend (Long) -> Unit = { expectedTime: Long ->
+                onGameFound(expectedTime)
+                expectedWaitingTime.cancel()
+            }
             gamesRepository.getGameIdByUserId(userId)?.let { gameId ->
                 // user is already in a game
-                data.callback(gameId)
+                onGameFoundAndCleanup(gameId)
                 return@launch
             }
             globalLogger.atDebug {
@@ -100,27 +71,31 @@ class QueueService(
                     userId(userId)
                 }
             }
+            userIdToSession[userId] = onGameFoundAndCleanup
+            streamExpectedWaitingTime(expectedWaitingTime)
+
+            val rating = usersRepository.getRatingById(userId)!!
             val queueToAddUser = (rating / bucketSize)
             val bucketsToSpreadBetween = currentConfig.gameConfig.maxRatingDifference / bucketSize
-            val bucketsRange =
-                (queueToAddUser - bucketsToSpreadBetween / 2).coerceAtLeast(0)..(queueToAddUser + bucketsToSpreadBetween / 2)
-
-            addUser(
-                userId,
-                bucketsRange
-            )
+            val bucketsRange = (queueToAddUser - bucketsToSpreadBetween / 2)
+                .coerceAtLeast(0)..(queueToAddUser + bucketsToSpreadBetween / 2)
+            queueRepository.addUser(userId, bucketsRange)
+            bucketsRange.forEach { bucket ->
+                producer.send(ProducerRecord("searching-for-game-$bucket", null))
+            }
             pairWithBotIfNoRealEnemyFoundInTime(
                 userId,
                 bucketsRange,
-                data
+                onGameFoundAndCleanup,
             )
         }
+        return expectedWaitingTime
     }
 
     suspend fun pairWithBotIfNoRealEnemyFoundInTime(
         userId: Long,
         bucketsRange: IntRange,
-        data: SearchingForGameConnection
+        onGameFound: suspend (Long) -> Unit,
     ) {
         val currentDelay = Random.nextLong(minPairWithBotTime, maxPairWithBotTime)
         delay(currentDelay)
@@ -133,23 +108,22 @@ class QueueService(
         }
         val gameId = gamesRepository.getGameIdByUserId(userId)
         if (gameId == null) {
-            pairWithBot(userId, bucketsRange, data)
+            pairWithBot(userId, bucketsRange, onGameFound)
         }
     }
 
-    suspend fun pairWithBot(userId: Long, bucketsRange: IntRange, data: SearchingForGameConnection) {
+    suspend fun pairWithBot(userId: Long, bucketsRange: IntRange, onGameFound: suspend (Long) -> Unit) {
         globalLogger.atDebug {
             message = "game wasn't found after delay"
             payload = buildMap {
                 userId(userId)
             }
         }
-        val botProvider by inject<BotProviderI>()
         val botId = botProvider.getBotFromBucket(bucketsRange.random())
         val gameData = GameData(
             firstPlayerId = userId,
             secondPlayerId = botId,
-            botId = botId
+            botId = botId,
         )
         if (!gamesRepository.create(gameData)) {
             // race condition, such game exists
@@ -165,19 +139,10 @@ class QueueService(
         // make sure to initialize it, so time count starts
         val game by inject<GameI>(parameters = { parametersOf(gameId, null, null) })
         game.initializeGame()
-        data.callback(gameId)
-    }
-
-    suspend fun addUser(userId: Long, bucketRange: IntRange) {
-        datasource.addUser(userId, bucketRange)
-        bucketRange.forEach { bucket ->
-            producer.send(ProducerRecord("searching-for-game-$bucket", null))
-        }
+        onGameFound(gameId)
     }
 
     suspend fun createGame(game: GameData): Boolean {
-        val queueRepository by inject<QueueServiceI>()
-
         /**
          * firstPlayerId and secondPlayerId are shuffled, we delete them in such order, so that
          * if one deletion happens, the second one will be also performed there (since all other deletions
@@ -190,7 +155,6 @@ class QueueService(
         ) {
             return false
         }
-        val gamesDataService by inject<GamesDataServiceI>()
         return gamesDataService.create(game)
     }
 
@@ -205,60 +169,84 @@ class QueueService(
                 userId(userId)
             }
         }
-        return datasource.deleteUser(userId)
+        return queueRepository.deleteUser(userId)
     }
 
 
-    private val searchingForGameScope = CoroutineScope(Dispatchers.IO)
+    private val consumer by lazy {
+        val props by GlobalContext.get().inject<Properties>()
+        props["key.serializer"] = "org.apache.kafka.common.serialization.StringSerializer"
+        props["key.deserializer"] = "org.apache.kafka.common.serialization.StringDeserializer"
+        props["value.serializer"] = "org.apache.kafka.common.serialization.VoidSerializer"
+        props["value.deserializer"] = "org.apache.kafka.common.serialization.VoidDeserializer"
+        props[CommonClientConfigs.METADATA_MAX_AGE_CONFIG] = 1.seconds.inWholeMilliseconds
+        props["group.id"] = "server"
+
+        KafkaConsumer<String, Long>(props)
+    }
+
+    private val producer by lazy {
+        val props by GlobalContext.get().inject<Properties>()
+        props["key.serializer"] = "org.apache.kafka.common.serialization.StringSerializer"
+        props["value.serializer"] = "org.apache.kafka.common.serialization.VoidSerializer"
+
+        KafkaProducer<String, Long>(props)
+    }
 
     init {
-        searchingForGameScope.launch {
-            consumer.subscribe(Regex("searching-for-game-\\d*").toPattern())
-            val queueRepository by inject<QueueServiceI>()
+        consumer.subscribe(Regex("searching-for-game-\\d*").toPattern())
+        CoroutineScope(Dispatchers.IO).launch {
             while (true) {
-                val records = consumer.poll(5.seconds.toJavaDuration())
+                consumer.poll(5.seconds.toJavaDuration())
                     .map {
                         val topicName = it.topic()!!
                         topicName
                             .substringAfter("searching-for-game-")
                             .toInt()
-                    }.toSet()
-                records.forEach { bucketId ->
-                    val availablePlayers = queueRepository.getUsers(bucketId).shuffled()
-                    if (availablePlayers.isEmpty()) {
-                        return@forEach
                     }
-                    globalLogger.atDebug {
-                        message = "bucket.size - ${availablePlayers.size}"
-                        payload = buildMap {
-                            bucketId(bucketId)
+                    .toSet()
+                    .forEach { bucketId ->
+                        val availablePlayers = queueRepository.getUsers(bucketId).shuffled()
+                        if (availablePlayers.isEmpty()) {
+                            return@forEach
                         }
-                    }
-                    if (availablePlayers.size < 2) {
-                        return@forEach
-                    }
-                    val firstUser = availablePlayers[0]
-                    val secondUser = availablePlayers[1]
-                    val gameData = GameData(
-                        firstPlayerId = firstUser,
-                        secondPlayerId = secondUser,
-                        botId = null
-                    )
-                    if (!createGame(gameData)) {
-                        // race condition
-                        return@forEach
-                    }
-                    val gameId = gamesRepository.getGameIdByUserId(firstUser)!!
-                    listOf(firstUser, secondUser).forEach { userId ->
-                        launch {
-                            userIdToSession[userId]?.callback(gameId)
+                        globalLogger.atDebug {
+                            message = "bucket.size - ${availablePlayers.size}"
+                            payload = buildMap {
+                                bucketId(bucketId)
+                            }
                         }
+                        if (availablePlayers.size < 2) {
+                            return@forEach
+                        }
+                        val firstUser = availablePlayers[0]
+                        val secondUser = availablePlayers[1]
+                        val gameData = GameData(
+                            firstPlayerId = firstUser,
+                            secondPlayerId = secondUser,
+                            botId = null
+                        )
+                        if (!createGame(gameData)) {
+                            // race condition
+                            return@forEach
+                        }
+                        val gameId = gamesRepository.getGameIdByUserId(firstUser)!!
+                        listOf(firstUser, secondUser).forEach { userId ->
+                            launch {
+                                userIdToSession[userId]?.invoke(gameId)
+                            }
+                        }
+                        // make sure to initialize it, so time count starts
+                        val game by inject<GameI>(parameters = {
+                            parametersOf(gameId, null, null)
+                        })
+                        game.initializeGame()
                     }
-                    // make sure to initialize it, so time count starts
-                    val game by inject<GameI>(parameters = { parametersOf(gameId, null, null) })
-                    game.initializeGame()
-                }
             }
         }
+    }
+
+    companion object {
+        private val userIdToSession = mutableMapOf<Long, suspend (Long) -> Unit>()
     }
 }

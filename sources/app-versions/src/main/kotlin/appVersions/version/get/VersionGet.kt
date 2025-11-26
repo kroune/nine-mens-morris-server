@@ -1,11 +1,12 @@
 package appVersions.version.get
 
 import appVersions.data.dao.VersionDataServiceI
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import org.koin.ktor.ext.get
 import appVersions.version.validateDistribution
 import appVersions.version.validateVersion
+import io.ktor.server.response.respondNullable
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import org.koin.ktor.ext.get
 
 fun Route.versionRoutingGET() {
     get("last-version") {

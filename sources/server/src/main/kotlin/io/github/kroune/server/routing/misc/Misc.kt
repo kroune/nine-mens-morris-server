@@ -20,7 +20,7 @@
 package io.github.kroune.server.routing.misc
 
 import io.github.kroune.server.routing.misc.get.miscRoutingGET
-import io.ktor.server.routing.*
+import io.ktor.server.routing.Route
 
 fun Route.miscRouting() {
     miscRoutingGET()

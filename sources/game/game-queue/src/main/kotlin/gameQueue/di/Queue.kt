@@ -9,11 +9,19 @@ import java.util.*
 
 val queueModules = module {
     single<QueueServiceI> { QueueServiceImpl() }
-    single { QueueService(get()) }
+    single {
+        QueueService(
+            get(),
+            get(),
+            get(),
+            get(),
+            get(),
+        )
+    }
     factory {
         val config = get<ConfigMember>()
         val props = Properties()
-        props.put("bootstrap.servers", config.kafkaConfig.url)
+        props["bootstrap.servers"] = config.kafkaConfig.url
         props
     }
 }

@@ -20,12 +20,13 @@
 package gameMain.controller
 
 import gameCommon.data.dao.GamesDataServiceI
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.server.response.respondNullable
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import org.koin.ktor.ext.inject
 import userApi.controller.requireValidJwtToken
-import userApi.view.internalServerError
 import userApi.data.dao.UsersDataServiceI
+import userApi.view.internalServerError
 
 fun Route.gameRoutingGET() {
     /**

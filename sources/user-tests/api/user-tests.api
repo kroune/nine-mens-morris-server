@@ -1,0 +1,5 @@
+public final class io/github/kroune/MainKt {
+	public static final fun createDummyUser (LuserApi/model/InsertUserPayload;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createDummyUser$default (LuserApi/model/InsertUserPayload;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+

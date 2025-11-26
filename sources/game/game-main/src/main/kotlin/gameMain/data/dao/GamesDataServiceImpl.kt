@@ -23,12 +23,16 @@ import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.move.Movement
 import gameCommon.data.dao.GameData
 import gameCommon.data.dao.GamesDataServiceI
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 
-class GamesDataServiceImpl : GamesDataServiceI {
+internal class GamesDataServiceImpl : GamesDataServiceI {
     init {
         transaction {
             SchemaUtils.create(GamesDataTable)
@@ -37,6 +41,13 @@ class GamesDataServiceImpl : GamesDataServiceI {
 
     override suspend fun create(game: GameData): Boolean {
         return newSuspendedTransaction {
+            val usersFree = GamesDataTable.select(GamesDataTable.gameId).where {
+                (GamesDataTable.firstPlayer eq game.firstPlayerId) or
+                        (GamesDataTable.secondPlayer eq game.secondPlayerId)
+            }.empty()
+            if (!usersFree) {
+                return@newSuspendedTransaction false
+            }
             GamesDataTable.insert {
                 it[firstPlayer] = game.firstPlayerId
                 it[secondPlayer] = game.secondPlayerId

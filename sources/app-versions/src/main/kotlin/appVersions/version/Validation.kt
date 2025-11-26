@@ -1,9 +1,9 @@
 package appVersions.version
 
-import io.ktor.http.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
 import appVersions.model.Distribution
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
+import io.ktor.server.routing.RoutingContext
 
 suspend fun RoutingContext.validateDistribution(): Distribution? {
     call.queryParameters["distribution"].let {

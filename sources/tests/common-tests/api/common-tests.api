@@ -1,0 +1,11 @@
+public final class commonTests/TestKafka {
+	public static final field INSTANCE LcommonTests/TestKafka;
+	public final fun getKafka ()Lorg/testcontainers/kafka/KafkaContainer;
+	public final fun setKafka (Lorg/testcontainers/kafka/KafkaContainer;)V
+}
+
+public final class commonTests/di/ConfigKt {
+	public static final fun getCommonTestModule ()Lorg/koin/core/module/Module;
+	public static final fun getTestConfig ()Lcommon/ConfigurationLoader$ConfigMember;
+}
+

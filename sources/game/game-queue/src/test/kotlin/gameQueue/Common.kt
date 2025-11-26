@@ -1,24 +1,30 @@
 package gameQueue
 
-import bots.di.botsModules
+import botsImpl.di.botsModules
 import common.commonModule
 import common.receiveDeserializedServerEvent
 import commonTests.di.commonTestModule
 import database.di.databaseModule
 import gameMain.di.gameMainModules
 import gameQueue.di.queueModules
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.websocket.*
-import io.ktor.client.request.*
-import io.ktor.serialization.kotlinx.*
-import io.ktor.server.application.*
-import io.ktor.server.testing.*
-import io.ktor.websocket.*
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.pingInterval
+import io.ktor.client.plugins.websocket.ws
+import io.ktor.client.request.parameter
+import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.websocket.close
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.isActive
 import kotlinx.serialization.json.Json
 import org.koin.ktor.plugin.Koin
 import user.di.usersModules
@@ -56,27 +62,31 @@ fun ApplicationTestBuilder.getGameId(jwtToken: String): Pair<Deferred<Long>, Cha
                 parameter("jwtToken", jwtToken)
             }
         }) {
-            while (true) {
-                println("waiting for info")
-                val info = receiveDeserializedServerEvent<Long, String>()
-                println(info)
-                when (info.second) {
-                    "game_id" -> {
-                        gameId = info.first
-                        channel.close()
-                        close()
-                        println("game id = ${info.first}")
-                        return@ws
-                    }
+            runCatching {
+                while (this@async.isActive) {
+                    println("waiting for info")
+                    val info = receiveDeserializedServerEvent<Long, String>()
+                    println(info)
+                    when (info.second) {
+                        "game_id" -> {
+                            gameId = info.first
+                            channel.close()
+                            close()
+                            println("game id = ${info.first}")
+                            return@ws
+                        }
 
-                    "waiting_time" -> {
-                        channel.send(info.first)
-                    }
+                        "waiting_time" -> {
+                            channel.send(info.first)
+                        }
 
-                    else -> {
-                        println("WTF HAPPENED $info")
+                        else -> {
+                            println("WTF HAPPENED $info")
+                        }
                     }
                 }
+            }.onFailure {
+                throw it
             }
         }
         client2.close()

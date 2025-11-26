@@ -19,10 +19,11 @@
  */
 package io.github.kroune.server.routing
 
-import io.ktor.server.routing.*
 import gameMain.controller.gameMainRouting
 import gameMain.controller.gameRoutingGET
 import gameQueue.routing.gameQueueRouting
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.route
 
 fun Route.gameRouting() {
     route("game") {

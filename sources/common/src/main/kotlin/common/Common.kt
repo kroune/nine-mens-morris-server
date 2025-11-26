@@ -1,8 +1,12 @@
 package common
 
-import io.ktor.client.plugins.websocket.*
-import io.ktor.server.websocket.*
-import io.ktor.websocket.*
+import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
+import io.ktor.server.websocket.DefaultWebSocketServerSession
+import io.ktor.server.websocket.WebSocketServerSession
+import io.ktor.websocket.CloseReason
+import io.ktor.websocket.Frame
+import io.ktor.websocket.close
+import io.ktor.websocket.send
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.ExperimentalSerializationApi

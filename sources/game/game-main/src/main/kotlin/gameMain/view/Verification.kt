@@ -20,8 +20,8 @@
 package gameMain.view
 
 import gameCommon.data.dao.GamesDataServiceI
-import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
+import io.ktor.server.routing.RoutingContext
+import io.ktor.server.websocket.DefaultWebSocketServerSession
 import org.koin.core.context.GlobalContext
 import userApi.view.gameIdIsNotLong
 import userApi.view.gameIdIsNotValid

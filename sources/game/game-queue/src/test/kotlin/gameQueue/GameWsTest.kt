@@ -4,7 +4,7 @@ import commonTests.TestKafka
 import gameMain.controller.gameMainRouting
 import gameQueue.routing.gameQueueRouting
 import io.github.kroune.createDummyUser
-import io.ktor.server.testing.*
+import io.ktor.server.testing.testApplication
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow

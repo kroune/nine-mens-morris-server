@@ -1,0 +1,4 @@
+public final class botsImpl/di/BotsKt {
+	public static final fun getBotsModules ()Lorg/koin/core/module/Module;
+}
+

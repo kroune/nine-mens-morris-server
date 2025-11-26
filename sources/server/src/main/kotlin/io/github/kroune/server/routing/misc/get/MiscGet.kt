@@ -19,9 +19,11 @@
  */
 package io.github.kroune.server.routing.misc.get
 
-import io.ktor.http.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondText
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import java.text.SimpleDateFormat
 import java.util.*
 

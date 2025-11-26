@@ -1,0 +1,29 @@
+public abstract interface class botsApi/BotCreatorI {
+	public abstract fun createBot (Lkotlin/ranges/IntRange;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun createBot$default (LbotsApi/BotCreatorI;Lkotlin/ranges/IntRange;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class botsApi/BotCreatorI$DefaultImpls {
+	public static synthetic fun createBot$default (LbotsApi/BotCreatorI;Lkotlin/ranges/IntRange;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public abstract interface class botsApi/BotProviderI {
+	public abstract fun addBotToTheFreeBotsQueue (J)V
+	public abstract fun getBotFromBucket (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun isBot (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class botsApi/BotsDataTable : org/jetbrains/exposed/sql/Table {
+	public static final field INSTANCE LbotsApi/BotsDataTable;
+	public final fun getUserId ()Lorg/jetbrains/exposed/sql/Column;
+}
+
+public abstract interface class botsApi/dao/BotsServiceI {
+	public abstract fun add (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun exists (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class botsApi/randomUser/RandomUserRepositoryI {
+	public abstract fun getLoginAndPicture-IoAF18A (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

@@ -21,9 +21,9 @@ package userApi.view
 
 import common.ConfigurationLoader.currentConfig
 import common.logging.globalLogger
-import io.ktor.http.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
+import io.ktor.server.routing.RoutingContext
 
 suspend fun RoutingContext.noJwtToken() {
     call.respond(HttpStatusCode.BadRequest, "no [jwtToken] parameter found")

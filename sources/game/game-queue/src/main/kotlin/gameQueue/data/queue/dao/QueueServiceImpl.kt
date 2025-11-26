@@ -27,7 +27,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 import org.jetbrains.exposed.sql.transactions.transaction
 import gameQueue.data.queue.QueueTable
 
-class QueueServiceImpl : QueueServiceI {
+internal class QueueServiceImpl : QueueServiceI {
     init {
         transaction {
             SchemaUtils.create(QueueTable)

@@ -22,6 +22,6 @@ dependencies {
     testImplementation(libs.test.container.postgresql)
     testImplementation(kotlin("test"))
     testImplementation(project(":game-main"))
-    testImplementation(project(":user"))
-    testImplementation(project(":bots"))
+    testImplementation(project(":user-impl"))
+    testImplementation(project(":bots-impl"))
 }
