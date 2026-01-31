@@ -24,7 +24,7 @@ jobs:
         sudo chmod -R ugo+rws /etc/game-server/
         mv .github/workflows/test-config.json /etc/game-server/config.json
     - name: Run tests
-      run: gradle test --rerun-tasks
+      run: gradle test --rerun
     - name: Build jar
       run: gradle build
     - name: Upload jar file

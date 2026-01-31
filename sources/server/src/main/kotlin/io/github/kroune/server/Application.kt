@@ -20,8 +20,8 @@
 package io.github.kroune.server
 
 import appVersions.di.versionModule
-import botsImpl.di.botsModules
 import botsApi.dao.BotsServiceI
+import botsImpl.di.botsModules
 import common.ConfigurationLoader.currentConfig
 import common.commonModule
 import common.logging.logger
@@ -102,7 +102,7 @@ fun main() {
     ).start(wait = true)
 }
 
-fun Application.startDI() {
+internal fun Application.startDI() {
     install(Koin) {
         modules(
             databaseModule,
@@ -116,7 +116,7 @@ fun Application.startDI() {
     }
 }
 
-fun Application.database() {
+internal fun Application.database() {
     logger.debug { "initializing users repository" }
     get<UsersDataServiceI>()
     logger.debug { "initializing games repository" }
@@ -128,7 +128,7 @@ fun Application.database() {
     logger.debug { "applying configs" }
 }
 
-fun Application.installMonitoring() {
+internal fun Application.installMonitoring() {
     val appMicrometerRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     install(MicrometerMetrics) {
         meterBinders = listOf(
@@ -150,7 +150,7 @@ fun Application.installMonitoring() {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
+internal fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
     install(ContentNegotiation) {
         removeIgnoredType<ByteArray>()
         removeIgnoredType<String>()
@@ -196,7 +196,7 @@ fun Application.applyPlugins(includeRateLimitPlugin: Boolean = true) {
         }
 }
 
-fun Application.routing() {
+internal fun Application.routing() {
     routing {
         logger.debug { "initializing routing" }
         miscRouting()

@@ -88,7 +88,7 @@ jobs:
           mv .github/workflows/test-config.json /etc/game-server/config.json
 
       - name: Run tests
-        run: gradle test --rerun-tasks
+        run: gradle test --rerun
 
   push-to-docker:
     needs: [ test ]

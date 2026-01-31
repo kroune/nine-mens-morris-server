@@ -24,7 +24,7 @@ import io.ktor.server.routing.route
 import user.controller.auth.get.accountRoutingGET
 import user.controller.auth.post.accountRoutingPOST
 
-fun Route.accountRouting() {
+internal fun Route.accountRouting() {
     route("auth") {
         accountRoutingGET()
         accountRoutingPOST()

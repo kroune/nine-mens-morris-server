@@ -47,7 +47,7 @@ abstract class GameI {
 
     abstract suspend fun isMovePossible(move: Movement, userId: Long): Boolean
 
-    abstract suspend fun applyMove(move: Movement, isFirstPlayerPerformedMove: Boolean)
+    abstract suspend fun applyMove(move: Movement, isFirstPlayerPerformedMove: Boolean, userId: Long)
     abstract suspend fun isFirstPlayerMovesFirst(): Boolean
     abstract fun isFirstPlayer(userId: Long): Boolean
     abstract fun updateSession(userId: Long, session: DefaultWebSocketServerSession)

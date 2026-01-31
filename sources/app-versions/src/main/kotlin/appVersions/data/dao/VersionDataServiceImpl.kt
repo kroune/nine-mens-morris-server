@@ -11,7 +11,7 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class VersionDataServiceImpl(
+internal class VersionDataServiceImpl(
     private val database: Database
 ) : VersionDataServiceI {
     init {

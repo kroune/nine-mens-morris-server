@@ -1,31 +1,13 @@
-/*
- * This file is part of nine-mens-morris-server (https://github.com/kroune/nine-mens-morris-server)
- * Copyright (C) 2024-2024  kroune
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- *
- * Contact: kr0ne@tuta.io
- */
-package gameMain.data.dao
+package gameMain.data.dao.gameData
 
 import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.move.Movement
+import com.kroune.nineMensMorrisShared.GameEndReason
 import gameCommon.data.dao.GameData
 import gameCommon.data.dao.GamesDataServiceI
+import gameMain.data.dao.movesHistory.MovesHistoryTable
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -36,14 +18,15 @@ internal class GamesDataServiceImpl : GamesDataServiceI {
     init {
         transaction {
             SchemaUtils.create(GamesDataTable)
+            SchemaUtils.create(MovesHistoryTable)
         }
     }
 
     override suspend fun create(game: GameData): Boolean {
         return newSuspendedTransaction {
             val usersFree = GamesDataTable.select(GamesDataTable.gameId).where {
-                (GamesDataTable.firstPlayer eq game.firstPlayerId) or
-                        (GamesDataTable.secondPlayer eq game.secondPlayerId)
+                ((GamesDataTable.firstPlayer eq game.firstPlayerId) or
+                        (GamesDataTable.secondPlayer eq game.secondPlayerId)) and GamesDataTable.gameEndReason.isNull()
             }.empty()
             if (!usersFree) {
                 return@newSuspendedTransaction false
@@ -53,7 +36,6 @@ internal class GamesDataServiceImpl : GamesDataServiceI {
                 it[secondPlayer] = game.secondPlayerId
                 it[botId] = game.botId
                 it[position] = game.position
-                it[moveHistory] = game.movesHistory
                 it[firstPlayerMovesFirst] = game.firstPlayerMovesFirst
             }
             true
@@ -70,25 +52,25 @@ internal class GamesDataServiceImpl : GamesDataServiceI {
         }
     }
 
-    override suspend fun getGameMoveHistory(gameId: Long): List<Movement>? {
-        return newSuspendedTransaction {
-            GamesDataTable.select(GamesDataTable.moveHistory).where {
-                GamesDataTable.gameId eq gameId
-            }.limit(1).map {
-                it[GamesDataTable.moveHistory]
-            }.firstOrNull()
-        }
-    }
-
-    override suspend fun applyMove(gameId: Long, move: Movement) {
+    override suspend fun applyMove(gameId: Long, move: Movement, userId: Long) {
+        val newGamePosition = move.producePosition(getPositionByGameId(gameId)!!)
+        val movesCount = getMovesCountByGameId(gameId)!!
         newSuspendedTransaction {
-            val newMoveHistory = getGameMoveHistory(gameId)!!.toMutableList().apply { add(move) }
-            val newGamePosition = move.producePosition(getPositionByGameId(gameId)!!)
+            MovesHistoryTable.insert {
+                it[MovesHistoryTable.gameId] = gameId
+                it[MovesHistoryTable.player] = userId
+                it[MovesHistoryTable.time] = System.currentTimeMillis()
+                it[MovesHistoryTable.moveNumber] = movesCount + 1
+                it[MovesHistoryTable.move] = move
+                it[MovesHistoryTable.position] = newGamePosition
+            }
+        }
+        newSuspendedTransaction {
             GamesDataTable.update(
                 { GamesDataTable.gameId eq gameId }
             ) {
-                it[position] = newGamePosition
-                it[moveHistory] = newMoveHistory
+                it[GamesDataTable.position] = newGamePosition
+                it[GamesDataTable.movesCount] = movesCount + 1
             }
         }
     }
@@ -135,28 +117,32 @@ internal class GamesDataServiceImpl : GamesDataServiceI {
 
     override suspend fun getMovesCountByGameId(gameId: Long): Int? {
         return newSuspendedTransaction {
-            GamesDataTable.select(GamesDataTable.moveHistory).where {
-                GamesDataTable.gameId eq gameId
-            }.limit(1).map {
-                it[GamesDataTable.moveHistory].size
-            }.firstOrNull()
+            GamesDataTable.select(GamesDataTable.movesCount)
+                .where {
+                    (GamesDataTable.gameId eq gameId) and GamesDataTable.gameEndReason.isNull()
+                }
+                .limit(1)
+                .map {
+                    it[GamesDataTable.movesCount]
+                }.firstOrNull()
         }
     }
 
     override suspend fun getGameIdByUserId(userId: Long): Long? {
         return newSuspendedTransaction {
             GamesDataTable.select(GamesDataTable.gameId).where {
-                (GamesDataTable.firstPlayer eq userId) or (GamesDataTable.secondPlayer eq userId)
+                (GamesDataTable.firstPlayer eq userId) or (GamesDataTable.secondPlayer eq userId) and (GamesDataTable.gameEndReason.isNull())
             }.limit(1).map {
                 it[GamesDataTable.gameId]
             }.firstOrNull()
         }
     }
 
-    override suspend fun participates(userId: Long): Boolean {
+    override suspend fun participatesInExistingGame(gameId: Long, userId: Long): Boolean {
         return newSuspendedTransaction {
             GamesDataTable.select(GamesDataTable.gameId).where {
-                (GamesDataTable.firstPlayer eq userId) or (GamesDataTable.secondPlayer eq userId)
+                ((GamesDataTable.firstPlayer eq userId) or (GamesDataTable.secondPlayer eq userId)) and
+                        (GamesDataTable.gameId eq gameId) and (GamesDataTable.gameEndReason.isNull())
             }.limit(1).map {
                 it[GamesDataTable.gameId]
             }.any()
@@ -166,17 +152,19 @@ internal class GamesDataServiceImpl : GamesDataServiceI {
     override suspend fun exists(gameId: Long): Boolean {
         return newSuspendedTransaction {
             GamesDataTable.select(GamesDataTable.gameId).where {
-                GamesDataTable.gameId eq gameId
+                GamesDataTable.gameId eq gameId and (GamesDataTable.gameEndReason.isNull())
             }.limit(1).map {
                 it[GamesDataTable.gameId]
             }.any()
         }
     }
 
-    override suspend fun delete(gameId: Long) {
+    override suspend fun markGameAsDeleted(gameId: Long, gameEndReason: GameEndReason) {
         newSuspendedTransaction {
-            GamesDataTable.deleteWhere {
-                GamesDataTable.gameId eq gameId
+            GamesDataTable.update(
+                { GamesDataTable.gameId eq gameId }
+            ) {
+                it[GamesDataTable.gameEndReason] = gameEndReason
             }
         }
     }

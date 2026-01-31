@@ -60,6 +60,7 @@ suspend fun DefaultWebSocketServerSession.closeWithTimeout(
     timeout: Duration = 20.seconds
 ) {
     withTimeoutOrNull(timeout) {
+        this@closeWithTimeout.flush()
         this@closeWithTimeout.close(reason)
     } ?: this@closeWithTimeout.cancel()
 }

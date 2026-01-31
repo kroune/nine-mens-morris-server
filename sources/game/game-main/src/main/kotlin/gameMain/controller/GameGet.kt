@@ -20,6 +20,10 @@
 package gameMain.controller
 
 import gameCommon.data.dao.GamesDataServiceI
+import gameMain.data.dao.movesHistory.MovesHistoryServiceI
+import gameMain.data.dao.movesHistory.MovesHistoryStep
+import gameMain.view.requireGameId
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondNullable
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -49,5 +53,17 @@ fun Route.gameRoutingGET() {
         val gamesRepository by inject<GamesDataServiceI>()
         val gameId = gamesRepository.getGameIdByUserId(userId)
         call.respondNullable<Long?>(gameId)
+    }
+    get("/moves-history") {
+        requireValidJwtToken {
+            return@get
+        }
+        requireGameId {
+            return@get
+        }
+        val gameId = call.parameters["gameId"]!!.toLong()
+        val movesHistoryService by inject<MovesHistoryServiceI>()
+        val movesHistory = movesHistoryService.fetchMoveHistory(gameId)
+        call.respond<List<MovesHistoryStep>>(movesHistory)
     }
 }

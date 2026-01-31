@@ -25,7 +25,7 @@ import gameQueue.routing.gameQueueRouting
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-fun Route.gameRouting() {
+internal fun Route.gameRouting() {
     route("game") {
         gameRoutingGET()
         gameMainRouting()

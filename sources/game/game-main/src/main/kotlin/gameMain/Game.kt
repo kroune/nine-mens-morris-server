@@ -110,7 +110,10 @@ internal class Game(
             }
         }
 
-        listOf(firstUserId to firstPlayer, secondUserId to secondPlayer).map { (playerId, playerSession) ->
+        listOf(
+            firstUserId to firstPlayer,
+            secondUserId to secondPlayer,
+        ).map { (playerId, playerSession) ->
             fireAndForgetScope.launch {
                 sendMove(playerId, Movement(null, null), false)
                 sendDataTo(playerId, false, reason.javaClass.simpleName)
@@ -139,7 +142,7 @@ internal class Game(
             val delta =
                 (10 + (if (isFirstUserLost) secondUserRating - firstUserRating else firstUserRating - secondUserRating) / 100)
                     .coerceIn(-50..50)
-            gamesRepository.delete(gameId)
+            gamesRepository.markGameAsDeleted(gameId, reason)
             usersRepository.updateRatingById(firstUserId, if (isFirstUserLost) -delta else delta)
             usersRepository.updateRatingById(secondUserId, if (isFirstUserLost) delta else -delta)
         }
@@ -149,7 +152,6 @@ internal class Game(
 
     override suspend fun sendMove(userId: Long, movement: Movement, opposite: Boolean) {
         val move = Json.encodeToString<Movement>(movement)
-        // TODO: make it wait for end of sending position
         sendDataTo(
             userId = userId, opposite = opposite, data = move,
         )
@@ -188,9 +190,7 @@ internal class Game(
                     }
                 }
 
-                else -> {
-                    error("jwt token must either belong to the first user or to second one")
-                }
+                else -> error("jwt token must either belong to the first user or to second one")
             }
             withTimeout(15.seconds) {
                 playerSession?.send(data)
@@ -257,23 +257,19 @@ internal class Game(
         if (botExistsAndCanMakeMove) {
             val newMove = position.findBestMove(Random.nextInt(2, 4).toUByte()) ?: error("no move found")
             // in one of those cases move won't be sent (since one user is bot)
-            when (isFirstPlayerBot) {
-                true -> {
-                    sendMove(secondUserId, newMove, false)
-                }
-
-                false -> {
-                    sendMove(firstUserId, newMove, false)
-                }
+            val (userId, botUserId) = when (isFirstPlayerBot) {
+                true -> secondUserId to firstUserId
+                false -> firstUserId to secondUserId
             }
-            applyMove(newMove, isFirstPlayerBot)
+            sendMove(userId, newMove, false)
+            applyMove(newMove, isFirstPlayerBot, botUserId)
         }
     }
 
     private val timeForMove = currentConfig.gameConfig.timeForMove
 
-    override suspend fun applyMove(move: Movement, isFirstPlayerPerformedMove: Boolean) {
-        gamesRepository.applyMove(gameId, move)
+    override suspend fun applyMove(move: Movement, isFirstPlayerPerformedMove: Boolean, userId: Long) {
+        gamesRepository.applyMove(gameId, move, userId)
         val previousMoveCount = gamesRepository.getMovesCountByGameId(gameId)
         val position = gamesRepository.getPositionByGameId(gameId)!!
         if (position.gameState() == GameState.End) {
@@ -311,9 +307,7 @@ internal class Game(
                 false
             }
 
-            else -> {
-                error("not a participant")
-            }
+            else -> error("not a participant")
         }
     }
 
@@ -333,9 +327,7 @@ internal class Game(
                 secondPlayer = session
             }
 
-            else -> {
-                error("")
-            }
+            else -> error("")
         }
     }
 

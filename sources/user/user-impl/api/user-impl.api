@@ -14,40 +14,7 @@ public final class user/controller/userinfo/post/UserInfoPostKt {
 	public static final fun userInfoRoutingPOST (Lio/ktor/server/routing/Route;)V
 }
 
-public final class user/data/dao/UsersDataServiceImpl : userApi/data/dao/UsersDataServiceI {
-	public fun <init> (Lorg/jetbrains/exposed/sql/Database;)V
-	public fun create (LuserApi/model/UserData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getCreationDateById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getIdByJwtToken (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getIdByLogin (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getLeaderboard (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getLoginById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getPasswordHash (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getPictureById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getRatingById (JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getRatingByLogin (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun isLoginPresent (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updatePictureById (J[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updatePictureByLogin (Ljava/lang/String;[BLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updateRatingById (JILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun updateRatingByLogin (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public final class user/di/UsersKt {
 	public static final fun getUsersModules ()Lorg/koin/core/module/Module;
-}
-
-public final class user/domain/Bcrypter {
-	public static final field INSTANCE Luser/domain/Bcrypter;
-	public final fun hash (Ljava/lang/String;)Ljava/lang/String;
-	public final fun verify (Ljava/lang/String;Ljava/lang/String;)Z
-}
-
-public final class user/domain/UsersService : org/koin/core/component/KoinComponent, userApi/domain/UsersServiceI {
-	public fun <init> (LuserApi/data/dao/UsersDataServiceI;)V
-	public fun exists (Ljava/lang/String;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getIdByJwtToken (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun getKoin ()Lorg/koin/core/Koin;
-	public fun register (LuserApi/model/InsertUserPayload;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

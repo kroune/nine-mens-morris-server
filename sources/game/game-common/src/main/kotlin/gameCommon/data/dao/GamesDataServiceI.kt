@@ -21,6 +21,7 @@ package gameCommon.data.dao
 
 import com.kroune.nineMensMorrisLib.Position
 import com.kroune.nineMensMorrisLib.move.Movement
+import com.kroune.nineMensMorrisShared.GameEndReason
 
 interface GamesDataServiceI {
     /**
@@ -30,8 +31,7 @@ interface GamesDataServiceI {
      */
     suspend fun create(game: GameData): Boolean
     suspend fun getPositionByGameId(gameId: Long): Position?
-    suspend fun getGameMoveHistory(gameId: Long): List<Movement>?
-    suspend fun applyMove(gameId: Long, move: Movement)
+    suspend fun applyMove(gameId: Long, move: Movement, userId: Long)
     suspend fun getFirstUserIdByGameId(gameId: Long): Long?
     suspend fun getSecondUserIdByGameId(gameId: Long): Long?
     suspend fun getFirstPlayerMovesFirstByGameId(gameId: Long): Boolean?
@@ -43,7 +43,7 @@ interface GamesDataServiceI {
     suspend fun getBotIdByGameId(gameId: Long): Long?
     suspend fun getMovesCountByGameId(gameId: Long): Int?
     suspend fun getGameIdByUserId(userId: Long): Long?
-    suspend fun participates(userId: Long): Boolean
+    suspend fun participatesInExistingGame(gameId: Long, userId: Long): Boolean
     suspend fun exists(gameId: Long): Boolean
-    suspend fun delete(gameId: Long)
+    suspend fun markGameAsDeleted(gameId: Long, gameEndReason: GameEndReason)
 }

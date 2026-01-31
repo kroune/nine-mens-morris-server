@@ -34,7 +34,7 @@ fun Route.gameMainRouting() {
         val userId = usersService.getIdByJwtToken(jwtToken)!!
 
         val gamesDataService by inject<GamesDataServiceI>()
-        if (!gamesDataService.participates(userId)) {
+        if (!gamesDataService.participatesInExistingGame(gameId, userId)) {
             jwtTokenIsNotValidForThisGame()
             return@webSocket
         }
@@ -86,7 +86,7 @@ fun Route.gameMainRouting() {
                 }
                 // send new position to the enemy
                 game.sendMove(userId, movement, true)
-                game.applyMove(movement, isFirstUser)
+                game.applyMove(movement, isFirstUser, userId)
                 // note: checking if the game has ended happens in [GameData.applyMove]
             }
         } catch (e: ClosedReceiveChannelException) {

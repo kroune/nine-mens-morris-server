@@ -5,7 +5,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.RoutingContext
 
-suspend fun RoutingContext.validateDistribution(): Distribution? {
+internal suspend fun RoutingContext.validateDistribution(): Distribution? {
     call.queryParameters["distribution"].let {
         if (it == null) {
             call.respond(HttpStatusCode.BadRequest, "no [distribution] parameter found")
@@ -20,7 +20,7 @@ suspend fun RoutingContext.validateDistribution(): Distribution? {
     }
 }
 
-suspend fun RoutingContext.validateVersion(): Int? {
+internal suspend fun RoutingContext.validateVersion(): Int? {
     call.queryParameters["version"].let {
         if (it == null) {
             call.respond(HttpStatusCode.BadRequest, "no [version] parameter found")

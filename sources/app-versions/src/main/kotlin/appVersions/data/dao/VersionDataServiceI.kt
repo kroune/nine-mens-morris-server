@@ -2,7 +2,7 @@ package appVersions.data.dao
 
 import appVersions.model.Distribution
 
-interface VersionDataServiceI {
+internal interface VersionDataServiceI {
     suspend fun lastVersion(distribution: Distribution): Int?
     suspend fun requiredVersion(version: Int, distribution: Distribution): Int?
     suspend fun addVersion(version: Int, distribution: Distribution, breakingChanges: Boolean)

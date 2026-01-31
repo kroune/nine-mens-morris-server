@@ -5,7 +5,7 @@ import appVersions.version.post.versionRoutingPOST
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.route
 
-fun Route.versionRouting() {
+internal fun Route.versionRouting() {
     route("/version") {
         versionRoutingGET()
         versionRoutingPOST()

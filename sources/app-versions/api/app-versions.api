@@ -1,43 +1,5 @@
-public final class appVersions/data/VersionDataTable : org/jetbrains/exposed/sql/Table {
-	public static final field INSTANCE LappVersions/data/VersionDataTable;
-	public final fun getBreakingChanges ()Lorg/jetbrains/exposed/sql/Column;
-	public final fun getDistribution ()Lorg/jetbrains/exposed/sql/Column;
-	public final fun getVersion ()Lorg/jetbrains/exposed/sql/Column;
-}
-
-public abstract interface class appVersions/data/dao/VersionDataServiceI {
-	public abstract fun addVersion (ILappVersions/model/Distribution;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun lastVersion (LappVersions/model/Distribution;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public abstract fun requiredVersion (ILappVersions/model/Distribution;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
-public final class appVersions/data/dao/VersionDataServiceImpl : appVersions/data/dao/VersionDataServiceI {
-	public fun <init> (Lorg/jetbrains/exposed/sql/Database;)V
-	public fun addVersion (ILappVersions/model/Distribution;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun lastVersion (LappVersions/model/Distribution;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public fun requiredVersion (ILappVersions/model/Distribution;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-}
-
 public final class appVersions/di/VersionKt {
 	public static final fun getVersionModule ()Lorg/koin/core/module/Module;
-}
-
-public final class appVersions/model/Distribution : java/lang/Enum {
-	public static final field Android LappVersions/model/Distribution;
-	public static final field Desktop LappVersions/model/Distribution;
-	public static final field Ios LappVersions/model/Distribution;
-	public static final field IosArm64 LappVersions/model/Distribution;
-	public static final field IosSimulatorArm64 LappVersions/model/Distribution;
-	public static final field IosX64 LappVersions/model/Distribution;
-	public static final field WasmJs LappVersions/model/Distribution;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)LappVersions/model/Distribution;
-	public static fun values ()[LappVersions/model/Distribution;
-}
-
-public final class appVersions/version/ValidationKt {
-	public static final fun validateDistribution (Lio/ktor/server/routing/RoutingContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public static final fun validateVersion (Lio/ktor/server/routing/RoutingContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class appVersions/version/get/VersionGetKt {

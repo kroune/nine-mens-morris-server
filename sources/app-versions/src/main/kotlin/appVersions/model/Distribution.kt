@@ -1,6 +1,6 @@
 package appVersions.model
 
-enum class Distribution {
+internal enum class Distribution {
     Android,
     Ios,
     IosSimulatorArm64,

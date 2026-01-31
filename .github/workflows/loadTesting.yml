@@ -33,7 +33,7 @@ jobs:
           cp .github/workflows/2000-rps.js ~/
 
       - name: Run tests
-        run: gradle test --rerun-tasks
+        run: gradle test --rerun
 
       - name: Build jar
         run: gradle build

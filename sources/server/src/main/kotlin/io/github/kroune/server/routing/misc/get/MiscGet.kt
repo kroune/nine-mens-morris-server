@@ -27,7 +27,7 @@ import io.ktor.server.routing.get
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun Route.miscRoutingGET() {
+internal fun Route.miscRoutingGET() {
     get("/") {
         call.respondText("Hello, world, this is nine mens morris server!")
     }

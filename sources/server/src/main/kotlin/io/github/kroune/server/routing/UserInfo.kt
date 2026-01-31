@@ -24,7 +24,7 @@ import io.ktor.server.routing.route
 import user.controller.userinfo.get.userInfoRoutingGET
 import user.controller.userinfo.post.userInfoRoutingPOST
 
-fun Route.userInfoRouting() {
+internal fun Route.userInfoRouting() {
     route("user") {
         userInfoRoutingPOST()
         userInfoRoutingGET()
